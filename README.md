@@ -1,6 +1,19 @@
-# Grub-To-Go
-A basic food menu project created with basic python skills
-<br>
-It involves the use of python frontend skills for a Tkinter window
-<br>
-A very basic programming project developed in the first intial 2 months of my engineering semesters.
+🍔 Grub-To-Go 🍕
+A simple food menu application using Python and Tkinter.
+
+🚀 Overview
+Grub-To-Go is a beginner-friendly project showcasing basic Python and UI skills.
+
+🎯 Features
+✅ User-friendly Tkinter GUI
+✅ Displays a basic food menu
+✅ Simple item selection
+
+🛠 Technologies Used
+🐍 Python
+🖥 Tkinter
+
+🔮 Future Enhancements
+✨ Backend for order storage
+✨ Improved UI
+✨ Payment integration
