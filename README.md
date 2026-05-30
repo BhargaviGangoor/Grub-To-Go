@@ -1,1119 +1,501 @@
-# GrubToGo
+# GrubToGo 🍜
+### Agentic AI Powered Custom Dish Generation & Secure Dining Orchestration
 
-## Agentic AI Powered Custom Dish Generation & Secure Dining Orchestration
-
----
-
-# Vision
-
-GrubToGo is an autonomous AI-driven dining platform that dynamically generates custom dishes based on:
-
-* uploaded food inspirations
-* user cravings/preferences
-* restaurant inventory
-* dietary restrictions
-* kitchen feasibility
-* budget constraints
-
-Unlike traditional food ordering apps where users manually choose static dishes from a menu, GrubToGo uses Agentic AI workflows to autonomously synthesize entirely new dishes in real time.
-
-After the dish is finalized, the system generates a secure Dining Commitment Token (DCT) — a cryptographically signed, expiring capability token that temporarily reserves inventory, locks pricing, and authorizes one-time kitchen preparation.
+> **This is both a working platform AND a research project.**
+> Every time you open this repo, read this section first.
 
 ---
 
-# Core Problem
+## 🧠 The Research Idea (Read This First, Every Time)
 
-Traditional restaurant systems are limited because:
+### What You Are Studying
 
-* menus are static
-* customization is minimal
-* inventory utilization is inefficient
-* food wastage occurs frequently
-* fake/spam custom orders waste resources
-* group dining coordination is chaotic
+**Commitment Amplification** — a newly named security threat where:
 
-Users often want:
+1. An LLM validates constraints (budget ✓, inventory ✓, dietary ✓)
+2. The LLM is probabilistic — it can be wrong, hallucinate, or work on stale data
+3. A cryptographic signature converts that uncertain output into a **hard, irreversible commitment** (DCT)
+4. Physical resources get locked — ingredients reserved, kitchen fired, customer charged
+5. The signing step **amplified** a soft probabilistic failure into an irreversible physical harm
 
-* personalized dishes
-* cuisine fusion
-* dietary-aware meals
-* budget-constrained meals
-* dishes inspired from social media food content
-
-Restaurants struggle to dynamically create and securely manage such requests.
+**The core insight:** cryptographic signing, designed for security, becomes a harm propagation mechanism when placed downstream of a flawed LLM validator.
 
 ---
 
-# Solution
+### The Temporal Gap (Your Unique Contribution)
 
-GrubToGo introduces:
-
-# Autonomous AI Dish Orchestration
-
-Users can:
-
-* upload food images
-* choose existing dishes
-* describe cravings/preferences
-* specify dietary and budget constraints
-
-The Agentic AI system then:
-
-1. analyzes user intent
-2. extracts food characteristics using multimodal AI
-3. checks live inventory
-4. estimates ingredient costs
-5. validates kitchen feasibility
-6. optimizes ingredient usage
-7. generates a completely new custom dish
-8. dynamically adjusts recipes if constraints fail
-
-Once finalized, the system creates a:
-
-# Dining Commitment Token (DCT)
-
-The DCT securely:
-
-* reserves ingredients
-* locks pricing
-* reserves kitchen preparation capacity
-* prevents replay abuse
-* expires automatically after a fixed duration
-
----
-
-# Example Workflow
-
-## User Prompt
-
-> “Create a creamy vegetarian spicy noodle dish under ₹300 inspired by these uploaded ramen and pasta images.”
-
----
-
-# Agent Workflow
-
-analyze_images() →
-extract_flavor_profiles() →
-check_inventory() →
-estimate_cost() →
-generate_custom_recipe() →
-validate_budget() →
-optimize_quantities() →
-reserve_ingredients() →
-generate_DCT()
-
----
-
-# Example Generated Dish
-
-## “Spicy Creamy Paneer Chili Udon”
-
-Generated using:
-
-* available inventory
-* budget constraints
-* flavor analysis
-* kitchen feasibility
-
-Estimated Cost:
-
-* ₹270
-
-Estimated Prep Time:
-
-* 18 mins
-
----
-
-# Dining Commitment Token (DCT)
-
-Example:
-
-DCT-CUSTOM-X82A
-
-* Dish: Spicy Creamy Paneer Chili Udon
-* Reserved Ingredients Locked
-* Price Locked: ₹270
-* Valid: 20 mins
-
----
-
-# Why DCT Exists
-
-Without DCT:
-
-* users could spam custom dishes
-* inventory could get abused
-* kitchens could waste ingredients
-* pricing could fluctuate
-
-The DCT acts like:
-
-# A temporary AI-generated preparation contract.
-
----
-
-# Core AI Concepts Used
-
-## 1. Agentic AI
-
-The AI does NOT generate a single response.
-
-Instead, it autonomously executes:
-
-* reasoning loops
-* retries
-* tool orchestration
-* decision chains
-* stateful workflows
-
-### Concepts
-
-* ReAct agents
-* Tool calling
-* Stateful orchestration
-* Autonomous retries
-* Constraint-based reasoning
-* Multi-step planning
-
----
-
-## 2. Multimodal AI
-
-The platform uses vision-enabled models to understand uploaded food images.
-
-Capabilities:
-
-* flavor profile extraction
-* cuisine understanding
-* texture/style analysis
-* ingredient estimation
-* plating inspiration
-
----
-
-## 3. Constraint Optimization
-
-The AI continuously balances:
-
-* inventory availability
-* dietary restrictions
-* kitchen feasibility
-* budget constraints
-* ingredient optimization
-* food wastage reduction
-
----
-
-## 4. Tool Orchestration
-
-The AI agent autonomously calls backend tools/functions.
-
-Example:
-
-```python
-check_inventory()
-estimate_cost()
-generate_recipe()
-validate_feasibility()
-reserve_ingredients()
-generate_dct()
+```
+[GENERATION TIME]                        [REDEMPTION TIME]
+─────────────────                        ───────────────────
+AI checks: paneer = in stock      →      paneer = OUT of stock
+AI checks: cost = ₹270            →      cost = ₹380
+AI checks: dietary = veg ✓        →      supplier changed ingredient
+DCT gets signed with this state   →      DCT gets honored by kitchen
+                    ↑
+         THE GAP NOBODY SECURES
 ```
 
----
-
-# Cybersecurity Architecture
-
-## Capability-Based Security
-
-The Dining Commitment Token (DCT) is implemented as:
-
-# A cryptographically signed, expiring capability token.
-
-The token grants LIMITED permissions to:
-
-* reserve ingredients
-* authorize kitchen preparation
-* redeem locked pricing
-* perform one-time preparation actions
-
-This architecture is inspired by:
-
-* cloud temporary credentials
-* signed access URLs
-* distributed authorization systems
-* API capability security
+**Every prior paper secures either generation time OR redemption time. Nobody secures the interval between them. That interval is yours.**
 
 ---
 
-## Replay Attack Prevention
-
-Each DCT:
-
-* has a unique identifier
-* can only be redeemed once
-* expires automatically
-
-This prevents:
-
-* duplicate redemption
-* replay attacks
-* reservation abuse
-* inventory exhaustion
-
----
-
-## Cryptographic Signing
-
-DCTs are cryptographically signed.
-
-This prevents:
-
-* token tampering
-* forged reservations
-* modified pricing
-* unauthorized dish manipulation
-
----
-
-## Distributed Resource Locking
-
-Temporary inventory locking ensures:
-
-* synchronized ingredient reservation
-* prevention of overbooking
-* real-time kitchen coordination
-
-Redis-based distributed locks manage temporary state consistency.
-
----
-
-# Complete User Flow
-
-## Step 1
-
-User:
-
-* uploads food images
-  OR
-* selects dishes
-  OR
-* describes cravings
-
----
-
-## Step 2
-
-AI analyzes:
-
-* flavors
-* cuisine style
-* texture
-* budget
-* dietary constraints
-
----
-
-## Step 3
-
-Agentic orchestration begins:
-
-plan() →
-check_inventory() →
-generate_recipe() →
-calculate_cost() →
-validate_constraints() →
-optimize_recipe() →
-if invalid → regenerate()
-
----
-
-## Step 4
-
-AI finalizes custom dish.
-
----
-
-## Step 5
-
-DCT generated.
-
----
-
-## Step 6
-
-Inventory temporarily locked.
-
----
-
-## Step 7
-
-Kitchen validates DCT and prepares dish.
-
----
-
-# Tech Stack
-
-# Frontend
-
-* Next.js
-* React
-* TypeScript
-* TailwindCSS
-
-Purpose:
-
-* image uploads
-* live AI generation
-* dynamic UI
-* DCT countdown timers
-* responsive modern interface
-
----
-
-# Backend
-
-* Node.js
-* Express.js
-* TypeScript
-* WebSockets
-
-Purpose:
-
-* API orchestration
-* inventory management
-* DCT validation
-* real-time updates
-* frontend/backend communication
-
----
-
-# AI Microservice
-
-* Python
-* LangGraph
-* Gemini API
-
-Purpose:
-
-* multimodal reasoning
-* agentic orchestration
-* stateful workflows
-* retries and tool calling
-* autonomous recipe generation
-
----
-
-# Database
-
-* PostgreSQL
-
-Stores:
-
-* inventory
-* recipes
-* users
-* DCTs
-* reservations
-
----
-
-# Real-Time Systems
-
-* Redis
-
-Used for:
-
-* temporary inventory locks
-* DCT expiry management
-* active kitchen queues
-* distributed state synchronization
-
----
-
-# Cybersecurity Stack
-
-* JWT
-* PyJWT
-* HMAC signing
-* Redis distributed locks
-* Replay prevention
-* Capability-based security
-
----
-
-# System Architecture
-
-# Layer 1 — Frontend
-
-User interaction.
-
----
-
-# Layer 2 — Backend Layer
-
-Node.js + Express APIs.
-
----
-
-# Layer 3 — Agent Orchestrator
-
-Python LangGraph autonomous workflows.
-
----
-
-# Layer 4 — Tool Layer
-
-Inventory APIs.
-Cost estimation.
-Recipe generation.
-Kitchen feasibility.
-
----
-
-# Layer 5 — Security Layer
-
-DCT generation and validation.
-
----
-
-# Layer 6 — Database Layer
-
-Persistent storage and inventory state.
-
----
-
-# MVP (Minimum Viable Product)
-
-DO NOT build everything initially.
-
-The MVP should ONLY include:
-
-## MUST HAVE
-
-* image upload
-* AI dish generation
-* inventory-aware recipe validation
-* budget validation
-* dietary filtering
-* DCT generation
-* token expiration
-* simple frontend UI
-
-That alone is enough for a strong demo.
-
----
-
-# Recommended Build Order
-
-| Priority | Build                           |
-| -------- | ------------------------------- |
-| 1        | Next.js frontend UI             |
-| 2        | Node.js + Express backend       |
-| 3        | PostgreSQL inventory system     |
-| 4        | Simple Gemini recipe generation |
-| 5        | Inventory-aware regeneration    |
-| 6        | Image upload + Gemini Vision    |
-| 7        | LangGraph orchestration         |
-| 8        | DCT security layer              |
-| 9        | Frontend polish                 |
-| 10       | Optional advanced features      |
-
----
-
-# Recommended Folder Structure
-
-```text
-frontend/      → Next.js frontend
-backend/       → Node.js + Express APIs
-ai-service/    → Python LangGraph orchestration
+### Your Solution: Generation-Bound DCT (GB-DCT)
+
+The token is not just signed — it is **cryptographically derived** from the exact multimodal parameters that generated the dish:
+
+```
+GB-DCT = HMAC(
+  hash(image_embeddings),
+  hash(inventory_snapshot_at_T),
+  hash(budget_constraint),
+  hash(dietary_rules),
+  timestamp_T
+)
 ```
 
-This keeps:
-
-* frontend modular
-* backend scalable
-* AI workflows isolated
-* debugging easier
+At redemption time, the system recomputes this hash from **live world state**. If anything drifted, the token **cannot be regenerated** — it self-invalidates. Not via an external check. Via its own derivation.
 
 ---
 
-# Detailed Project Building Roadmap
+### How You Beat The Three Closest Papers
 
-# Phase 1 — Frontend Foundation
+| Paper | What They Do | Why You're Different |
+|---|---|---|
+| **TOPLOC** | Hash inference activations to verify computation | They verify *computational* fidelity. You verify *constraint* fidelity. A model can compute perfectly on stale inputs. |
+| **HDP** | Cryptographically chain who authorized what | They bind *identity* provenance. You bind *world-state* provenance. Knowing who approved doesn't matter if the state they approved no longer holds. |
+| **Derived Permissions Patent** | Derive access permissions from input context | Access control at one moment. You secure validity *across* the gap between two moments. |
 
-## Goal
-
-Build the user interface FIRST.
-
-### Build:
-
-* homepage
-* image upload section
-* prompt input
-* dietary filters
-* budget input
-* generated dish cards
-* DCT display section
-
-### Stack
-
-* Next.js
-* React
-* TailwindCSS
+**One sentence that kills all three:**
+> *Prior work secures either the generation moment or the redemption moment. We secure the interval between them.*
 
 ---
 
-# Phase 2 — Backend Foundation
+### Confirmed Novelty (3 Independent Sources)
 
-## Goal
+- ✅ Claude search: no paper covers all 4 points together
+- ✅ Perplexity deep search: "genuinely greenfield territory"
+- ✅ Elicit: "unexplored research direction in current literature"
 
-Build APIs and inventory system BEFORE advanced AI orchestration.
+**Closest competitor to read:** Tianxiao Li et al. (2026) — *Constraint State Governance in Multi-Agent Systems*. Their solution is governance-based. Yours is cryptographic. Cite and differentiate.
 
-### Build:
+---
 
-* Express backend
-* PostgreSQL setup
-* Inventory APIs
-* Menu APIs
-* DCT APIs
+## 📄 Research Paper Outline
 
-### APIs Needed
+### Title
+**"Commitment Amplification: How Cryptographic Signing Transforms LLM Constraint Validation Failures into Irreversible Physical Harm in Agentic Pipelines"**
 
-```python
-GET /menu
-POST /menu
-GET /inventory
-UPDATE /inventory
+### Sections
+
+**Section 1 — Introduction**
+- Define Commitment Amplification
+- The temporal gap as the attack surface
+- GrubToGo as the empirical testbed
+
+**Section 2 — Background**
+- Agentic pipelines and capability tokens
+- LLM constraint validation failures
+- Cryptographic commitment schemes
+- Cite: TOPLOC, HDP, DART, SAVER, Constraint State Governance
+
+**Section 3 — Threat Model**
+```
+A  = LLM constraint check result (binary, possibly wrong)
+C  = cryptographic commitment (DCT signing)
+H(C) = harm surface after commitment
+
+Claim: H(C | A = false positive) >> H(A = false positive alone)
+```
+The signing step is the amplifier, not the LLM alone.
+
+**Section 4 — System: GrubToGo**
+- Architecture overview
+- The DCT pipeline
+- Where Commitment Amplification occurs
+
+**Section 5 — Generation-Bound DCT (GB-DCT)**
+- Token derivation from multimodal generation parameters
+- Self-invalidation mechanism
+- How it closes the temporal gap
+
+**Section 6 — Experiments**
+- How often does the LLM fail constraint checks? (accuracy)
+- What is the harm surface before vs. after DCT signing? (reversibility)
+- Drift simulation: how often does world state change between generation and redemption?
+- Can existing defenses (SAVER, DART) catch this? (comparison)
+
+**Section 7 — Mitigations**
+- GB-DCT as primary defense
+- Pre-signing verification layer
+- Human-in-the-loop gate for high-irreversibility tokens
+
+**Section 8 — Generalization**
+- Medical supply ordering (same architecture, higher stakes)
+- Autonomous drone dispatch
+- Smart grid energy commitment
+- GrubToGo is the microcosm
+
+---
+
+## 🏗️ Build Order (Platform + Research Together)
+
+### Phase 1 — Frontend (Week 1)
+Build the UI. This is also your demo for the paper.
+- Homepage, image upload, prompt input
+- Dietary filters, budget input
+- Generated dish cards
+- DCT display with countdown timer
+- **Research instrument:** add visible constraint checking status
+
+**Stack:** Next.js, React, TailwindCSS
+
+---
+
+### Phase 2 — Backend Foundation (Week 1-2)
+Build APIs before AI.
+
+```
+GET  /menu
+GET  /inventory
 POST /generate-dish
 POST /generate-dct
 POST /redeem-dct
+POST /validate-dct        ← research endpoint: checks GB-DCT validity
+GET  /constraint-log      ← research endpoint: logs every constraint check
 ```
 
----
+**Stack:** Node.js, Express, TypeScript, PostgreSQL
 
-# Phase 3 — Basic AI Generation
-
-## Goal
-
-Prove recipe generation works.
-
-### Use:
-
-* Gemini API
-
-### Input Example
-
-"Creamy vegetarian spicy noodle dish under ₹300"
-
-### Output
-
-* recipe
-* ingredients
-* quantities
-* estimated cost
+**Research instrument:** log every constraint check with:
+- what LLM validated
+- actual ground truth at that moment
+- match or mismatch
 
 ---
 
-# Phase 4 — Inventory Awareness
+### Phase 3 — Basic AI Generation (Week 2)
+Prove recipe generation works with Gemini API.
 
-## Goal
+Input: `"Creamy vegetarian spicy noodle dish under ₹300"`
+Output: recipe, ingredients, quantities, estimated cost
 
-Make AI validate real inventory.
+---
 
-### Flow
-
-1. AI generates dish
-2. Backend checks inventory
-3. If ingredients unavailable:
-   regenerate recipe
-
-### Example Loop
+### Phase 4 — Inventory Awareness (Week 2-3)
+First real agentic loop. **Also your first research experiment.**
 
 ```python
 while not inventory_valid:
     regenerate_recipe()
 ```
 
-This becomes your FIRST real agentic workflow.
+**Research instrument here:** inject deliberate constraint failures:
+- Tell AI paneer is available when it isn't
+- Tell AI cost is ₹270 when it's ₹380
+- Measure: does the LLM catch it? How often?
+
+This gives you **Table 1** of your paper: LLM constraint validation accuracy.
 
 ---
 
-# Phase 5 — Multimodal AI
+### Phase 5 — Multimodal AI (Week 3)
+Image upload + Gemini Vision analysis.
 
-## Goal
+- Flavor profile extraction from uploaded food photos
+- Cuisine style understanding
+- Ingredient inspiration
 
-Enable image-based inspiration.
-
-### Features
-
-* image upload
-* Gemini Vision analysis
-* flavor extraction
-* cuisine style understanding
-
-The AI should infer:
-
-* textures
-* flavors
-* cuisine types
-* ingredient inspirations
+**Research instrument:** record image embedding vectors — these become inputs to GB-DCT later.
 
 ---
 
-# Phase 6 — Full Agentic Orchestration
+### Phase 6 — Full Agentic Orchestration (Week 3-4)
+LangGraph implementation.
 
-## Goal
-
-Implement real autonomous workflows.
-
-### Use:
-
-* LangGraph
-
-### LangGraph Nodes
-
+```
 Analyze User Input
-↓
-Analyze Food Images
-↓
+      ↓
+Analyze Food Images → extract embeddings → SNAPSHOT_T
+      ↓
 Generate Recipe
-↓
-Check Inventory
-↓
-Estimate Cost
-↓
-Validate Constraints
-↓
+      ↓
+Check Inventory → SNAPSHOT_T
+      ↓
+Estimate Cost → SNAPSHOT_T
+      ↓
+Validate Constraints → LOG RESULT
+      ↓
 Generate DCT
+```
+
+**All snapshots at time T get saved. This is your GB-DCT input.**
 
 ---
 
-# Phase 7 — DCT Security System
+### Phase 7 — GB-DCT Security Layer (Week 4) ← Core Research
+This is your main contribution. Implement it carefully.
 
-## Goal
-
-Implement secure capability tokens.
-
-### DCT Payload Example
-
+**Standard DCT (what exists):**
 ```json
 {
   "dish_id": "dish_91",
   "locked_inventory": ["paneer", "udon"],
   "price": 270,
   "expiry": "2026-05-17T18:00",
-  "redeem_once": true
+  "redeem_once": true,
+  "signature": "HMAC(payload, secret)"
 }
 ```
 
-### Features
+**GB-DCT (your contribution):**
+```json
+{
+  "dish_id": "dish_91",
+  "locked_inventory": ["paneer", "udon"],
+  "price": 270,
+  "expiry": "2026-05-17T18:00",
+  "redeem_once": true,
+  "generation_root": {
+    "image_hash": "sha256(raw_image_bytes)",
+    "inventory_snapshot_hash": "sha256(inventory_at_T)",
+    "budget_hash": "sha256(300)",
+    "dietary_hash": "sha256([vegetarian])",
+    "timestamp_T": "2026-05-17T17:40:00"
+  },
+  "signature": "HMAC(payload + generation_root, secret)"
+}
+```
 
-* signed tokens
-* expiry validation
-* replay prevention
-* Redis inventory locking
-
----
-
-# Phase 8 — Frontend Intelligence & UX
-
-## Features
-
-* image uploads
-* live AI generation
-* generated dish cards
-* DCT countdown timers
-* live agent reasoning status
-
-### Example Live Status
-
-Checking inventory...
-Optimizing recipe...
-Generating custom dish...
-Validating budget...
-Generating DCT...
-
-This makes the AI visibly “think”.
-
----
-
-# Phase 9 — Demo Polish
-
-## Judges care about visible intelligence.
-
-The system should visibly:
-
-* retry
-* regenerate
-* optimize
-* validate constraints
-* dynamically adapt
-
-That makes the project feel truly agentic.
+At redemption:
+```python
+def validate_gb_dct(token, live_inventory, live_price):
+    expected_root = compute_generation_root(
+        live_inventory,
+        live_price,
+        token.dietary_rules,
+        token.timestamp_T
+    )
+    if expected_root != token.generation_root:
+        raise CommitmentAmplificationRisk("World state drifted. Token invalid.")
+    return redeem(token)
+```
 
 ---
 
-# Optional Advanced Features
+### ⚠️ The Image Embedding Stability Problem (And How You Solve It)
 
-## AI Token Negotiation
+**The problem:**
 
-Ingredient unavailable?
-AI proposes alternatives.
+```
+User uploads ramen image
+         ↓
+Gemini generates embedding: [0.7823, 0.2341, 0.9012, ...]
+         ↓
+You hash this → abc123 → DCT signed with abc123
 
----
+--- 20 mins later at redemption ---
 
-## Kitchen Queue Optimization
+Recompute embedding of same image → [0.7824, 0.2341, 0.9011, ...]
+                                              ↑ slightly different float
+Hash → xyz789  ≠  abc123
+         ↓
+TOKEN ALWAYS INVALID (false alarm — world didn't actually drift)
+```
 
-AI balances prep load.
+LLM embedding models are non-deterministic. Same image → slightly different floats every run. Naively hashing embeddings breaks your token every time, for the wrong reason.
 
----
+**Three options — pick one:**
 
-## AI Wastage Reduction
+| Option | How | Pros | Cons |
+|---|---|---|---|
+| **✅ Option 1 (Recommended)** | Hash raw image bytes once at generation. Never re-embed at redemption. | Simple, deterministic, always stable | Image semantics not re-verified — but image doesn't change after upload anyway |
+| Option 2 | Perceptual hash (pHash) the image directly | Stable across compression/format differences | Doesn't capture semantic meaning |
+| Option 3 | Quantize embedding floats before hashing | Semantically meaningful | Need to tune decimal places carefully |
 
-Predicts excess food generation.
+**Use Option 1. Here's why it's also the correct research choice:**
 
----
+> The image is immutable once uploaded — the user uploads it once at generation time and it doesn't change. Re-embedding at redemption adds cryptographic instability without security benefit. Drift detection only needs to apply to the **mutable world state components** — inventory, pricing, and dietary constraints — which are the variables that actually change between generation and redemption time.
 
-## Group Collaborative Ordering
+**Implementation:**
 
-Multiple users modify meal live.
+```python
+def compute_generation_root(image_bytes, inventory, budget, dietary, timestamp):
+    return {
+        # image: hash raw bytes once — stable, never re-embed
+        "image_hash": sha256(image_bytes).hexdigest(),
 
----
+        # these three are your actual drift detectors
+        # recomputed at redemption against live state
+        "inventory_hash": sha256(
+            json.dumps(inventory, sort_keys=True).encode()
+        ).hexdigest(),
+        "budget_hash": sha256(str(budget).encode()).hexdigest(),
+        "dietary_hash": sha256(
+            json.dumps(sorted(dietary)).encode()
+        ).hexdigest(),
 
-# Biggest Advice
+        "timestamp_T": timestamp
+    }
+```
 
-DO NOT overbuild.
+**At generation:** compute all four hashes, store `image_hash` in DB alongside DCT.
 
-Your innovation is NOT:
+**At redemption:** recompute only the bottom three against live state. Verify `image_hash` matches the stored value (tamper check, not drift check).
 
-* perfect food generation
-* chef-level AI
-* blockchain gimmicks
-
-Your REAL innovation is:
-
-# autonomous AI orchestration + secure capability-based dining workflows.
-
----
-
-# Questions To Ask Claude / Perplexity
-
-## Novelty Validation Prompt
-
-"Does there exist any startup or research system where multimodal agentic AI generates entirely new restaurant dishes dynamically from user-uploaded food inspirations while considering inventory, budget, and kitchen feasibility, followed by cryptographically secured temporary preparation tokens?"
-
----
-
-## Competitor Comparison Prompt
-
-"Compare my GrubToGo idea against existing AI recipe generators and restaurant AI systems. Is autonomous inventory-aware custom dish synthesis with secure Dining Commitment Tokens novel?"
-
----
-
-## Technical Validation Prompt
-
-"Is the combination of ReAct-style autonomous meal generation agents, multimodal food understanding, distributed inventory locking, and capability-based Dining Commitment Tokens a commercially existing architecture?"
-
----
-
-# Final Project Positioning
-
-GrubToGo is not a traditional food ordering platform.
-
-Its primary innovation is:
-
-# autonomous AI-driven custom dish synthesis combined with secure capability-token-based dining orchestration.
-
-The platform transforms restaurant ordering into a real-time intelligent orchestration system capable of dynamically generating feasible custom meals while securely coordinating inventory, pricing, and preparation workflows.
-
-
-
-![GitHub license](https://img.shields.io/github/license/BhargaviGangoor/Grub-To-Go)
-![GitHub stars](https://img.shields.io/github/stars/BhargaviGangoor/Grub-To-Go?style=social)
+**One sentence for your paper:**
+> *"The image embedding is captured once at generation time and its hash embedded in the GB-DCT; drift detection applies exclusively to the mutable world state components — inventory, pricing, and dietary constraints — which are the variables that actually change between generation and redemption time."*
 
 ---
 
-## Table of Contents
-- [Overview](#overview)
-- [Core Problem](#core-problem)
-- [Solution](#solution)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+### Phase 8 — Research Experiments (Week 4-5)
 
-## Overview
+Run these scenarios and record results:
 
-GrubToGo is an autonomous AI-driven dining platform that dynamically generates custom dishes based on user preferences, uploaded food inspirations, restaurant inventory, dietary constraints, and budget limitations.
+**Experiment 1: Constraint Failure Rate**
+- Inject N false inventory states
+- Measure: how often does LLM fail to catch it?
+- Output: Table 1 — LLM constraint validation accuracy
 
-Unlike traditional food ordering systems where users manually choose from static menus, GrubToGo uses Agentic AI workflows to autonomously reason through multiple constraints and synthesize entirely new dishes in real time.
+**Experiment 2: Amplification Measurement**
+- Standard DCT: how often does a constraint failure become a committed harm?
+- GB-DCT: same test — does self-invalidation catch it?
+- Output: Table 2 — harm surface reduction
 
-After a custom dish is finalized, the system generates a secure Dining Commitment Token (DCT) — a cryptographically signed, expiring capability token that temporarily reserves ingredients, locks dynamic pricing, and authorizes one-time kitchen preparation.
+**Experiment 3: World State Drift**
+- Simulate realistic inventory changes between generation and redemption
+- Measure: how often does GB-DCT self-invalidate correctly?
+- Output: Table 3 — drift detection accuracy
 
-The project combines:
-
-* Agentic AI
-* Multimodal AI
-* Secure capability-based architecture
-* Distributed inventory locking
-* Real-time orchestration
-* Cybersecurity concepts used in industry systems
-
----
-
-# Core Problem
-
-Traditional restaurant systems are static:
-
-* limited menu flexibility
-* manual customization
-* inefficient inventory utilization
-* food wastage
-* reservation abuse
-* fake or spam custom orders
-
-Customers often want:
-
-* personalized dishes
-* cuisine fusion
-* dietary-aware meals
-* budget-constrained combinations
-* dishes inspired from online food content
-
-But restaurants struggle to dynamically create and safely manage such requests in real time.
+**Experiment 4: Comparison Against Baselines**
+- SAVER-style pre-commitment verification: catch rate?
+- DART-style rollback: catch rate?
+- GB-DCT: catch rate?
+- Output: Table 4 — comparative defense evaluation
 
 ---
 
-# Solution
+### Phase 9 — Frontend Polish + Demo (Week 5)
 
-GrubToGo introduces:
+Make the research **visible** in the UI:
 
-## Autonomous AI Dish Orchestration
+```
+[AGENT STATUS]
+✓ Analyzing uploaded ramen image...
+✓ Extracting flavor profile: spicy, creamy, umami
+✓ Checking inventory snapshot... [SNAPSHOT LOCKED]
+✓ Budget validated: ₹270 < ₹300
+✓ Generating GB-DCT with generation root hash...
+⚠ World state drift detected at redemption — token invalidated
+```
 
-Users can:
-
-* upload food images
-* select existing menu items
-* describe cravings/preferences
-* specify dietary and budget constraints
-
-The Agentic AI system then:
-
-1. analyzes user intent
-2. extracts food characteristics using multimodal AI
-3. checks live inventory
-4. estimates ingredient costs
-5. validates kitchen feasibility
-6. optimizes ingredient usage
-7. generates a completely new custom dish
-8. dynamically adjusts recipes if constraints fail
-
-Once finalized, the system creates a:
-
-# Dining Commitment Token (DCT)
-
-The DCT securely:
-
-* reserves ingredients
-* locks pricing
-* reserves kitchen preparation capacity
-* prevents replay abuse
-* expires automatically after a fixed duration
+Judges and reviewers both need to **see** the system thinking.
 
 ---
 
-# Example Workflow
+## 📁 Folder Structure
 
-User Prompt:
-
-> “Create a creamy vegetarian spicy noodle dish under ₹300 inspired by these uploaded ramen and pasta images.”
-
-Agent Workflow:
-analyze_images() →
-extract_flavor_profiles() →
-check_inventory() →
-estimate_cost() →
-generate_custom_recipe() →
-validate_budget() →
-optimize_quantities() →
-reserve_ingredients() →
-generate_DCT()
-
-Generated Dish:
-
-> “Spicy Creamy Paneer Chili Udon”
-
-Generated DCT:
-
-* valid for 20 minutes
-* locks inventory
-* authorizes one-time preparation
-* cryptographically signed
-
----
-
-# AI Concepts Used
-
-## Agentic AI
-
-The AI does not generate a single response.
-Instead, it autonomously executes multi-step reasoning loops and tool orchestration workflows.
-
-Concepts:
-
-* ReAct agents
-* Tool calling
-* Stateful orchestration
-* Autonomous retries
-* Constraint-based reasoning
-* Multi-step planning
-
----
-
-## Multimodal AI
-
-The platform uses vision-enabled models to understand uploaded food images.
-
-Capabilities:
-
-* flavor profile extraction
-* cuisine understanding
-* texture/style analysis
-* ingredient estimation
-* plating inspiration
+```
+grubtogo/
+├── frontend/              → Next.js UI
+│   └── components/
+│       ├── ImageUpload
+│       ├── DishCard
+│       ├── DCTCountdown
+│       └── AgentStatus    ← shows live constraint checking
+│
+├── backend/               → Node.js + Express
+│   ├── routes/
+│   │   ├── inventory.ts
+│   │   ├── dct.ts
+│   │   └── research/      ← research-only endpoints
+│   │       ├── constraint-log.ts
+│   │       └── drift-simulation.ts
+│   └── lib/
+│       └── gb-dct.ts      ← GB-DCT generation and validation
+│
+├── ai-service/            → Python LangGraph
+│   ├── agents/
+│   │   ├── image_analyzer.py
+│   │   ├── recipe_generator.py
+│   │   ├── constraint_validator.py  ← log everything here
+│   │   └── dct_generator.py        ← GB-DCT root computation
+│   └── tools/
+│       ├── check_inventory.py
+│       ├── estimate_cost.py
+│       └── snapshot.py    ← world state snapshot at T
+│
+├── research/              ← paper artifacts
+│   ├── experiments/
+│   │   ├── constraint_failure_rate.py
+│   │   ├── amplification_measurement.py
+│   │   ├── drift_simulation.py
+│   │   └── baseline_comparison.py
+│   ├── data/              ← experimental results (CSV)
+│   ├── figures/           ← plots for paper
+│   └── paper/             ← LaTeX source
+│
+└── README.md              ← this file
+```
 
 ---
 
-## Constraint Optimization
+## 🔑 Key Definitions (Keep These Sharp)
 
-The AI continuously balances:
-
-* inventory availability
-* dietary restrictions
-* kitchen feasibility
-* budget constraints
-* ingredient optimization
-* food wastage reduction
-
----
-
-# Cybersecurity Architecture
-
-## Capability-Based Security
-
-The Dining Commitment Token (DCT) is implemented as a cryptographically signed capability token.
-
-The token grants limited permissions to:
-
-* reserve ingredients
-* authorize kitchen preparation
-* redeem locked pricing
-* perform one-time preparation actions
-
-This architecture is inspired by industry systems used in:
-
-* cloud temporary credentials
-* signed access URLs
-* distributed authorization systems
+| Term | Definition |
+|---|---|
+| **Commitment Amplification** | The process by which cryptographic signing converts a soft probabilistic LLM constraint failure into a hard irreversible physical resource commitment |
+| **Temporal Gap** | The interval between generation time (when constraints were checked) and redemption time (when physical resources are committed) |
+| **Generation-Bound DCT (GB-DCT)** | A DCT whose signature is cryptographically derived from the multimodal generation parameters, making it self-invalidating if world state has drifted |
+| **World State Drift** | A change in inventory, pricing, or constraint values between generation time and redemption time |
+| **Generation Root** | The hash tuple of image embeddings, inventory snapshot, budget, and dietary rules at generation time T |
 
 ---
 
-## Replay Attack Prevention
+## 📚 Papers To Read (In Order)
 
-Each DCT:
-
-* has a unique identifier
-* can only be redeemed once
-* expires automatically
-
-This prevents:
-
-* duplicate redemption
-* reservation replay attacks
-* inventory abuse
+1. **Tianxiao Li et al. (2026)** — Constraint State Governance ← closest competitor, read first
+2. **TOPLOC (2025)** — arxiv 2501.16007 ← differentiate on purpose
+3. **HDP (2026)** — arxiv 2604.04522 ← differentiate on identity vs state
+4. **SAVER (2026)** — arxiv 2604.08401 ← pre-commitment verification baseline
+5. **DART** — from autonomous agents survey ← rollback baseline
+6. **Check Yourself Before You Wreck Yourself** — arxiv 2510.16492 ← agentic quitting
+7. **When Refusals Fail** — arxiv 2512.02445 ← long context safety failures
+8. **Constraint Violation Benchmark** — arxiv 2512.20798 ← formal constraint framing
+9. **Attesting LLM Pipelines** — arxiv 2603.28988 ← cryptographic attestation context
 
 ---
 
-## Cryptographic Signing
+## ⚡ Quick Status Checklist
 
-DCTs are cryptographically signed using secure token signing mechanisms.
+Use this every time you sit down to work:
 
-This prevents:
+**Platform**
+- [ ] Frontend UI running
+- [ ] Backend APIs working
+- [ ] PostgreSQL inventory seeded
+- [ ] Basic Gemini recipe generation working
+- [ ] Inventory-aware regeneration loop working
+- [ ] Image upload + Gemini Vision working
+- [ ] LangGraph orchestration working
+- [ ] Standard DCT implemented
+- [ ] GB-DCT implemented
+- [ ] Research endpoints logging
 
-* token tampering
-* forged reservations
-* modified pricing
-* unauthorized dish manipulation
-
----
-
-## Distributed Resource Locking
-
-Temporary inventory locking ensures:
-
-* synchronized ingredient reservation
-* prevention of overbooking
-* real-time kitchen coordination
-
-Redis-based distributed locks manage temporary state consistency.
-
----
-
-# Tech Stack
-
-## Frontend
-
-* Next.js
-* React
-* TailwindCSS
+**Research**
+- [ ] Constraint failure rate experiment designed
+- [ ] Deliberate failure injection working
+- [ ] Drift simulation implemented
+- [ ] Baseline comparisons coded
+- [ ] Data collected
+- [ ] Figures generated
+- [ ] Paper draft started
 
 ---
 
-## Backend
+## 🎯 One Paragraph To Remember Why This Matters
 
-* FastAPI
-* WebSockets
-
----
-
-## AI & Orchestration
-
-* Gemini API / OpenAI API
-* LangGraph
-* Tool orchestration pipelines
+Traditional DCTs sign the *output* of an agentic pipeline. GB-DCTs sign the *world state that justified the output*. This distinction matters because LLMs are probabilistic — they can validate constraints correctly given what they knew, but what they knew may already be wrong or may become wrong before the physical world honors the commitment. By deriving the token from the generation parameters themselves, we make constraint staleness a cryptographic property rather than a business logic check — the token cannot survive a world it was not born into.
 
 ---
 
-## Database
-
-* PostgreSQL
-
----
-
-## Real-Time Systems
-
-* Redis
-* Distributed locking
-* Token expiry management
-
----
-
-## Cybersecurity
-
-* JWT / signed tokens
-* PyJWT
-* HMAC / cryptographic signing
-* Replay protection mechanisms
-
----
-
-# Key Innovation
-
-GrubToGo is not a traditional food ordering platform.
-
-Its primary innovation is:
-
-## autonomous AI-driven custom dish synthesis combined with secure dining capability tokens.
-
-The platform transforms restaurant ordering into a real-time intelligent orchestration system capable of dynamically generating feasible custom meals while securely coordinating inventory, pricing, and preparation workflows.
+*GrubToGo — where the dining token knows the world it came from.*
