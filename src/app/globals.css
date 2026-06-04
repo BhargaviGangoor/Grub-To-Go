@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --font-heading: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+    --font-body: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  }
+
   body {
     @apply text-brand antialiased min-h-screen relative font-sans bg-brand-cream;
     color: #1e352f;
