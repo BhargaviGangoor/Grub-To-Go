@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #f4f1ea;
+    color: #1d3a2b;
+    font-family: var(--font-body), system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), Georgia, serif;
+  }
+}
+
+/* Custom visual components matching the cozy warm restaurant layout */
+
+.stamp-card {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 6px;
+  box-shadow: 
+    0 1px 3px rgba(0,0,0,0.03),
+    0 10px 20px rgba(29,58,43,0.05);
+  border: 1px solid #e9e5da;
+}
+
+/* Simulated printed kitchen ticket paper */
+.receipt-paper {
+  background: #fffdf9;
+  border: 1px solid #e6dfd3;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.03), 
+    0 2px 4px -1px rgba(0, 0, 0, 0.02),
+    inset 0 0 40px rgba(229,155,39,0.02);
+  position: relative;
+}
+
+/* Receipt paper serrated bottom edge */
+.receipt-paper::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background-image: linear-gradient(-45deg, transparent 4px, #fffdf9 4px), linear-gradient(45deg, transparent 4px, #fffdf9 4px);
+  background-size: 8px 8px;
+  background-repeat: repeat-x;
+  transform: translateY(6px);
+  z-index: 10;
+}
+
+/* Outline header styles for cozy retro headings */
+.outlined-text {
+  color: #1d3a2b;
+  text-shadow: 
+    -2px -2px 0 #fff,  
+     2px -2px 0 #fff,
+    -2px  2px 0 #fff,
+     2px  2px 0 #fff,
+     3px  3px 0px rgba(29,58,43,0.1);
+}
+
+.outlined-text-yellow {
+  color: #e59b27;
+  text-shadow: 
+    -1px -1px 0 #fff,  
+     1px -1px 0 #fff,
+    -1px  1px 0 #fff,
+     1px  1px 0 #fff;
+}
+
+/* Cyber Grid background adapted for warm theme */
+.cyber-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(29, 58, 43, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(29, 58, 43, 0.03) 1px, transparent 1px);
+}
+
+.glowing-dots {
+  background-size: 20px 20px;
+  background-image: radial-gradient(circle, rgba(29, 58, 43, 0.03) 1px, transparent 1px);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f4f1ea;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1d3a2b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e59b27;
+}
+
+/* Custom CSS animations */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes subtle-zoom-pan {
+  0% {
+    transform: scale(1.02) translate(0px, 0px);
+  }
+  50% {
+    transform: scale(1.1) translate(-10px, -5px);
+  }
+  100% {
+    transform: scale(1.02) translate(0px, 0px);
+  }
+}
+
+.animate-bg-zoom-pan {
+  animation: subtle-zoom-pan 35s ease-in-out infinite;
+}
+
+@keyframes subtle-float {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(1.5deg) scale(1.02);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+.animate-subtle-float {
+  animation: subtle-float 15s ease-in-out infinite;
+}

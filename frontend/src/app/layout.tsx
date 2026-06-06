@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Fredoka, Quicksand, JetBrains_Mono } from "next/font/google";
+import { StateProvider } from "@/context/StateContext";
 
 const headingFont = Fredoka({
   subsets: ["latin"],
@@ -20,8 +21,8 @@ const monoFont = JetBrains_Mono({
 });
 
 export const metadata = {
-  title: "GrubToGo — Authentic Flavours & Secure Dining Leases",
-  description: "A gorgeous demonstration of cryptographic dining leases protecting customers against state drift and commitment mismatch.",
+  title: "GrubToGo — Secure Dining Leases & State Verification Dashboard",
+  description: "A research prototype studying Commitment Amplification risks in agentic systems using Generation-Bound Dynamic Commitment Tokens.",
 };
 
 export default function RootLayout({
@@ -31,9 +32,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${headingFont.variable} ${bodyFont.variable} ${monoFont.variable}`}>
-      <body className="font-body bg-[#f4f1ea] text-[#1c2e24] min-h-screen antialiased">
-        {children}
+      <body className="font-sans bg-[#f4f1ea] text-[#1d3a2b] min-h-screen antialiased selection:bg-emerald-800/15 selection:text-[#1d3a2b]">
+        <StateProvider>
+          {children}
+        </StateProvider>
       </body>
     </html>
   );
 }
+
+

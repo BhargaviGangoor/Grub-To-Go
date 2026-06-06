@@ -294,3 +294,143 @@ export function BotanicalSprigDrawing({ className = "", stroke = "#8d7a68" }: Dr
     </svg>
   );
 }
+
+// Curving Vine and Leaves Border (Pencil Drawn Aesthetic)
+export function PencilLeavesBorder({ className = "", stroke = "#8d7a68" }: DrawingProps) {
+  return (
+    <svg
+      className={`absolute right-0 top-0 h-screen w-36 pointer-events-none opacity-[0.22] select-none z-20 hidden lg:block ${className}`}
+      viewBox="0 0 160 800"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* Curved vine running down */}
+      <path d="M 140 0 Q 70 200 135 400 Q 155 550 95 700 Q 75 760 115 800" strokeWidth="1.4" />
+      <path d="M 137 0 Q 67 200 132 400" strokeWidth="0.5" strokeDasharray="3 3" />
+
+      {/* Leaf 1 (y=60) */}
+      <path d="M 120 60 C 95 40, 75 55, 102 72 C 130 90, 128 68, 120 60" />
+      <path d="M 120 60 L 109 64" strokeWidth="0.6" />
+
+      {/* Leaf 2 (y=160) */}
+      <path d="M 98 160 C 65 145, 55 175, 88 188 C 120 200, 110 172, 98 160" />
+      <path d="M 98 160 L 85 168" strokeWidth="0.6" />
+
+      {/* Vine curl (y=230) */}
+      <path d="M 100 230 Q 55 210 75 250 Q 88 260 100 248" strokeWidth="0.8" />
+
+      {/* Leaf 3 (y=310) */}
+      <path d="M 112 310 C 80 295, 90 330, 122 322 C 145 315, 130 305, 112 310" />
+      <path d="M 112 310 L 101 318" strokeWidth="0.6" />
+
+      {/* Leaf 4 (y=410) */}
+      <path d="M 130 410 C 100 395, 90 428, 125 438 C 150 448, 142 420, 130 410" />
+      <path d="M 130 410 L 118 418" strokeWidth="0.6" />
+
+      {/* Leaf 5 (y=510) */}
+      <path d="M 118 510 C 85 495, 75 528, 108 538 C 130 548, 128 522, 118 510" />
+      <path d="M 118 510 L 105 518" strokeWidth="0.6" />
+
+      {/* Vine curl (y=580) */}
+      <path d="M 120 580 Q 75 570 95 600 Q 108 610 Q 120 595" strokeWidth="0.8" />
+
+      {/* Leaf 6 (y=660) */}
+      <path d="M 102 660 C 70 640, 60 675, 92 688 C 118 700, 112 672, 102 660" />
+      <path d="M 102 660 L 88 668" strokeWidth="0.6" />
+
+      {/* Leaf 7 (y=750) */}
+      <path d="M 105 750 C 80 735, 70 768, 98 775 C 120 780, 115 760, 105 750" />
+      <path d="M 105 750 L 92 758" strokeWidth="0.6" />
+    </svg>
+  );
+}
+
+// Full perimeter border of pencil-drawn leaves and vines
+export function PencilLeavesPerimeter({ className = "", stroke = "#8d7a68" }: DrawingProps) {
+  return (
+    <div className={`fixed inset-0 pointer-events-none z-20 select-none ${className}`}>
+      {/* Top Border Vine */}
+      <svg
+        className="absolute top-0 left-0 w-full h-8 opacity-[0.20]"
+        viewBox="0 0 1000 40"
+        preserveAspectRatio="none"
+        fill="none"
+        stroke={stroke}
+        strokeWidth="1.1"
+        strokeLinecap="round"
+      >
+        <path d="M 0 15 Q 250 5 500 15 Q 750 25 1000 15" />
+        <path d="M 0 17 Q 250 7 500 17 Q 750 27 1000 17" strokeWidth="0.5" strokeDasharray="3 3" />
+        <path d="M 100 12 C 110 0, 130 5, 120 18 C 110 30, 95 20, 100 12" />
+        <path d="M 250 10 C 260 22, 280 15, 270 5 C 260 -5, 245 2, 250 10" />
+        <path d="M 400 14 C 410 2, 430 7, 420 20 C 410 32, 395 22, 400 14" />
+        <path d="M 550 12 C 560 25, 580 18, 570 8 C 560 -2, 545 5, 550 12" />
+        <path d="M 700 15 C 710 3, 730 8, 720 21 C 710 33, 695 23, 700 15" />
+        <path d="M 850 13 C 860 25, 880 18, 870 8 C 860 -2, 845 5, 850 13" />
+      </svg>
+
+      {/* Bottom Border Vine */}
+      <svg
+        className="absolute bottom-0 left-0 w-full h-8 opacity-[0.20]"
+        viewBox="0 0 1000 40"
+        preserveAspectRatio="none"
+        fill="none"
+        stroke={stroke}
+        strokeWidth="1.1"
+        strokeLinecap="round"
+      >
+        <path d="M 0 25 Q 250 35 500 25 Q 750 15 1000 25" />
+        <path d="M 0 23 Q 250 33 500 23 Q 750 13 1000 23" strokeWidth="0.5" strokeDasharray="3 3" />
+        <path d="M 150 28 C 160 40, 180 35, 170 22 C 160 10, 145 20, 150 28" />
+        <path d="M 300 26 C 310 14, 330 20, 320 32 C 310 45, 295 35, 300 26" />
+        <path d="M 450 29 C 460 41, 480 36, 470 23 C 460 11, 445 21, 450 29" />
+        <path d="M 600 25 C 610 13, 630 18, 620 30 C 610 43, 595 33, 600 25" />
+        <path d="M 750 28 C 760 40, 780 35, 770 22 C 760 10, 745 20, 750 28" />
+        <path d="M 900 27 C 910 15, 930 20, 920 32 C 910 45, 895 35, 900 27" />
+      </svg>
+
+      {/* Left Border Vine */}
+      <svg
+        className="absolute left-0 top-0 h-full w-8 opacity-[0.20]"
+        viewBox="0 0 40 1000"
+        preserveAspectRatio="none"
+        fill="none"
+        stroke={stroke}
+        strokeWidth="1.1"
+        strokeLinecap="round"
+      >
+        <path d="M 15 0 Q 25 250 15 500 Q 5 750 15 1000" />
+        <path d="M 17 0 Q 27 250 17 500 Q 7 750 17 1000" strokeWidth="0.5" strokeDasharray="3 3" />
+        <path d="M 12 100 C 0 90, 5 70, 18 80 C 30 90, 20 105, 12 100" />
+        <path d="M 18 250 C 30 240, 25 220, 12 230 C 0 240, 8 260, 18 250" />
+        <path d="M 13 400 C 1 390, 6 370, 19 380 C 30 390, 21 405, 13 400" />
+        <path d="M 17 550 C 29 540, 24 520, 11 530 C 0 540, 7 560, 17 550" />
+        <path d="M 14 700 C 2 690, 7 670, 20 680 C 31 690, 22 705, 14 700" />
+        <path d="M 18 850 C 30 840, 25 820, 12 830 C 0 840, 8 860, 18 850" />
+      </svg>
+
+      {/* Right Border Vine */}
+      <svg
+        className="absolute right-0 top-0 h-full w-8 opacity-[0.20]"
+        viewBox="0 0 40 1000"
+        preserveAspectRatio="none"
+        fill="none"
+        stroke={stroke}
+        strokeWidth="1.1"
+        strokeLinecap="round"
+      >
+        <path d="M 25 0 Q 15 250 25 500 Q 35 750 25 1000" />
+        <path d="M 23 0 Q 13 250 23 500 Q 33 750 23 1000" strokeWidth="0.5" strokeDasharray="3 3" />
+        <path d="M 28 150 C 40 160, 35 180, 22 170 C 10 160, 20 145, 28 150" />
+        <path d="M 22 300 C 10 310, 15 330, 28 320 C 40 310, 32 290, 22 300" />
+        <path d="M 29 450 C 41 460, 36 480, 23 470 C 11 460, 21 445, 29 450" />
+        <path d="M 21 600 C 9 610, 14 630, 27 620 C 40 610, 31 590, 21 600" />
+        <path d="M 28 750 C 40 760, 35 780, 22 770 C 10 760, 20 745, 28 750" />
+        <path d="M 23 900 C 11 910, 16 930, 29 920 C 41 910, 33 890, 23 900" />
+      </svg>
+    </div>
+  );
+}
