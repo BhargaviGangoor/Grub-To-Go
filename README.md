@@ -2,6 +2,8 @@
 
 ## Agentic AI-Powered Custom Dish Generation & Secure Dining Orchestration
 
+## https://grub-to-i8k5csnfl-bhargavi-gangoors-projects.vercel.app/
+
 GrubToGo is an AI-powered platform that generates personalized dishes from user preferences, budgets, dietary constraints, and food images while ensuring that recommendations remain secure, explainable, and valid when redeemed in the real world.
 
 The project serves two purposes:
