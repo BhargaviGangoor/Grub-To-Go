@@ -11,6 +11,7 @@ interface LandingViewProps {
 
 export default function LandingView({ onNavigate }: LandingViewProps) {
   const shouldReduceMotion = useReducedMotion();
+  const limitedLoopCount = 6;
   // SVG pipeline animations
   const steps = [
     { label: "Upload Image", icon: "📸" },
@@ -120,7 +121,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
                       animate={shouldReduceMotion ? undefined : { x: ["0%", "450%"] }}
                       transition={{
                         duration: 3,
-                        repeat: shouldReduceMotion ? 0 : 8,
+                        repeat: shouldReduceMotion ? 0 : limitedLoopCount,
                         ease: "linear",
                         delay: idx * 0.5
                       }}
@@ -136,7 +137,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
                   <motion.div
                     className="absolute inset-0 rounded-xl bg-[#e59b27]/5 opacity-0 group-hover:opacity-100 transition-opacity"
                     animate={shouldReduceMotion ? undefined : { scale: [1, 1.12, 1] }}
-                    transition={{ duration: 2.2, repeat: shouldReduceMotion ? 0 : 6 }}
+                    transition={{ duration: 2.2, repeat: shouldReduceMotion ? 0 : limitedLoopCount }}
                   />
                   <span>{step.icon}</span>
                 </motion.div>

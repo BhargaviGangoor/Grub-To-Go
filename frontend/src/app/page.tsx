@@ -303,7 +303,7 @@ export default function DashboardPage() {
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                transition={{ duration: shouldReduceMotion ? 0.01 : 2.5 }}
+                transition={{ duration: shouldReduceMotion ? 0 : 2.5 }}
                 className="absolute inset-0 w-[80%] h-[80%] max-w-none max-h-[80vh] m-auto mix-blend-multiply"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
