@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Home,
   Sparkles,
@@ -25,31 +25,34 @@ import ResearchDashboardView from "@/components/ResearchDashboardView";
 import DriftSimulatorView from "@/components/DriftSimulatorView";
 import { useAppState } from "@/context/StateContext";
 import { PencilLeavesPerimeter } from "@/components/BackgroundDrawings";
+import { bgFadeScale, drawerSlide, navSpring, overlayFade, pageTransition, pageVariants } from "@/lib/motion";
+
+const bgImages = [
+  "/download.jpg",
+  "/download2.jpg",
+  "/download3.jpg",
+  "/download4.jpg",
+  "/la-cronin.jpg",
+  "/baby.jpg",
+  "/cute.jpg",
+  "/verandah.jpg",
+  "/monuments.jpg",
+];
 
 export default function DashboardPage() {
   const { tokens } = useAppState();
+  const shouldReduceMotion = useReducedMotion();
   const [activeTab, setActiveTab] = useState<string>("landing");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const bgImages = [
-    "/download.jpg", 
-    "/download2.jpg", 
-    "/download3.jpg", 
-    "/download4.jpg", 
-    "/la-cronin.jpg",
-    "/baby.jpg",
-    "/cute.jpg",
-    "/verandah.jpg",
-    "/monuments.jpg"
-  ];
   const [currentBgIdx, setCurrentBgIdx] = useState(0);
 
   useEffect(() => {
+    if (shouldReduceMotion) return;
     const timer = setInterval(() => {
       setCurrentBgIdx((prev) => (prev + 1) % bgImages.length);
     }, 8000);
     return () => clearInterval(timer);
-  }, []);
+  }, [shouldReduceMotion]);
 
   const menuItems = [
     { id: "landing", label: "Landing Page", icon: <Home className="w-4 h-4" /> },
@@ -111,14 +114,33 @@ export default function DashboardPage() {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-mono transition-all font-semibold ${
+                  className={`relative overflow-hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-mono transition-all font-semibold ${
                     isActive
                       ? "bg-[#14281e] border-l-2 border-[#e59b27] text-[#e59b27]"
                       : "text-[#f4f1ea]/80 hover:text-white hover:bg-[#14281e]/40"
                   }`}
                 >
-                  <span className={isActive ? "text-[#e59b27]" : "text-[#f4f1ea]/60"}>{item.icon}</span>
-                  <span>{item.label}</span>
+                  {isActive && (
+                    <motion.span
+                      layoutId="desktop-active-tab"
+                      transition={navSpring}
+                      className="absolute inset-0 bg-[#e59b27]/5 rounded-lg"
+                    />
+                  )}
+                  <motion.span
+                    animate={isActive && !shouldReduceMotion ? { x: 1.5, scale: 1.06 } : { x: 0, scale: 1 }}
+                    transition={navSpring}
+                    className={`${isActive ? "text-[#e59b27]" : "text-[#f4f1ea]/60"} relative z-10`}
+                  >
+                    {item.icon}
+                  </motion.span>
+                  <motion.span
+                    animate={isActive && !shouldReduceMotion ? { x: 1.5 } : { x: 0 }}
+                    transition={navSpring}
+                    className="relative z-10"
+                  >
+                    {item.label}
+                  </motion.span>
                 </button>
               );
             })}
@@ -144,17 +166,19 @@ export default function DashboardPage() {
         {sidebarOpen && (
           <>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
-              exit={{ opacity: 0 }}
+              variants={overlayFade}
+              initial="initial"
+              animate="animate"
+              exit="exit"
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden fixed inset-0 bg-black z-40"
             />
             <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              variants={drawerSlide}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={navSpring}
               className="lg:hidden fixed inset-y-0 left-0 w-64 bg-[#1d3a2b] p-5 border-r border-[#14281e] z-50 flex flex-col justify-between"
             >
               <div className="space-y-6">
@@ -180,14 +204,33 @@ export default function DashboardPage() {
                           setActiveTab(item.id);
                           setSidebarOpen(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-mono transition-all font-semibold ${
+                        className={`relative overflow-hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-mono transition-all font-semibold ${
                           isActive
                             ? "bg-[#14281e] border-l-2 border-[#e59b27] text-[#e59b27]"
                             : "text-[#f4f1ea]/80 hover:text-white hover:bg-[#14281e]/40"
                         }`}
                       >
-                        <span className={isActive ? "text-[#e59b27]" : "text-[#f4f1ea]/60"}>{item.icon}</span>
-                        <span>{item.label}</span>
+                        {isActive && (
+                          <motion.span
+                            layoutId="mobile-active-tab"
+                            transition={navSpring}
+                            className="absolute inset-0 bg-[#e59b27]/5 rounded-lg"
+                          />
+                        )}
+                        <motion.span
+                          animate={isActive && !shouldReduceMotion ? { x: 1.5, scale: 1.06 } : { x: 0, scale: 1 }}
+                          transition={navSpring}
+                          className={`${isActive ? "text-[#e59b27]" : "text-[#f4f1ea]/60"} relative z-10`}
+                        >
+                          {item.icon}
+                        </motion.span>
+                        <motion.span
+                          animate={isActive && !shouldReduceMotion ? { x: 1.5 } : { x: 0 }}
+                          transition={navSpring}
+                          className="relative z-10"
+                        >
+                          {item.label}
+                        </motion.span>
                       </button>
                     );
                   })}
@@ -240,10 +283,11 @@ export default function DashboardPage() {
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.25 }}
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={pageTransition}
               className="p-6 md:p-8 relative z-10"
             >
               {renderActiveView()}
@@ -255,10 +299,11 @@ export default function DashboardPage() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentBgIdx}
-                initial={{ opacity: 0, scale: 1 }}
-                animate={{ opacity: 0.26, scale: 1.03 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 2.5 }}
+                variants={bgFadeScale}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: shouldReduceMotion ? 0.01 : 2.5 }}
                 className="absolute inset-0 w-[80%] h-[80%] max-w-none max-h-[80vh] m-auto mix-blend-multiply"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}

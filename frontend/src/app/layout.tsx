@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Fredoka, Quicksand, JetBrains_Mono } from "next/font/google";
 import { StateProvider } from "@/context/StateContext";
+import { MotionConfig } from "framer-motion";
 
 const headingFont = Fredoka({
   subsets: ["latin"],
@@ -33,12 +34,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${headingFont.variable} ${bodyFont.variable} ${monoFont.variable}`}>
       <body className="font-sans bg-[#f4f1ea] text-[#1d3a2b] min-h-screen antialiased selection:bg-emerald-800/15 selection:text-[#1d3a2b]">
-        <StateProvider>
-          {children}
-        </StateProvider>
+        <MotionConfig reducedMotion="user">
+          <StateProvider>
+            {children}
+          </StateProvider>
+        </MotionConfig>
       </body>
     </html>
   );
 }
-
 
