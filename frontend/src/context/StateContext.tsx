@@ -14,6 +14,7 @@ export interface Dish {
   prepTime: string;
   confidenceScore: number;
   imageUrl: string;
+  aiGeneratedImage?: boolean;
   description: string;
 }
 
@@ -71,14 +72,14 @@ interface StateContextType {
     totalGenerated: number;
   };
   addToken: (token: GB_DCT_Token) => void;
-  redeemToken: (tokenId: string, securityMode: "standard" | "gb-dct") => {
+  redeemToken: (tokenId: string, securityMode: "standard" | "gb-dct") => Promise<{
     success: boolean;
     outcome: "success" | "blocked" | "amplified";
     logs: string[];
     driftsDetected: string[];
     beforeState: any;
     afterState: any;
-  };
+  }>;
   updateInventory: (ingredient: string, amount: number) => void;
   updatePricing: (ingredient: string, price: number) => void;
   updateDietaryRules: (ingredient: string, rules: string[]) => void;
@@ -112,15 +113,15 @@ const defaultPricing: Record<string, number> = {
 
 // Map of ingredient -> permitted categories
 const defaultDietaryRules: Record<string, string[]> = {
-  "Paneer": ["Vegetarian", "Jain", "Gluten Free"],
-  "Udon Noodles": ["Vegetarian", "Vegan"], // contains gluten
-  "Chicken": [], // meat
-  "Ramen Noodles": ["Vegetarian", "Vegan"], // contains gluten
-  "Mushrooms": ["Vegetarian", "Vegan", "Gluten Free"],
-  "Sage": ["Vegetarian", "Vegan", "Jain", "Gluten Free"],
-  "Heavy Cream": ["Vegetarian", "Gluten Free"],
-  "Saffron": ["Vegetarian", "Vegan", "Jain", "Gluten Free"],
-  "Basmati Rice": ["Vegetarian", "Vegan", "Jain", "Gluten Free"],
+  "Paneer": ["Vegetarian", "Jain", "Gluten Free", "Gluten-Free"],
+  "Udon Noodles": ["Vegetarian", "Vegan"],
+  "Chicken": [],
+  "Ramen Noodles": ["Vegetarian", "Vegan"],
+  "Mushrooms": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Sage": ["Vegetarian", "Vegan", "Jain", "Gluten Free", "Gluten-Free"],
+  "Heavy Cream": ["Vegetarian", "Gluten Free", "Gluten-Free"],
+  "Saffron": ["Vegetarian", "Vegan", "Jain", "Gluten Free", "Gluten-Free"],
+  "Basmati Rice": ["Vegetarian", "Vegan", "Jain", "Gluten Free", "Gluten-Free"],
 };
 
 const StateContext = createContext<StateContextType | undefined>(undefined);
@@ -151,6 +152,33 @@ export function StateProvider({ children }: { children: React.ReactNode }) {
     totalGenerated: 49,
   });
 
+  // Fetch full database state from Next.js server on mount
+  useEffect(() => {
+    const fetchState = async () => {
+      try {
+        const res = await fetch("/api/state");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.state) {
+            setSystemState(data.state);
+          }
+          if (data.tokens) {
+            setTokens(data.tokens);
+          }
+          if (data.state.driftHistory) {
+            setDriftHistory(data.state.driftHistory);
+          }
+          if (data.state.stats) {
+            setStats(data.state.stats);
+          }
+        }
+      } catch (err) {
+        console.warn("API state fetch failed, running in local client-only simulation mode.");
+      }
+    };
+    fetchState();
+  }, []);
+
   const addToken = (token: GB_DCT_Token) => {
     setTokens((prev) => [token, ...prev]);
     setActiveTokenId(token.id);
@@ -173,67 +201,196 @@ export function StateProvider({ children }: { children: React.ReactNode }) {
     ]);
   };
 
-  const updateInventory = (ingredient: string, amount: number) => {
+  const updateInventory = async (ingredient: string, amount: number) => {
+    // Optimistically update client state
     setSystemState((prev) => {
       const nextInv = { ...prev.inventory, [ingredient]: amount };
       return { ...prev, inventory: nextInv };
     });
     logEvent(`Inventory modified: ${ingredient} set to ${amount} units.`, amount === 0 ? "error" : "warning");
+
+    try {
+      const res = await fetch("/api/state/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ingredient, quantity: amount })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) {
+          setSystemState(data.state);
+          setDriftHistory(data.state.driftHistory);
+          setStats(data.state.stats);
+        }
+      }
+    } catch (err) {
+      console.warn("API updateInventory failed, local state preserved.");
+    }
   };
 
-  const updatePricing = (ingredient: string, price: number) => {
+  const updatePricing = async (ingredient: string, price: number) => {
+    // Optimistically update client state
     setSystemState((prev) => {
       const nextPricing = { ...prev.pricing, [ingredient]: price };
       return { ...prev, pricing: nextPricing };
     });
     logEvent(`Pricing modified: ${ingredient} set to ₹${price}.`, "warning");
+
+    try {
+      const res = await fetch("/api/state/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ingredient, price })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) {
+          setSystemState(data.state);
+          setDriftHistory(data.state.driftHistory);
+          setStats(data.state.stats);
+        }
+      }
+    } catch (err) {
+      console.warn("API updatePricing failed, local state preserved.");
+    }
   };
 
-  const updateDietaryRules = (ingredient: string, rules: string[]) => {
+  const updateDietaryRules = async (ingredient: string, rules: string[]) => {
+    // Optimistically update client state
     setSystemState((prev) => {
       const nextRules = { ...prev.dietaryRules, [ingredient]: rules };
       return { ...prev, dietaryRules: nextRules };
     });
     logEvent(`Dietary rules modified: ${ingredient} now supports: [${rules.join(", ")}]`, "warning");
+
+    try {
+      const res = await fetch("/api/state/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ingredient, rules })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) {
+          setSystemState(data.state);
+          setDriftHistory(data.state.driftHistory);
+          setStats(data.state.stats);
+        }
+      }
+    } catch (err) {
+      console.warn("API updateDietaryRules failed, local state preserved.");
+    }
   };
 
-  const resetSystemState = () => {
+  const resetSystemState = async () => {
     setSystemState({
       inventory: { ...defaultInventory },
       pricing: { ...defaultPricing },
       dietaryRules: { ...defaultDietaryRules },
     });
     logEvent("World State restored to original baselines.", "info");
+
+    try {
+      const res = await fetch("/api/state/reset", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) {
+          setSystemState(data.state);
+          setDriftHistory(data.state.driftHistory);
+          setStats(data.state.stats);
+          setTokens([]);
+        }
+      }
+    } catch (err) {
+      console.warn("API resetSystemState failed, local state reset.");
+    }
   };
 
-  const injectDrift = (driftType: string) => {
+  const injectDrift = async (driftType: string) => {
+    // Perform optimistic local drift
     switch (driftType) {
+      case "stockout":
       case "remove_paneer":
         updateInventory("Paneer", 0);
         break;
+      case "inflation":
       case "increase_paneer_cost":
-        updatePricing("Paneer", 280); // original is 90
+        updatePricing("Paneer", 280);
         break;
+      case "allergen":
       case "change_dietary_rule":
-        // Paneer is no longer vegetarian (simulating allergen / lard oil contamination)
-        updateDietaryRules("Paneer", ["Jain", "Gluten Free"]); // Removed "Vegetarian"
+        updateDietaryRules("Paneer", ["Jain", "Gluten Free", "Gluten-Free"]);
         break;
       case "expire_inventory":
         updateInventory("Udon Noodles", 0);
         updateInventory("Ramen Noodles", 0);
         break;
       case "inject_stale_inventory":
-        updateInventory("Mushrooms", 1); // Almost empty
+        updateInventory("Mushrooms", 1);
         break;
       case "inject_wrong_price":
-        updatePricing("Saffron", 450); // original is 150
+        updatePricing("Saffron", 450);
         break;
       default:
         break;
     }
+
+    try {
+      const res = await fetch("/api/state/drift", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ driftType })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) {
+          setSystemState(data.state);
+          setDriftHistory(data.state.driftHistory);
+          setStats(data.state.stats);
+        }
+      }
+    } catch (err) {
+      console.warn("API injectDrift failed, local state preserved.");
+    }
   };
 
-  const redeemToken = (tokenId: string, securityMode: "standard" | "gb-dct") => {
+  const redeemToken = async (tokenId: string, securityMode: "standard" | "gb-dct") => {
+    try {
+      const res = await fetch("/api/redeem-dct", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tokenId, securityMode })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        
+        // Synchronize state
+        if (data.state) {
+          setSystemState(data.state);
+          setDriftHistory(data.state.driftHistory);
+          setStats(data.state.stats);
+        }
+
+        // Sync local token list status
+        const nextStatus = data.outcome === "blocked" ? "INVALIDATED" : "REDEEMED";
+        setTokens((prev) =>
+          prev.map((t) => (t.id === tokenId ? { ...t, status: nextStatus } : t))
+        );
+
+        return {
+          success: data.success,
+          outcome: data.outcome,
+          logs: data.logs,
+          driftsDetected: data.driftsDetected,
+          beforeState: data.beforeState,
+          afterState: data.afterState
+        };
+      }
+    } catch (err) {
+      console.warn("API redeemToken connection failed. Defaulting to offline client validation.");
+    }
+
+    // Client-side local validation fallback
     const token = tokens.find((t) => t.id === tokenId);
     if (!token) {
       return {
@@ -253,7 +410,6 @@ export function StateProvider({ children }: { children: React.ReactNode }) {
     logs.push(`Initiating cryptographical attestation for lease: ${tokenId}`);
     logs.push(`Comparing token Generation state against live World State...`);
 
-    // Compare state details
     const beforeState: any = {
       cost: token.dish.estimatedCost,
       inventory: {},
@@ -266,7 +422,6 @@ export function StateProvider({ children }: { children: React.ReactNode }) {
       dietary: [],
     };
 
-    // 1. Inventory checks
     token.dish.ingredients.forEach((ing) => {
       const origQty = token.originalState.inventory[ing] ?? 0;
       const liveQty = systemState.inventory[ing] ?? 0;
@@ -280,16 +435,14 @@ export function StateProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // 2. Budget / pricing checks
     let currentRecipeCost = 0;
     token.dish.ingredients.forEach((ing) => {
-      const basePrice = token.originalState.pricing[ing] ?? 0;
       const livePrice = systemState.pricing[ing] ?? 0;
       currentRecipeCost += livePrice;
     });
 
-    // Adjust recipe cost to be scaled, similar to generation logic
-    const costMultiplier = currentRecipeCost / Object.keys(token.originalState.pricing).reduce((acc, k) => acc + (token.originalState.pricing[k] ?? 0), 0);
+    const basePricingSum = Object.keys(token.originalState.pricing).reduce((acc, k) => acc + (token.originalState.pricing[k] ?? 0), 0);
+    const costMultiplier = basePricingSum > 0 ? currentRecipeCost / basePricingSum : 1;
     const scaledLiveCost = Math.round(token.dish.estimatedCost * costMultiplier);
 
     beforeState.cost = token.dish.estimatedCost;
@@ -303,11 +456,12 @@ export function StateProvider({ children }: { children: React.ReactNode }) {
       logs.push(`ℹ️ STATE DRIFT: [Pricing] Raw costs fluctuated. Original: ₹${token.dish.estimatedCost}, Current: ₹${scaledLiveCost}`);
     }
 
-    // 3. Dietary checks
     token.constraints.dietary.forEach((pref) => {
       token.dish.ingredients.forEach((ing) => {
         const permitted = systemState.dietaryRules[ing] ?? [];
-        const isPermitted = permitted.includes(pref);
+        const normalizedPref = pref.toLowerCase().replace("-", " ");
+        const isPermitted = permitted.some((p) => p.toLowerCase().replace("-", " ") === normalizedPref);
+        
         if (!isPermitted) {
           success = false;
           driftsDetected.push(`Dietary Violation: ${ing} is not allowed for diet ${pref}`);
@@ -323,7 +477,6 @@ export function StateProvider({ children }: { children: React.ReactNode }) {
         outcome = "blocked";
         logs.push(`🛑 GB-DCT SECURITY BLOCK: Token invalidated due to world state drift.`);
         logs.push(`Redemption failed. Kitchen operations halted. System protected.`);
-        // Mark token as invalidated
         setTokens((prev) =>
           prev.map((t) => (t.id === tokenId ? { ...t, status: "INVALIDATED" } : t))
         );
@@ -337,7 +490,6 @@ export function StateProvider({ children }: { children: React.ReactNode }) {
         outcome = "amplified";
         logs.push(`⚠️ STANDARD BYPASS: State drift ignored. Cryptographic payload is structurally sound.`);
         logs.push(`🚨 COMMITMENT AMPLIFIED: Token executed on stale state. Fired kitchen resources!`);
-        // Mark token as redeemed
         setTokens((prev) =>
           prev.map((t) => (t.id === tokenId ? { ...t, status: "REDEEMED" } : t))
         );
@@ -352,7 +504,6 @@ export function StateProvider({ children }: { children: React.ReactNode }) {
       outcome = "success";
       logs.push(`✓ ATTESTATION PASSED: Live state matches all commitments.`);
       logs.push(`🎟️ Token lease redeemed. Kitchen slot locked and ingredients fired.`);
-      // Mark token as redeemed
       setTokens((prev) =>
         prev.map((t) => (t.id === tokenId ? { ...t, status: "REDEEMED" } : t))
       );

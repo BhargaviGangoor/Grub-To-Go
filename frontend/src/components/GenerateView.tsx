@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, X, Shield, Plus, Check, Loader2, Sparkles, Eye, Key, ArrowRight } from "lucide-react";
+import { Upload, X, Shield, Plus, Check, Loader2, Sparkles, Eye, Key, ArrowRight, Wand2 } from "lucide-react";
 import { useAppState, GB_DCT_Token, Dish } from "@/context/StateContext";
 import { PhoBowlSketch } from "@/components/BackgroundDrawings";
 
@@ -28,6 +28,7 @@ export default function GenerateView({ onNavigate }: GenerateViewProps) {
   const [activeStep, setActiveStep] = useState<number>(-1);
   const [generatedDish, setGeneratedDish] = useState<Dish | null>(null);
   const [generatedToken, setGeneratedToken] = useState<GB_DCT_Token | null>(null);
+  const [dishImageIsAI, setDishImageIsAI] = useState(false);
 
   const steps = [
     "Image Analyzed",
@@ -36,6 +37,7 @@ export default function GenerateView({ onNavigate }: GenerateViewProps) {
     "Cost Estimated",
     "Dietary Constraints Validated",
     "AI Artifact Generated",
+    "Food Image Rendered",
     "GB-DCT Generated"
   ];
 
@@ -69,6 +71,19 @@ export default function GenerateView({ onNavigate }: GenerateViewProps) {
     });
   };
 
+  // File base64 reader helper
+  const getBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64Str = (reader.result as string).split(",")[1];
+        resolve(base64Str);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   // Cryptographic Helper
   const generateHash = (input: string) => {
     let hash = 0;
@@ -91,136 +106,193 @@ export default function GenerateView({ onNavigate }: GenerateViewProps) {
     setGeneratedToken(null);
     setActiveStep(0);
 
-    // Simulate stepping through agent tasks
-    for (let i = 0; i < steps.length; i++) {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      setActiveStep(i);
-    }
+    try {
+      // 1. Process files to base64
+      const base64Images = await Promise.all(
+        images.map(async (img) => {
+          const base64 = await getBase64(img.file);
+          return {
+            base64,
+            mimeType: img.file.type || "image/jpeg"
+          };
+        })
+      );
 
-    await new Promise((resolve) => setTimeout(resolve, 400));
+      // 2. Step: Flavor profile extraction
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setActiveStep(1);
 
-    // Choose Dish template based on constraints
-    let dishName = "Wild Forest Mushroom Soup";
-    let ingredients = ["Mushrooms", "Heavy Cream", "Sage"];
-    let prepTime = "12 mins";
-    let imageUrl = "/download3.jpg"; // Default fallback
-    let description = "A velvety blend of simmered forest mushrooms, garden sage, and double heavy cream.";
-    let baseCost = 150;
+      // 3. Call backend generation API
+      const dishRes = await fetch("/api/generate-dish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          budget,
+          dietary,
+          cuisine,
+          spiceLevel,
+          images: base64Images
+        })
+      });
+      if (!dishRes.ok) throw new Error("Failed to generate dish via backend API");
+      const dishObj = await dishRes.json();
 
-    if (cuisine === "Indian") {
-      if (dietary.includes("Vegan")) {
-        dishName = "Aromatic Saffron Vegetable Biryani";
-        ingredients = ["Basmati Rice", "Saffron", "Sage"];
-        prepTime = "22 mins";
-        imageUrl = "/download4.jpg";
-        description = "Fragrant long-grain basmati rice steamed with real saffron threads and aromatic garden herbs.";
-        baseCost = 180;
+      setActiveStep(2); // Inventory Locked
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setActiveStep(3); // Cost Estimated
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setActiveStep(4); // Dietary Validated
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setActiveStep(5); // AI Artifact Generated
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // 4. Call backend signed token generation API
+      const dctRes = await fetch("/api/generate-dct", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dish: dishObj,
+          constraints: { budget, dietary, cuisine, spiceLevel }
+        })
+      });
+      if (!dctRes.ok) throw new Error("Failed to generate token lease via backend API");
+      const { token: tokenObj } = await dctRes.json();
+
+      setActiveStep(6); // Food Image Rendered (already done server-side with dish)
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setActiveStep(7); // GB-DCT Generated
+      await new Promise((resolve) => setTimeout(resolve, 400));
+
+      setDishImageIsAI(!!(dishObj as any).aiGeneratedImage);
+      setGeneratedDish(dishObj);
+      setGeneratedToken(tokenObj);
+      addToken(tokenObj);
+    } catch (error: any) {
+      console.warn("Backend API generation failed, falling back to local simulation:", error.message);
+      
+      // Fallback local simulation
+      let dishName = "Wild Forest Mushroom Soup";
+      let ingredients = ["Mushrooms", "Heavy Cream", "Sage"];
+      let prepTime = "12 mins";
+      let imageUrl = "/download3.jpg";
+      let description = "A velvety blend of simmered forest mushrooms, garden sage, and double heavy cream.";
+      let baseCost = 150;
+
+      if (cuisine === "Indian") {
+        if (dietary.includes("Vegan")) {
+          dishName = "Aromatic Saffron Vegetable Biryani";
+          ingredients = ["Basmati Rice", "Saffron", "Sage"];
+          prepTime = "22 mins";
+          imageUrl = "/download4.jpg";
+          description = "Fragrant long-grain basmati rice steamed with real saffron threads and aromatic garden herbs.";
+          baseCost = 180;
+        } else {
+          dishName = "Spicy Cream Paneer Saffron Bowl";
+          ingredients = ["Paneer", "Basmati Rice", "Saffron", "Heavy Cream"];
+          prepTime = "18 mins";
+          imageUrl = "/download4.jpg";
+          description = "Saffron infused basmati grains topped with golden paneer cubes in a cardamom cream glaze.";
+          baseCost = 260;
+        }
+      } else if (cuisine === "Chinese") {
+        if (dietary.includes("Gluten-Free")) {
+          dishName = "Gluten-Free Ginger Garlic Mushrooms";
+          ingredients = ["Mushrooms", "Sage", "Basmati Rice"];
+          prepTime = "15 mins";
+          imageUrl = "/download3.jpg";
+          description = "Stir-fried wild mushrooms tossed in light tamari and served over steamed basmati rice.";
+          baseCost = 140;
+        } else {
+          dishName = "Chili Cream Udon Ribbons";
+          ingredients = ["Udon Noodles", "Paneer", "Heavy Cream"];
+          prepTime = "14 mins";
+          imageUrl = "/download.jpg";
+          description = "Thick, hand-pulled wheat udon noodles tossed in a spicy cream paste with tossed paneer cubes.";
+          baseCost = 210;
+        }
+      } else if (cuisine === "Italian") {
+        dishName = "Tuscan Garlic Mushroom Pasta";
+        ingredients = ["Ramen Noodles", "Mushrooms", "Sage", "Heavy Cream"];
+        prepTime = "16 mins";
+        imageUrl = "/download2.jpg";
+        description = "Creamy forest mushroom skillet sauce tossed with thin noodles and fresh chopped sage.";
+        baseCost = 190;
       } else {
-        dishName = "Spicy Cream Paneer Saffron Bowl";
-        ingredients = ["Paneer", "Basmati Rice", "Saffron", "Heavy Cream"];
-        prepTime = "18 mins";
-        imageUrl = "/download4.jpg";
-        description = "Saffron infused basmati grains topped with golden paneer cubes in a cardamom cream glaze.";
-        baseCost = 260;
+        if (dietary.includes("Vegan")) {
+          dishName = "Slow Simmered Saffron Rice & Sage";
+          ingredients = ["Basmati Rice", "Saffron", "Sage", "Mushrooms"];
+          prepTime = "20 mins";
+          imageUrl = "/download4.jpg";
+          description = "Earthy wild mushrooms and fragrant saffron basmati rice topped with sage leaves.";
+          baseCost = 160;
+        } else if (spiceLevel === "Spicy") {
+          dishName = "Spicy Cream Paneer Udon Bowl";
+          ingredients = ["Udon Noodles", "Paneer", "Heavy Cream"];
+          prepTime = "15 mins";
+          imageUrl = "/download.jpg";
+          description = "Hand-pulled wheat noodles tossed in a fire-red chili cream emulsion with cubes of soft paneer.";
+          baseCost = 230;
+        }
       }
-    } else if (cuisine === "Chinese") {
-      if (dietary.includes("Gluten-Free")) {
-        dishName = "Gluten-Free Ginger Garlic Mushrooms";
-        ingredients = ["Mushrooms", "Sage", "Basmati Rice"];
-        prepTime = "15 mins";
-        imageUrl = "/download3.jpg";
-        description = "Stir-fried wild mushrooms tossed in light tamari and served over steamed basmati rice.";
-        baseCost = 140;
-      } else {
-        dishName = "Chili Cream Udon Ribbons";
-        ingredients = ["Udon Noodles", "Paneer", "Heavy Cream"];
-        prepTime = "14 mins";
-        imageUrl = "/download.jpg";
-        description = "Thick, hand-pulled wheat udon noodles tossed in a spicy cream paste with tossed paneer cubes.";
-        baseCost = 210;
-      }
-    } else if (cuisine === "Italian") {
-      dishName = "Tuscan Garlic Mushroom Pasta";
-      ingredients = ["Ramen Noodles", "Mushrooms", "Sage", "Heavy Cream"];
-      prepTime = "16 mins";
-      imageUrl = "/download2.jpg";
-      description = "Creamy forest mushroom skillet sauce tossed with thin noodles and fresh chopped sage.";
-      baseCost = 190;
-    } else {
-      // Any
-      if (dietary.includes("Vegan")) {
-        dishName = "Slow Simmered Saffron Rice & Sage";
-        ingredients = ["Basmati Rice", "Saffron", "Sage", "Mushrooms"];
-        prepTime = "20 mins";
-        imageUrl = "/download4.jpg";
-        description = "Earthy wild mushrooms and fragrant saffron basmati rice topped with sage leaves.";
-        baseCost = 160;
-      } else if (spiceLevel === "Spicy") {
-        dishName = "Spicy Cream Paneer Udon Bowl";
-        ingredients = ["Udon Noodles", "Paneer", "Heavy Cream"];
-        prepTime = "15 mins";
-        imageUrl = "/download.jpg";
-        description = "Hand-pulled wheat noodles tossed in a fire-red chili cream emulsion with cubes of soft paneer.";
-        baseCost = 230;
-      }
-    }
 
-    const finalCost = Math.min(baseCost, budget);
+      const finalCost = Math.min(baseCost, budget);
 
-    const dishObj: Dish = {
-      id: Math.random().toString(36).substring(7).toUpperCase(),
-      name: dishName,
-      cuisine,
-      spiceLevel,
-      dietary: [...dietary],
-      estimatedCost: finalCost,
-      ingredients,
-      prepTime,
-      confidenceScore: Math.round(92 + Math.random() * 7),
-      imageUrl,
-      description,
-    };
-
-    // Calculate Cryptographic snapshots
-    const inventoryHash = generateHash(JSON.stringify(ingredients.map(ing => ({ name: ing, qty: systemState.inventory[ing] ?? 0 }))));
-    const pricingHash = generateHash(JSON.stringify(ingredients.map(ing => ({ name: ing, price: systemState.pricing[ing] ?? 0 }))));
-    const dietaryHash = generateHash(JSON.stringify(ingredients.map(ing => ({ name: ing, rules: systemState.dietaryRules[ing] ?? [] }))));
-    const artifactRoot = generateHash(dishObj.id + JSON.stringify(ingredients) + budget);
-    const generationRoot = generateHash(inventoryHash + pricingHash + dietaryHash + artifactRoot);
-
-    const randTokenId = "GB-DCT-2026-" + Math.random().toString(36).substring(2, 6).toUpperCase();
-    const expiryTime = new Date(Date.now() + 20 * 60 * 1000).toLocaleTimeString();
-
-    const tokenObj: GB_DCT_Token = {
-      id: randTokenId,
-      timestamp: new Date().toLocaleTimeString(),
-      expiry: expiryTime,
-      status: "ACTIVE",
-      dish: dishObj,
-      constraints: {
-        budget,
-        dietary: [...dietary],
+      const dishObj: Dish = {
+        id: Math.random().toString(36).substring(7).toUpperCase(),
+        name: dishName,
         cuisine,
         spiceLevel,
-      },
-      hashes: {
-        inventorySnapshotHash: inventoryHash,
-        pricingSnapshotHash: pricingHash,
-        dietaryHash,
-        artifactRoot,
-        generationRoot,
-      },
-      originalState: {
-        inventory: { ...systemState.inventory },
-        pricing: { ...systemState.pricing },
-        dietaryRules: { ...systemState.dietaryRules },
-      },
-    };
+        dietary: [...dietary],
+        estimatedCost: finalCost,
+        ingredients,
+        prepTime,
+        confidenceScore: Math.round(92 + Math.random() * 7),
+        imageUrl,
+        description,
+      };
+      setDishImageIsAI(false);
 
-    setGeneratedDish(dishObj);
-    setGeneratedToken(tokenObj);
-    addToken(tokenObj);
-    setIsGenerating(false);
+      const inventoryHash = generateHash(JSON.stringify(ingredients.map(ing => ({ name: ing, qty: systemState.inventory[ing] ?? 0 }))));
+      const pricingHash = generateHash(JSON.stringify(ingredients.map(ing => ({ name: ing, price: systemState.pricing[ing] ?? 0 }))));
+      const dietaryHash = generateHash(JSON.stringify(ingredients.map(ing => ({ name: ing, rules: systemState.dietaryRules[ing] ?? [] }))));
+      const artifactRoot = generateHash(dishObj.id + JSON.stringify(ingredients) + budget);
+      const generationRoot = generateHash(inventoryHash + pricingHash + dietaryHash + artifactRoot);
+
+      const randTokenId = "GB-DCT-2026-" + Math.random().toString(36).substring(2, 6).toUpperCase();
+      const expiryTime = new Date(Date.now() + 20 * 60 * 1000).toLocaleTimeString();
+
+      const tokenObj: GB_DCT_Token = {
+        id: randTokenId,
+        timestamp: new Date().toLocaleTimeString(),
+        expiry: expiryTime,
+        status: "ACTIVE",
+        dish: dishObj,
+        constraints: {
+          budget,
+          dietary: [...dietary],
+          cuisine,
+          spiceLevel,
+        },
+        hashes: {
+          inventorySnapshotHash: inventoryHash,
+          pricingSnapshotHash: pricingHash,
+          dietaryHash,
+          artifactRoot,
+          generationRoot,
+        },
+        originalState: {
+          inventory: { ...systemState.inventory },
+          pricing: { ...systemState.pricing },
+          dietaryRules: { ...systemState.dietaryRules },
+        },
+      };
+
+      setGeneratedDish(dishObj);
+      setGeneratedToken(tokenObj);
+      addToken(tokenObj);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -485,6 +557,13 @@ export default function GenerateView({ onNavigate }: GenerateViewProps) {
                 <div className="absolute top-3 right-3 px-2 py-1 bg-white/90 backdrop-blur border border-[#e9e5da] rounded text-[10px] font-mono text-[#e59b27] font-bold">
                   Score: {generatedDish.confidenceScore}%
                 </div>
+                {dishImageIsAI && (
+                  <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-mono font-bold"
+                    style={{ background: "linear-gradient(135deg, #1d3a2b, #2d5a42)", color: "#e59b27", boxShadow: "0 0 10px rgba(229,155,39,0.35)" }}>
+                    <Wand2 className="w-3 h-3" />
+                    AI Vision
+                  </div>
+                )}
               </div>
 
               {/* Dish Metadata */}

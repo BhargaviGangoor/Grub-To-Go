@@ -354,16 +354,16 @@ export function PencilLeavesPerimeter({ className = "", stroke = "#8d7a68" }: Dr
     <div className={`fixed inset-0 pointer-events-none z-20 select-none ${className}`}>
       {/* Top Border Vine */}
       <svg
-        className="absolute top-0 left-0 w-full h-8 opacity-[0.20]"
+        className="absolute top-0 left-0 w-full h-16 opacity-[0.38]"
         viewBox="0 0 1000 40"
         preserveAspectRatio="none"
         fill="none"
         stroke={stroke}
-        strokeWidth="1.1"
+        strokeWidth="1.6"
         strokeLinecap="round"
       >
         <path d="M 0 15 Q 250 5 500 15 Q 750 25 1000 15" />
-        <path d="M 0 17 Q 250 7 500 17 Q 750 27 1000 17" strokeWidth="0.5" strokeDasharray="3 3" />
+        <path d="M 0 17 Q 250 7 500 17 Q 750 27 1000 17" strokeWidth="0.8" strokeDasharray="3 3" />
         <path d="M 100 12 C 110 0, 130 5, 120 18 C 110 30, 95 20, 100 12" />
         <path d="M 250 10 C 260 22, 280 15, 270 5 C 260 -5, 245 2, 250 10" />
         <path d="M 400 14 C 410 2, 430 7, 420 20 C 410 32, 395 22, 400 14" />
@@ -374,16 +374,16 @@ export function PencilLeavesPerimeter({ className = "", stroke = "#8d7a68" }: Dr
 
       {/* Bottom Border Vine */}
       <svg
-        className="absolute bottom-0 left-0 w-full h-8 opacity-[0.20]"
+        className="absolute bottom-0 left-0 w-full h-16 opacity-[0.38]"
         viewBox="0 0 1000 40"
         preserveAspectRatio="none"
         fill="none"
         stroke={stroke}
-        strokeWidth="1.1"
+        strokeWidth="1.6"
         strokeLinecap="round"
       >
         <path d="M 0 25 Q 250 35 500 25 Q 750 15 1000 25" />
-        <path d="M 0 23 Q 250 33 500 23 Q 750 13 1000 23" strokeWidth="0.5" strokeDasharray="3 3" />
+        <path d="M 0 23 Q 250 33 500 23 Q 750 13 1000 23" strokeWidth="0.8" strokeDasharray="3 3" />
         <path d="M 150 28 C 160 40, 180 35, 170 22 C 160 10, 145 20, 150 28" />
         <path d="M 300 26 C 310 14, 330 20, 320 32 C 310 45, 295 35, 300 26" />
         <path d="M 450 29 C 460 41, 480 36, 470 23 C 460 11, 445 21, 450 29" />
@@ -394,16 +394,16 @@ export function PencilLeavesPerimeter({ className = "", stroke = "#8d7a68" }: Dr
 
       {/* Left Border Vine */}
       <svg
-        className="absolute left-0 top-0 h-full w-8 opacity-[0.20]"
+        className="absolute left-0 top-0 h-full w-16 opacity-[0.38]"
         viewBox="0 0 40 1000"
         preserveAspectRatio="none"
         fill="none"
         stroke={stroke}
-        strokeWidth="1.1"
+        strokeWidth="1.6"
         strokeLinecap="round"
       >
         <path d="M 15 0 Q 25 250 15 500 Q 5 750 15 1000" />
-        <path d="M 17 0 Q 27 250 17 500 Q 7 750 17 1000" strokeWidth="0.5" strokeDasharray="3 3" />
+        <path d="M 17 0 Q 27 250 17 500 Q 7 750 17 1000" strokeWidth="0.8" strokeDasharray="3 3" />
         <path d="M 12 100 C 0 90, 5 70, 18 80 C 30 90, 20 105, 12 100" />
         <path d="M 18 250 C 30 240, 25 220, 12 230 C 0 240, 8 260, 18 250" />
         <path d="M 13 400 C 1 390, 6 370, 19 380 C 30 390, 21 405, 13 400" />
@@ -414,16 +414,16 @@ export function PencilLeavesPerimeter({ className = "", stroke = "#8d7a68" }: Dr
 
       {/* Right Border Vine */}
       <svg
-        className="absolute right-0 top-0 h-full w-8 opacity-[0.20]"
+        className="absolute right-0 top-0 h-full w-16 opacity-[0.38]"
         viewBox="0 0 40 1000"
         preserveAspectRatio="none"
         fill="none"
         stroke={stroke}
-        strokeWidth="1.1"
+        strokeWidth="1.6"
         strokeLinecap="round"
       >
         <path d="M 25 0 Q 15 250 25 500 Q 35 750 25 1000" />
-        <path d="M 23 0 Q 13 250 23 500 Q 33 750 23 1000" strokeWidth="0.5" strokeDasharray="3 3" />
+        <path d="M 23 0 Q 13 250 23 500 Q 33 750 23 1000" strokeWidth="0.8" strokeDasharray="3 3" />
         <path d="M 28 150 C 40 160, 35 180, 22 170 C 10 160, 20 145, 28 150" />
         <path d="M 22 300 C 10 310, 15 330, 28 320 C 40 310, 32 290, 22 300" />
         <path d="M 29 450 C 41 460, 36 480, 23 470 C 11 460, 21 445, 29 450" />
@@ -432,5 +432,121 @@ export function PencilLeavesPerimeter({ className = "", stroke = "#8d7a68" }: Dr
         <path d="M 23 900 C 11 910, 16 930, 29 920 C 41 910, 33 890, 23 900" />
       </svg>
     </div>
+  );
+}
+
+// 10. Cozy Potted Flowers (Flower Pot)
+export function FlowerPotSketch({ className = "", stroke = "#8d7a68" }: DrawingProps) {
+  return (
+    <svg
+      className={`absolute pointer-events-none select-none z-0 hidden lg:block ${className}`}
+      viewBox="0 0 300 400"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* The Pot Rim */}
+      <path d="M 100 280 L 200 280 L 200 265 L 100 265 Z" fill="#f4f1ea" />
+      <path d="M 105 273 L 195 273" strokeWidth="0.6" strokeDasharray="2 2" />
+
+      {/* The Pot Body */}
+      <path d="M 112 280 L 188 280 L 175 370 L 125 370 Z" fill="#f4f1ea" strokeWidth="1.5" />
+      {/* Decorative lines on the pot */}
+      <path d="M 125 300 Q 150 305 175 300" strokeWidth="0.8" />
+      <path d="M 128 325 Q 150 330 172 325" strokeWidth="0.8" />
+      <path d="M 130 350 Q 150 355 170 350" strokeWidth="0.8" />
+      
+      {/* Stems & Leaves */}
+      <path d="M 150 265 C 150 200, 140 160, 150 100" strokeWidth="1.4" />
+      <path d="M 148 180 C 130 170, 135 190, 147 195" fill="#f4f1ea" />
+      <path d="M 149 150 C 165 140, 160 160, 150 165" fill="#f4f1ea" />
+      
+      {/* Center Flower (Tulip shape) */}
+      <path d="M 130 95 C 130 70, 145 60, 150 95 C 155 60, 170 70, 170 95 Z" fill="#f4f1ea" strokeWidth="1.5" />
+      <path d="M 150 95 L 150 65" strokeWidth="0.8" />
+      <circle cx="150" cy="62" r="2.5" fill={stroke} />
+
+      {/* Left stem */}
+      <path d="M 130 265 C 120 210, 95 180, 100 130" strokeWidth="1.2" />
+      <path d="M 118 200 C 105 195, 110 210, 122 212" />
+      {/* Left Flower */}
+      <path d="M 88 125 C 88 105, 100 95, 102 125 C 104 95, 116 105, 116 125 Z" fill="#f4f1ea" />
+      <circle cx="102" cy="98" r="2" fill={stroke} />
+
+      {/* Right stem */}
+      <path d="M 170 265 C 180 210, 205 180, 200 120" strokeWidth="1.2" />
+      <path d="M 182 190 C 195 185, 190 200, 180 202" />
+      {/* Right Flower */}
+      <path d="M 188 115 C 188 95, 200 85, 202 115 C 204 85, 216 95, 216 115 Z" fill="#f4f1ea" />
+      <circle cx="202" cy="88" r="2" fill={stroke} />
+
+      {/* Drooping leaves */}
+      <path d="M 105 280 C 85 290, 80 320, 95 330 C 105 320, 100 300, 108 282 Z" fill="#f4f1ea" />
+      <path d="M 195 280 C 215 290, 220 320, 205 330 C 195 320, 200 300, 192 282 Z" fill="#f4f1ea" />
+    </svg>
+  );
+}
+
+// 11. Cozy Bird on Branch (Bird Sketch)
+export function BirdOnBranchSketch({ className = "", stroke = "#8d7a68" }: DrawingProps) {
+  return (
+    <svg
+      className={`absolute pointer-events-none select-none z-0 hidden lg:block ${className}`}
+      viewBox="0 0 250 250"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* The Branch */}
+      <path d="M 20 180 C 80 170, 140 185, 230 155" strokeWidth="1.8" />
+      <path d="M 120 177 C 110 190, 80 200, 70 210" strokeWidth="0.8" />
+      <path d="M 85 200 Q 75 205 78 212" strokeWidth="0.6" />
+      
+      {/* Bird Body */}
+      <path d="M 90 145 C 90 110, 145 110, 155 145 C 160 160, 145 180, 115 180 C 95 180, 90 165, 90 145 Z" fill="#f4f1ea" strokeWidth="1.5" />
+      
+      {/* Bird Head */}
+      <circle cx="150" cy="125" r="14" fill="#f4f1ea" strokeWidth="1.5" />
+      <circle cx="154" cy="122" r="1.5" fill={stroke} />
+      <path d="M 164 123 L 174 127 L 164 131 Z" fill={stroke} />
+      
+      {/* Bird Wing */}
+      <path d="M 105 148 C 95 152, 105 170, 125 162 C 130 158, 120 144, 105 148 Z" fill="#f4f1ea" />
+      
+      {/* Bird Tail */}
+      <path d="M 90 165 L 55 185 L 80 172 Z" fill="#f4f1ea" />
+      
+      {/* Bird Feet */}
+      <path d="M 120 178 L 118 188" strokeWidth="1.5" />
+      <path d="M 132 178 L 134 188" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+// 12. Flock of Flying Birds (Flying Birds)
+export function FlyingBirdsSketch({ className = "", stroke = "#8d7a68" }: DrawingProps) {
+  return (
+    <svg
+      className={`absolute pointer-events-none select-none z-0 hidden lg:block ${className}`}
+      viewBox="0 0 200 150"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* Bird 1 - Large */}
+      <path d="M 40 50 Q 55 25 70 50 Q 85 25 100 50" strokeWidth="1.6" />
+      {/* Bird 2 - Medium */}
+      <path d="M 90 85 Q 102 65 115 85 Q 128 65 140 85" strokeWidth="1.3" />
+      {/* Bird 3 - Small */}
+      <path d="M 130 110 Q 140 95 150 110 Q 160 95 170 110" strokeWidth="1" />
+      {/* Bird 4 - Extra Small */}
+      <path d="M 30 95 Q 38 85 45 95 Q 52 85 60 95" strokeWidth="0.8" />
+    </svg>
   );
 }

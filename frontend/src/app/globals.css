@@ -149,3 +149,17 @@
 .animate-subtle-float {
   animation: subtle-float 15s ease-in-out infinite;
 }
+
+/* Global overrides for card/box backgrounds based on active tab themes with premium glassmorphism blur */
+.tab-theme-pink .bg-white {
+  background-color: rgba(255, 242, 244, 0.86) !important; /* Semi-transparent warm rose-pink */
+  backdrop-filter: blur(10px);
+}
+.tab-theme-yellow .bg-white {
+  background-color: rgba(255, 253, 240, 0.86) !important; /* Semi-transparent aesthetic parchment-yellow */
+  backdrop-filter: blur(10px);
+}
+.tab-theme-blue .bg-white {
+  background-color: rgba(242, 247, 252, 0.86) !important; /* Semi-transparent cyber-attestation blue */
+  backdrop-filter: blur(10px);
+}

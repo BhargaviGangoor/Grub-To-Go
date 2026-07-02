@@ -34,7 +34,7 @@ export default function RedemptionView() {
     // Simulate cryptographic validation latency
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    const result = redeemToken(tokenIdInput.trim(), securityMode);
+    const result = await redeemToken(tokenIdInput.trim(), securityMode);
     setVerificationOutcome(result);
     setIsVerifying(false);
   };
