@@ -25,6 +25,7 @@ import ImageUpload from "@/components/ImageUpload";
 import BudgetInput from "@/components/BudgetInput";
 import DietaryFilters from "@/components/DietaryFilters";
 import DishCard from "@/components/DishCard";
+import AppBackdrop from "@/components/AppBackdrop";
 
 type Screen =
   | "home"
@@ -762,21 +763,24 @@ export default function FrontendShell() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f1ea] text-[#1d3a2b]">
-      <AppHeader
-        screen={screen}
-        authMode={authMode}
-        onNavigate={handleNavigate}
-      />
-      <motion.div
-        key={screen}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-      >
-        {renderScreen()}
-      </motion.div>
+    <div className="relative min-h-screen overflow-hidden bg-[#f4f1ea] text-[#1d3a2b]">
+      <AppBackdrop />
+      <div className="relative z-10">
+        <AppHeader
+          screen={screen}
+          authMode={authMode}
+          onNavigate={handleNavigate}
+        />
+        <motion.div
+          key={screen}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+        >
+          {renderScreen()}
+        </motion.div>
+      </div>
     </div>
   );
 }
