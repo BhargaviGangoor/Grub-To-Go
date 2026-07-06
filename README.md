@@ -1,554 +1,502 @@
 # 🍜 GrubToGo
 
-## Agentic AI-Powered Custom Dish Generation & Secure Dining Orchestration
+# AI-Powered Agentic Restaurant Ordering Platform
 
-## https://grub-to-i8k5csnfl-bhargavi-gangoors-projects.vercel.app/
+## Project Vision
 
-GrubToGo is an AI-powered platform that generates personalized dishes from user preferences, budgets, dietary constraints, and food images while ensuring that recommendations remain secure, explainable, and valid when redeemed in the real world.
+GrubToGo is an **Agentic AI-powered restaurant ordering platform** that acts like a personal dining assistant.
 
-The project serves two purposes:
-
-1. **A Full-Stack Agentic AI Application**
-2. **A Security Research Testbed for Agentic Systems**
-
----
-
-# 🎯 Research Motivation
-
-Modern AI agents are increasingly making decisions that affect real-world resources.
-
-Examples include:
-
-* Food ordering
-* Resource reservations
-* Inventory allocation
-* Financial transactions
-* Autonomous workflows
-
-These systems typically:
-
-1. Gather information
-2. Validate constraints
-3. Generate decisions
-4. Commit actions
-
-The problem is that AI systems are probabilistic and may operate on:
-
-* Stale inventory
-* Outdated pricing
-* Incorrect retrieval results
-* Incomplete information
-* Hallucinated assumptions
-
-Once a cryptographic commitment is created, the mistake becomes significantly harder to reverse.
-
----
-
-# 🧠 Core Research Idea
-
-## Commitment Amplification
-
-**Commitment Amplification** is the process by which cryptographic commitments transform uncertain AI validation results into irreversible real-world actions.
-
-```text
-AI Validation
-     ↓
-Cryptographic Commitment
-     ↓
-Resource Reservation
-     ↓
-Financial / Physical Consequence
-```
-
-A small AI mistake can become a hard commitment once signed and redeemed.
-
----
-
-# ⏳ The Temporal Gap
-
-The key attack surface is the interval between generation and redemption.
-
-```text
-Generation Time
-       ↓
-  Temporal Gap
-       ↓
-Redemption Time
-```
-
-Example:
-
-### Generation
-
-* Paneer available
-* Price = ₹270
-* Dietary constraints satisfied
-
-AI generates a recipe.
-
-A commitment token is issued.
-
-### Redemption
-
-* Paneer out of stock
-* Price increased
-* Ingredient source changed
-
-The commitment still exists even though the world state has changed.
-
----
-
-# 🔐 Generation-Bound Dynamic Commitment Tokens (GB-DCT)
-
-Traditional systems sign only the final action.
-
-```text
-Order Paneer Noodles
-```
-
-GrubToGo binds the commitment to:
-
-### 1. World State
-
-* Inventory snapshot
-* Pricing snapshot
-* Dietary constraints
-* Generation timestamp
-
-### 2. AI Decision Artifact
-
-The structured artifact that produced the recommendation.
+Unlike traditional food-ordering applications where users manually browse menus, GrubToGo allows users to simply describe what they want.
 
 Examples:
 
-* Recipe Graph
-* Decision Graph
-* Planning Graph
-* Constraint Validation Graph
+* "I want a spicy vegetarian dinner under ₹300."
+* "Suggest something high in protein."
+* "I loved this dish." *(upload an image)*
+* "I'm allergic to peanuts."
+* "Order dinner for four."
 
-### 3. Final Action
+The AI understands preferences, reasons over restaurant inventory, validates constraints, and autonomously recommends or places orders.
 
-The action being committed.
+The primary focus of this project is building a **production-style full-stack Agentic AI application** using modern technologies.
 
----
-
-# 🏗 Generation Root
-
-At generation time:
-
-```text
-GenerationRoot =
-H(
-    InventorySnapshotHash ||
-    PricingSnapshotHash ||
-    DietaryHash ||
-    AIArtifactRoot ||
-    Timestamp
-)
-```
-
-The Generation Root captures the exact state under which the recommendation was created.
+A secondary goal is to evolve the project into a research platform for secure AI systems through cryptographic commitment mechanisms.
 
 ---
 
-# 🎫 Dynamic Commitment Token (DCT)
+# Primary Goal (Version 1)
 
-```text
-DCT =
-HMAC(
-    GenerationRoot ||
-    Action,
-    SecretKey
-)
-```
+Build a complete AI-powered restaurant ordering system that demonstrates:
 
-The resulting token is bound to:
+* Modern React frontend
+* Backend API architecture
+* Agentic AI workflows
+* LLM integration
+* Database integration
+* Authentication
+* Real-world deployment
+* Production-ready software engineering
 
-* What the AI decided
-* Why the AI decided it
-* What the world looked like
-* When the decision was generated
+The project should feel like a startup-quality application rather than a tutorial project.
 
 ---
 
-# 🤖 AI Artifact Binding
+# Core Features
 
-Most systems commit only to the final output.
+## User Authentication
 
-```text
-Action
-```
-
-GrubToGo commits to:
-
-```text
-Action
-+
-World State
-+
-AI Decision Artifact
-```
-
-This ensures that:
-
-* Different reasoning paths generate different tokens
-* Different inventory conditions generate different tokens
-* Different constraints generate different tokens
-
-Even if the final dish appears identical.
+* JWT Authentication
+* Register
+* Login
+* Logout
+* Protected Routes
+* User Profiles
 
 ---
 
-# ❓ Research Questions
+## AI Restaurant Assistant
 
-### RQ1
+Users should be able to interact naturally.
 
-How often do AI agents incorrectly validate constraints?
+Example:
 
-### RQ2
+> I want a spicy South Indian dinner under ₹250.
 
-How often do those failures become irreversible commitments?
+The AI should understand:
 
-### RQ3
-
-How frequently does world state drift between generation and redemption?
-
-### RQ4
-
-Can Generation-Bound DCT reduce harmful commitments caused by state drift?
-
-### RQ5
-
-Does AI Artifact Binding improve traceability and accountability?
+* cuisine
+* budget
+* dietary restrictions
+* allergies
+* preferences
+* meal type
+* number of people
 
 ---
 
-# 🏛 System Architecture
+## Image-Based Recommendations
 
-```text
+Users can upload:
+
+* food photos
+* restaurant dishes
+* screenshots
+
+The AI analyzes:
+
+* cuisine
+* ingredients
+* visual similarity
+* flavor profile
+
+and recommends similar dishes.
+
+---
+
+## Personalized Recommendations
+
+The AI should consider:
+
+* budget
+* allergies
+* vegetarian/non-vegetarian
+* cuisine
+* spice level
+* nutritional preferences
+* calorie limits
+
+---
+
+## Inventory Awareness
+
+The system should validate whether ingredients or menu items are currently available.
+
+If unavailable:
+
+* regenerate recommendations
+* explain why
+
+---
+
+## Explainable AI
+
+Instead of only returning results, the AI should explain:
+
+* why a dish was selected
+* why another dish was rejected
+* which constraints were considered
+
+---
+
+## Autonomous Ordering
+
+Eventually the AI should be capable of:
+
+* selecting dishes
+* confirming choices
+* generating an order
+* preparing it for checkout
+
+---
+
+# Agentic AI Architecture
+
+The application should use **LangGraph** for orchestration.
+
+Suggested workflow:
+
 User
- │
- ▼
-Image Upload
- │
- ▼
-AI Analysis
- │
- ▼
-Recipe Generation
- │
- ▼
-Constraint Validation
- │
- ├── Inventory Check
- ├── Pricing Check
- └── Dietary Check
- │
- ▼
-AI Artifact Creation
- │
- ▼
-Generation Root Creation
- │
- ▼
-GB-DCT Generation
- │
- ▼
-Redemption
- │
- ▼
-Drift Validation
-```
+
+↓
+
+Planner Agent
+
+↓
+
+Intent Detection
+
+↓
+
+Image Analysis Agent (optional)
+
+↓
+
+Menu Retrieval Agent
+
+↓
+
+Inventory Agent
+
+↓
+
+Pricing Agent
+
+↓
+
+Constraint Validation Agent
+
+↓
+
+Recommendation Agent
+
+↓
+
+Response Generator
+
+Each agent should have a clear responsibility.
+
+Avoid placing all logic inside one prompt.
 
 ---
 
-# ⚙️ Technology Stack
+# Technology Stack
 
 ## Frontend
 
-### Framework
-
-* Next.js 15
 * React
+* Next.js
 * TypeScript
-
-### UI
-
 * Tailwind CSS
 * shadcn/ui
-
-### State Management
-
 * Zustand
 
 ---
 
 ## Backend
 
-### API Layer
-
 * Node.js
 * Express.js
 * TypeScript
 
-### Database
+---
+
+## Database
 
 * PostgreSQL
 
-### ORM
+ORM
 
 * Prisma
 
-### Caching
+Caching
 
 * Redis
 
 ---
 
-## AI Layer
+## AI
 
-### LLM
-
-* Gemini 2.5 Pro
-
-### Vision
-
+* Gemini API
 * Gemini Vision
-
-### Agent Framework
-
 * LangGraph
 
-### Embeddings
+Future
 
-* Gemini Embeddings
-
----
-
-## Security Layer
-
-### Hashing
-
-* SHA-256
-
-### Signing
-
-* HMAC-SHA256
-
-### Token Validation
-
-* Custom GB-DCT Validator
+* Embeddings
+* Vector Search
 
 ---
 
-# 🚀 Development Roadmap
+## Authentication
 
-## Phase 1 — Frontend Development
+* JWT
+* bcrypt
+
+---
+
+## Deployment
+
+Frontend
+
+* Vercel
+
+Backend
+
+* Railway or Render
+
+Database
+
+* Neon PostgreSQL
+
+Caching
+
+* Redis Cloud
+
+---
+
+# Folder Structure
+
+grubtogo/
+
+frontend/
+
+backend/
+
+agents/
+
+database/
+
+auth/
+
+inventory/
+
+ai/
+
+utils/
+
+docs/
+
+research/
+
+---
+
+# Development Roadmap
+
+## Phase 1
+
+Frontend
 
 Build:
 
-* Homepage
-* Image Upload
-* Prompt Input
-* Dish Cards
-* Token Display
+* Landing Page
+* Login
+* Register
+* Chat Interface
+* Menu Page
+* User Dashboard
 
-### Deliverable
+Deliverable:
 
-Working frontend prototype.
+Working frontend.
 
 ---
 
-## Phase 2 — Backend APIs
+## Phase 2
+
+Backend
 
 Build:
 
-```http
-GET  /menu
-GET  /inventory
-POST /generate-dish
-POST /generate-dct
-POST /redeem-dct
-POST /validate-dct
-```
+* Express server
+* Authentication
+* User APIs
+* Menu APIs
+* Order APIs
 
-### Deliverable
+Deliverable:
 
 Frontend connected to backend.
 
 ---
 
-## Phase 3 — AI Dish Generation
+## Phase 3
 
-Input:
+Database
 
-```text
-Spicy vegetarian noodles under ₹300
-```
+Implement:
 
-Output:
+* PostgreSQL
+* Prisma
+* Users
+* Restaurants
+* Menu
+* Orders
 
-* Recipe
-* Ingredients
-* Cost estimate
+Deliverable:
 
-### Deliverable
-
-Basic AI generation working.
-
----
-
-## Phase 4 — Inventory Awareness
-
-Integrate:
-
-* PostgreSQL inventory database
-* Live inventory checks
-
-Workflow:
-
-```text
-Generate
- ↓
-Validate
- ↓
-Regenerate if invalid
-```
-
-### Deliverable
-
-Inventory-aware dish generation.
+Persistent data storage.
 
 ---
 
-## Phase 5 — Multimodal AI
+## Phase 4
 
-User uploads food images.
+Gemini Integration
 
-Extract:
+Implement:
 
-* Cuisine style
-* Flavor profile
-* Ingredient inspiration
+* Chatbot
+* Dish recommendation
+* Budget handling
+* Dietary constraints
 
-### Deliverable
+Deliverable:
 
-Multimodal recommendation engine.
-
----
-
-## Phase 6 — Agentic Workflow
-
-LangGraph pipeline:
-
-```text
-Analyze Image
-      ↓
-Generate Recipe
-      ↓
-Check Inventory
-      ↓
-Estimate Cost
-      ↓
-Validate Constraints
-      ↓
-Create AI Artifact
-      ↓
-Generate DCT
-```
-
-### Deliverable
-
-End-to-end agent workflow.
+Working AI assistant.
 
 ---
 
-## Phase 7 — AI Artifact Binding
+## Phase 5
 
-Create structured decision artifacts:
+Agentic Workflow
 
-* Recipe Graph
-* Planning Graph
-* Constraint Graph
+Create specialized agents:
 
-Compute:
+* Planner Agent
+* Image Agent
+* Inventory Agent
+* Pricing Agent
+* Recommendation Agent
 
-```text
-AIArtifactRoot
-```
+Deliverable:
 
-Store alongside generation metadata.
-
-### Deliverable
-
-Artifact-bound commitments.
+End-to-end LangGraph workflow.
 
 ---
 
-## Phase 8 — Generation-Bound DCT
+## Phase 6
 
-Generate:
+Inventory Validation
 
-```text
-GenerationRoot
-```
+Before recommendations:
 
-Create:
+* verify availability
+* regenerate if necessary
 
-```text
-DCT = HMAC(...)
-```
+Deliverable:
 
-Validate during redemption.
-
-### Deliverable
-
-Working GB-DCT security layer.
+Inventory-aware recommendations.
 
 ---
 
-## Phase 9 — Research Experiments
+## Phase 7
 
-### Experiment 1
+Image Understanding
 
-Constraint validation accuracy.
+Allow users to upload food images.
 
-### Experiment 2
+Gemini Vision should identify:
 
-Commitment amplification rate.
+* cuisine
+* ingredients
+* style
 
-### Experiment 3
+Deliverable:
 
-World-state drift simulation.
-
-### Experiment 4
-
-GB-DCT effectiveness.
-
-### Deliverable
-
-Research datasets, figures, and paper results.
+Multimodal recommendations.
 
 ---
 
-# 📊 Expected Outputs
+## Phase 8
 
-## Platform
+Deployment
 
-* Personalized dish generation
-* Inventory-aware recommendations
-* Secure redemption tokens
-* Explainable AI reasoning
+Deploy:
 
-## Research
+* frontend
+* backend
+* database
 
-* Formalization of Commitment Amplification
-* Temporal Gap analysis
-* Generation-Bound DCT evaluation
-* AI Artifact Binding evaluation
+Configure:
+
+* environment variables
+* logging
+* error handling
+
+Deliverable:
+
+Public production deployment.
 
 ---
 
-# 📝 One-Line Summary
+# Version 2 (Security Research)
 
-**GrubToGo studies how AI-generated decisions become irreversible real-world commitments and introduces Generation-Bound Dynamic Commitment Tokens (GB-DCTs) that bind actions to both world state and AI decision artifacts to reduce commitment amplification risks in agentic AI systems.**
+The security research should **NOT** dominate Version 1.
+
+Instead, create a separate module called **Research Lab**.
+
+This module will later include:
+
+* Generation-Bound Dynamic Commitment Tokens (GB-DCT)
+* Commitment Amplification
+* Temporal Gap Analysis
+* AI Artifact Binding
+* Drift Validation
+* Cryptographic Commitments
+
+The rest of the application should remain independent of this research module.
+
+---
+
+# Code Quality Requirements
+
+Use:
+
+* Clean Architecture
+* SOLID Principles
+* Modular components
+* Reusable hooks
+* TypeScript everywhere
+* Environment variables
+* API validation
+* Error handling
+* Loading states
+* Proper folder organization
+
+Avoid writing everything inside a few large files.
+
+---
+
+# Git Strategy
+
+Make small, meaningful commits.
+
+Examples:
+
+* feat(auth): add JWT login
+* feat(chat): integrate Gemini API
+* feat(agent): add inventory agent
+* feat(ui): create chat interface
+* fix(api): improve error handling
+* refactor(menu): modularize menu service
+
+---
+
+# Long-Term Vision
+
+GrubToGo should eventually become both:
+
+1. A production-quality AI-powered restaurant ordering platform.
+
+2. A research platform for studying secure Agentic AI systems and trustworthy AI decision making through cryptographic commitment mechanisms.
+
+The immediate focus, however, should be on building an excellent AI application first. The security research layer will be added incrementally after the core product is complete.
