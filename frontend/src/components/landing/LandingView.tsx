@@ -77,3 +77,4 @@ export default function LandingView({ onNavigate }: LandingViewProps) {// Defini
 
   );
 }
+
