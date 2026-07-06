@@ -62,7 +62,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             className="flex flex-col justify-center gap-4 pt-4 sm:flex-row"
           >
             <motion.button
-              onClick={() => onNavigate("generate")}
+              onClick={() => onNavigate("assistant")}
               whileHover={
                 shouldReduceMotion ? undefined : { y: -1.5, scale: 1.01 }
               }
