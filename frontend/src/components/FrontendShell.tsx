@@ -119,23 +119,23 @@ function AppHeader({
     ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#e9e5da] bg-[#f4f1ea]/95 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+    <header className="sticky top-0 z-40 border-b border-[#274629] bg-[#2c4a2f]/96 text-[#f4f1ea] shadow-[0_10px_35px_rgba(21,39,24,0.14)] backdrop-blur">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1d3a2b] text-[#e59b27] shadow-md">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e59b27] text-[#2c4a2f] shadow-md">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-lg font-extrabold tracking-tight text-[#1d3a2b]">
+            <div className="text-lg font-extrabold tracking-tight text-[#f4f1ea]">
               GrubToGo
             </div>
-            <div className="text-xs font-mono text-[#1d3a2b]/55">
-              Phase 1 customer experience
+            <div className="text-xs font-mono text-[#f4f1ea]/75">
+              Family-style dining assistant
             </div>
           </div>
         </div>
 
-        <nav className="flex flex-wrap gap-2">
+        <nav className="flex flex-wrap gap-2 lg:justify-center">
           {navItems.map((item) => {
             const active = screen === item.screen;
             const Icon = item.icon;
@@ -146,8 +146,8 @@ function AppHeader({
                 onClick={() => onNavigate(item.screen)}
                 className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
                   active
-                    ? "border-[#1d3a2b] bg-[#1d3a2b] text-[#f4f1ea]"
-                    : "border-[#e9e5da] bg-white/80 text-[#1d3a2b] hover:border-[#1d3a2b]/30 hover:bg-white"
+                    ? "border-[#e59b27] bg-[#e59b27] text-[#2c4a2f] shadow-sm"
+                    : "border-white/10 bg-white/5 text-[#f4f1ea] hover:border-[#e59b27]/30 hover:bg-white/10"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -163,8 +163,8 @@ function AppHeader({
             onClick={() => onNavigate("login")}
             className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
               screen === "login"
-                ? "border-[#e59b27] bg-[#e59b27] text-white"
-                : "border-[#e9e5da] bg-white/80 text-[#1d3a2b] hover:border-[#e59b27]/40 hover:bg-white"
+                ? "border-[#e59b27] bg-[#e59b27] text-[#2c4a2f] shadow-sm"
+                : "border-white/10 bg-white/5 text-[#f4f1ea] hover:border-[#e59b27]/40 hover:bg-white/10"
             }`}
           >
             <LogIn className="h-4 w-4" />
@@ -175,8 +175,8 @@ function AppHeader({
             onClick={() => onNavigate("register")}
             className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
               screen === "register"
-                ? "border-[#1d3a2b] bg-white text-[#1d3a2b]"
-                : "border-[#e9e5da] bg-white/80 text-[#1d3a2b] hover:border-[#1d3a2b]/30 hover:bg-white"
+                ? "border-[#e59b27] bg-white text-[#2c4a2f]"
+                : "border-white/10 bg-white/5 text-[#f4f1ea] hover:border-[#e59b27]/40 hover:bg-white/10"
             }`}
           >
             <UserPlus className="h-4 w-4" />
@@ -764,7 +764,7 @@ export default function FrontendShell() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f4f1ea] text-[#1d3a2b]">
-      <AppBackdrop />
+      <AppBackdrop screen={screen} />
       <div className="relative z-10">
         <AppHeader
           screen={screen}
