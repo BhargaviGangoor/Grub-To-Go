@@ -1,80 +1,80 @@
-"use client";// This directive indicates that the code is intended to run on the client side, enabling features like interactivity and state management in a React application.
+"use client";
 
-import { motion, useReducedMotion } from "framer-motion"; // Importing motion and useReducedMotion from framer-motion for animations and motion preferences
-import { ArrowRight, Shield } from "lucide-react"; // Importing icons from lucide-react for use in the UI
-import { SaigonCathedralDrawing } from "@/components/BackgroundDrawings"; // Importing a custom background drawing component for visual enhancement
-import { revealUp, staggerContainer } from "@/lib/motion"; // Importing animation variants for motion effects
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, Shield } from "lucide-react";
+import { SaigonCathedralDrawing } from "@/components/BackgroundDrawings";
+import { revealUp, staggerContainer } from "@/lib/motion";
 
-interface LandingViewProps {// Defining the props interface for the LandingView component This is a TypeScript interface defining the "shape" of the props (properties) that our LandingView component expects to receive.
-  onNavigate: (view: string) => void;// A function prop that handles navigation to different views based on the provided string
+interface LandingViewProps {
+  onNavigate: (view: string) => void;
 }
 
-export default function LandingView({ onNavigate }: LandingViewProps) {// Defining the LandingView functional component that takes onNavigate as a prop
-  const shouldReduceMotion = useReducedMotion();// Using the useReducedMotion hook to determine if the user prefers reduced motion for accessibility reasons
+export default function LandingView({ onNavigate }: LandingViewProps) {
+  const shouldReduceMotion = useReducedMotion();
 
-  return ({/* The component returns a JSX structure that represents the landing view of the application. It includes a background drawing, a hero section with a title, subtitle, description, and a button to start ordering. The button triggers the onNavigate function when clicked. */}
-    <div className="space-y-20 pb-20 relative overflow-hidden">
-      {/* Background Drawing */}
-      <SaigonCathedralDrawing className="opacity-[0.08] stroke-[#1d3a2b]" />
+  return (
+    <div className="relative overflow-hidden space-y-20 pb-20">
+      <SaigonCathedralDrawing className="stroke-[#1d3a2b] opacity-[0.08]" />
 
-      {/* Hero Section */}
-      <motion.div 
+      <motion.section
         variants={staggerContainer}
         initial="hidden"
         animate="show"
-        className="relative overflow-hidden py-16 lg:py-24 border-b border-[#e9e5da]"
+        className="relative overflow-hidden border-b border-[#e9e5da] py-16 lg:py-24"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(229,155,39,0.06),transparent)] pointer-events-none" />
-        <div className="cyber-grid absolute inset-0 opacity-40 pointer-events-none" />
-        
-        <div className="max-w-4xl mx-auto text-center px-4 space-y-6 relative z-10">
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(229,155,39,0.06),transparent)]" />
+        <div className="cyber-grid absolute inset-0 pointer-events-none opacity-40" />
+
+        <div className="relative z-10 mx-auto max-w-4xl space-y-6 px-4 text-center">
           <motion.div
-          variants={revealUp}
-          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#e59b27]/30 bg-[#e59b27]/5 text-[#e59b27] text-xs font-mono font-bold"
+            variants={revealUp}
+            className="inline-flex items-center gap-2 rounded-full border border-[#e59b27]/30 bg-[#e59b27]/5 px-3.5 py-1 text-xs font-mono font-bold text-[#e59b27]"
           >
-          <Shield className="w-3.5 h-3.5" />
-          <span>Your Personal AI Dining Assistant</span>
+            <Shield className="h-3.5 w-3.5" />
+            <span>Your Personal AI Dining Assistant</span>
           </motion.div>
 
           <motion.h1
-          variants={revealUp}
-          className="text-6xl md:text-8xl font-extrabold tracking-tight outlined-text"
+            variants={revealUp}
+            className="outlined-text text-6xl font-extrabold tracking-tight md:text-8xl"
           >
-          GrubToGo
+            GrubToGo
           </motion.h1>
 
           <motion.h2
-          variants={revealUp}
-          className="text-lg md:text-2xl font-bold text-[#1d3a2b] max-w-2xl mx-auto leading-relaxed"
+            variants={revealUp}
+            className="mx-auto max-w-2xl text-lg font-bold leading-relaxed text-[#1d3a2b] md:text-2xl"
           >
-          Order Exactly What You Crave, Effortlessly.
+            Order Exactly What You Crave, Effortlessly.
           </motion.h2>
 
           <motion.p
-          variants={revealUp}
-          className="text-[#1d3a2b]/70 max-w-2xl mx-auto text-sm md:text-base leading-relaxed"
+            variants={revealUp}
+            className="mx-auto max-w-2xl text-sm leading-relaxed text-[#1d3a2b]/70 md:text-base"
           >
-          Tell our AI what you desire – from "a spicy vegetarian dinner under ₹300" to "something high in protein" – 
-          and let it handle the rest. No more endless browsing, just perfect meals tailored for you.
+            Tell our AI what you desire from a spicy vegetarian dinner under
+            ₹300 to something high in protein, and let it handle the rest. No
+            more endless browsing, just perfect meals tailored for you.
           </motion.p>
+
           <motion.div
             variants={revealUp}
-            className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
+            className="flex flex-col justify-center gap-4 pt-4 sm:flex-row"
           >
             <motion.button
               onClick={() => onNavigate("generate")}
-              whileHover={shouldReduceMotion ? undefined : { y: -1.5, scale: 1.01 }}
+              whileHover={
+                shouldReduceMotion ? undefined : { y: -1.5, scale: 1.01 }
+              }
               whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
-              className="px-8 py-3 rounded-lg bg-[#1d3a2b] hover:bg-[#14281e] text-[#f4f1ea] font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+              className="flex items-center justify-center gap-2 rounded-lg bg-[#1d3a2b] px-8 py-3 font-bold text-[#f4f1ea] shadow-md transition-all duration-200 hover:bg-[#14281e] hover:shadow-lg"
             >
               <span>Start Ordering</span>
-              <ArrowRight className="w-4 h-4 text-[#e59b27]" />
+              <ArrowRight className="h-4 w-4 text-[#e59b27]" />
             </motion.button>
           </motion.div>
         </div>
-      </motion.div>
-
-
+      </motion.section>
+    </div>
   );
 }
-
