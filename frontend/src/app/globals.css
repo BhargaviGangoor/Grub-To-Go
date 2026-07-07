@@ -35,6 +35,37 @@
   mask-composite: intersect;
 }
 
+/* Stamp-framed photo card (perforated border like a postage stamp) */
+.stamp-frame {
+  --r: 6px;
+  --s: 14px;
+  background: #fff;
+  padding: 10px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+  -webkit-mask:
+    radial-gradient(var(--r) at var(--r) 0, #0000 98%, #000) calc(var(--r) * -1) 0 / var(--s) 51% repeat-x,
+    radial-gradient(var(--r) at var(--r) 100%, #0000 98%, #000) calc(var(--r) * -1) 100% / var(--s) 51% repeat-x,
+    radial-gradient(var(--r) at 0 var(--r), #0000 98%, #000) 0 calc(var(--r) * -1) / 51% var(--s) repeat-y,
+    radial-gradient(var(--r) at 100% var(--r), #0000 98%, #000) 100% calc(var(--r) * -1) / 51% var(--s) repeat-y;
+  -webkit-mask-composite: destination-in;
+  mask:
+    radial-gradient(var(--r) at var(--r) 0, #0000 98%, #000) calc(var(--r) * -1) 0 / var(--s) 51% repeat-x,
+    radial-gradient(var(--r) at var(--r) 100%, #0000 98%, #000) calc(var(--r) * -1) 100% / var(--s) 51% repeat-x,
+    radial-gradient(var(--r) at 0 var(--r), #0000 98%, #000) 0 calc(var(--r) * -1) / 51% var(--s) repeat-y,
+    radial-gradient(var(--r) at 100% var(--r), #0000 98%, #000) 100% calc(var(--r) * -1) / 51% var(--s) repeat-y;
+  mask-composite: intersect;
+}
+
+/* Hero section dark gradient overlay */
+.hero-overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.35) 0%,
+    rgba(0,0,0,0.50) 50%,
+    rgba(0,0,0,0.65) 100%
+  );
+}
+
 .stamp-card {
   background: #ffffff;
   padding: 12px;
