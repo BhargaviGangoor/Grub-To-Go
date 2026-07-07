@@ -154,11 +154,11 @@ function AppHeader({
           })}
         </nav>
 
-        {/* ── CTA Button ── */}
+        {/* ── CTA Button (stamp/ticket style) ── */}
         <button
           type="button"
           onClick={() => onNavigate("assistant")}
-          className="rounded-sm bg-[#e59b27] px-5 py-2 text-[13px] font-bold tracking-[0.06em] text-[#1d3a2b] transition-all hover:bg-[#d9911f] hover:shadow-md active:scale-[0.97]"
+          className="stamp-btn bg-[#e59b27] text-[13px] font-extrabold tracking-[0.06em] text-[#1d3a2b] transition-all hover:bg-[#d9911f] active:scale-[0.97]"
         >
           ORDER NOW
         </button>
