@@ -1,5 +1,5 @@
 "use client";
-import { useState, type FormEvent } from "react";{/*react hooks and types */}
+import { useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -19,7 +19,7 @@ import DietaryFilters from "@/components/DietaryFilters";
 import DishCard from "@/components/DishCard";
 import AppBackdrop from "@/components/AppBackdrop";
 
-type Screen ={/*types defined*/}
+type Screen =
   | "home"
   | "assistant"
   | "menu"
@@ -45,7 +45,7 @@ type MenuItem = {
   tags: string[];
 };
 
-const menuCatalog: MenuItem[] = [ {/*an array*/}
+const menuCatalog: MenuItem[] = [
   {
     title: "Spicy Cream Paneer Udon",
     ingredients: ["Paneer", "Udon Noodles", "Heavy Cream"],
@@ -92,27 +92,27 @@ const menuCatalog: MenuItem[] = [ {/*an array*/}
   },
 ];
 
-function AppHeader({  {/*React functional xomponent in typescript*/}
+function AppHeader({
   screen,
   onNavigate,
-}: {  {/*properties are defined here*/}
+}: {
   screen: Screen;
   authMode: AuthMode;
   onNavigate: (screen: Screen) => void;
 }) {
-  const navItems: Array<{ label: string; screen: Screen }> = [{
+  const navItems: Array<{ label: string; screen: Screen }> = [
     { label: "HOME", screen: "home" },
     { label: "ASSISTANT", screen: "assistant" },
     { label: "MENU", screen: "menu" },
     { label: "DASHBOARD", screen: "dashboard" },
-    { label: "RESEARCH", screen: "research" },{/*this is a typescript array of objects, each object has a label and a screen property*/}
+    { label: "RESEARCH", screen: "research" },
   ];
 
   return (
     <header className="sticky top-0 z-40 bg-[#2c4a2f] text-[#f4f1ea] shadow-[0_4px_20px_rgba(0,0,0,0.15)]">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-0">
         {/* ── Logo ── */}
-        <button {/*this is the logo container written in typescript*/}
+        <button
           type="button"
           onClick={() => onNavigate("home")}
           className="flex items-center gap-2.5 py-3 transition-opacity hover:opacity-85"
@@ -127,13 +127,13 @@ function AppHeader({  {/*React functional xomponent in typescript*/}
 
         {/* ── Navigation links ── */}
         <nav className="hidden items-center gap-1 md:flex">
-          {navItems.map((item) => { {/*this is written in typescript*/}
+          {navItems.map((item) => {
             const active = screen === item.screen;
             return (
               <button
                 key={item.screen}
                 type="button"
-                onClick={() => onNavigate(item.screen)} {/*this line handles the navigation to a specific screen based on the item clicked*/} 
+                onClick={() => onNavigate(item.screen)}
                 className={`relative px-4 py-4 text-[13px] font-semibold tracking-[0.08em] transition-colors ${
                   active
                     ? "text-[#f4f1ea]"
