@@ -104,8 +104,9 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
           viewport={{ once: true, margin: "-100px" }}
           className="relative z-10 mx-auto max-w-7xl px-6"
         >
-          <div className="max-w-xl">
-            <motion.p
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div className="max-w-xl">
+              <motion.p
               variants={revealUp}
               className="text-xs font-bold uppercase tracking-[0.2em] text-[#1d3a2b]/50"
             >
@@ -145,6 +146,25 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             >
               Learn More
             </motion.button>
+            </div>
+            
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="relative flex justify-center lg:justify-end"
+            >
+              <div className="stamp-frame rotate-2 transition-transform duration-500 hover:rotate-0 hover:scale-105">
+                <Image
+                  src="/frenchme.jpg"
+                  alt="Authentic Parisian"
+                  width={400}
+                  height={500}
+                  className="h-80 w-64 rounded-sm object-cover sm:h-96 sm:w-80"
+                />
+              </div>
+            </motion.div>
           </div>
         </motion.div>
       </section>
@@ -169,7 +189,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
               {/* Photo 1 — large, tilted left */}
               <div className="stamp-frame relative z-10 -rotate-3 transition-transform duration-500 hover:rotate-0 hover:scale-105">
                 <Image
-                  src="/download.jpg"
+                  src="/good food.jpg"
                   alt="Fresh cuisine"
                   width={320}
                   height={240}
@@ -253,6 +273,18 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             </motion.div>
           </div>
         </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION 3.5 — PARIS VIEW (ilparis.jpg)
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="relative h-[40vh] min-h-[300px] w-full overflow-hidden">
+        <Image
+          src="/ilparis.jpg"
+          alt="Paris view"
+          fill
+          className="object-cover"
+        />
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
@@ -353,6 +385,18 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             </div>
           </motion.div>
         </motion.div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION 4.5 — MACARONS SPAN
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="relative h-[40vh] min-h-[300px] w-full overflow-hidden">
+        <Image
+          src="/macarons.jpg"
+          alt="Macarons"
+          fill
+          className="object-cover"
+        />
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
