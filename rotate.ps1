@@ -1,0 +1,1 @@
+Add-Type -AssemblyName System.Drawing; $img = [System.Drawing.Image]::FromFile('c:\Users\Admin\Downloads\Grub-To-Go\frontend\public\bg-romance.jpg'); $img.RotateFlip([System.Drawing.RotateFlipType]::Rotate270FlipNone); $img.Save('c:\Users\Admin\Downloads\Grub-To-Go\frontend\public\bg-romance-rotated.jpg');

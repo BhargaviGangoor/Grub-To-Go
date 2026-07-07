@@ -1,12 +1,28 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import {
   SaigonCathedralDrawing,
   BotanicalSprigDrawing,
   PaddlingBoatDrawing,
   FlyingBirdsSketch,
+  EiffelTowerDrawing,
+  CroissantDrawing,
+  StreetLampDrawing,
+  WineGlassDrawing,
+  ArcDeTriompheDrawing,
+  RoseBouquetDrawing,
+  RibbonDrawing,
+  HeelsDrawing,
+  CoffeeCupDrawing,
+  ParisNotreDameDrawing,
+  VintageVespaDrawing,
+  BistroSetDrawing,
+  BaguetteBasketDrawing,
+  FlowerPotSketch,
+  BirdOnBranchSketch,
 } from "@/components/BackgroundDrawings";
 import { revealUp, staggerContainer } from "@/lib/motion";
 
@@ -15,14 +31,36 @@ interface LandingViewProps {
 }
 
 export default function LandingView({ onNavigate }: LandingViewProps) {
-  const shouldReduceMotion = useReducedMotion();
+  const [isMounted, setIsMounted] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+  // Parallax hooks
+  const { scrollY } = useScroll();
+  const yBgSlow = useTransform(scrollY, [0, 4000], [0, 300]);
+  const yBgFast = useTransform(scrollY, [0, 4000], [0, -400]);
+  const rotateBg = useTransform(scrollY, [0, 4000], [0, 120]);
+  const yTextParallax = useTransform(scrollY, [0, 4000], [0, -150]);
+  const xBoat = useTransform(scrollY, [0, 4000], [0, 300]);
+
+  const stackBase = useTransform(scrollY, [0, 4000], [0, 100]);
+  const stackL1 = useTransform(scrollY, [0, 4000], [0, -50]);
+  const stackL2 = useTransform(scrollY, [0, 4000], [0, -150]);
+  const stackL3 = useTransform(scrollY, [0, 4000], [0, -250]);
+  const stackL4 = useTransform(scrollY, [0, 4000], [0, -350]);
 
   return (
     <div className="relative">
       {/* ═══════════════════════════════════════════════════════════
           SECTION 1 — HERO (full-viewport, background image)
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative flex min-h-[92vh] items-center justify-center overflow-hidden">
+      <section className="relative flex min-h-[92vh] items-center justify-center overflow-hidden bg-[#1d3a2b]">
         {/* Background image */}
         <Image
           src="/verandah.jpg"
@@ -38,7 +76,8 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
         <motion.div
           variants={staggerContainer}
           initial="hidden"
-          animate="show"
+          whileInView="show"
+          viewport={{ once: true }}
           className="relative z-10 mx-auto max-w-4xl px-6 text-center"
         >
           <motion.h1
@@ -68,20 +107,16 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
           >
             <motion.button
               onClick={() => onNavigate("menu")}
-              whileHover={
-                shouldReduceMotion ? undefined : { y: -2, scale: 1.02 }
-              }
-              whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               className="stamp-btn bg-[#1d3a2b] px-7 py-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#f4f1ea] transition-all hover:bg-[#14281e]"
             >
               Explore Our Menu
             </motion.button>
             <motion.button
               onClick={() => onNavigate("assistant")}
-              whileHover={
-                shouldReduceMotion ? undefined : { y: -2, scale: 1.02 }
-              }
-              whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               className="stamp-btn bg-[#e59b27] px-7 py-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#1d3a2b] transition-all hover:bg-[#d9911f]"
             >
               Order Now
@@ -94,13 +129,44 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
           SECTION 2 — WELCOME ("Authentic Parisian Flavours!")
          ═══════════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden bg-[#f4f1ea] py-20 lg:py-28">
+        {/* Parallax Background Drawings */}
+        <motion.div style={isMounted ? { y: yBgFast } : {}} className="absolute right-0 top-0 pointer-events-none opacity-[0.06] z-0">
+          <SaigonCathedralDrawing className="stroke-[#1d3a2b] w-[600px] h-[900px]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgFast, x: "10%" } : { x: "10%" }} className="absolute left-[40%] top-0 pointer-events-none opacity-[0.05] z-0 hidden lg:block">
+          <ParisNotreDameDrawing className="stroke-[#1d3a2b] w-[500px] h-[600px]" />
+        </motion.div>
+        <motion.div style={isMounted ? { x: xBoat } : {}} className="absolute -left-10 bottom-0 pointer-events-none opacity-[0.10] z-0 hidden md:block">
+          <PaddlingBoatDrawing className="w-[400px] h-[200px]" />
+        </motion.div>
+
+        {/* Scattered SVG Sketches */}
+        <motion.div style={isMounted ? { y: yBgFast, rotate: -15 } : { rotate: -15 }} className="absolute -left-5 top-10 pointer-events-none opacity-[0.25] z-0">
+          <EiffelTowerDrawing className="w-[200px] h-[400px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: 10 } : { rotate: 10 }} className="absolute -right-5 bottom-20 pointer-events-none opacity-[0.25] z-0">
+          <CroissantDrawing className="w-[150px] h-[150px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgFast, rotate: 20 } : { rotate: 20 }} className="absolute left-[30%] top-1/4 pointer-events-none opacity-[0.20] z-0 hidden lg:block">
+          <RoseBouquetDrawing className="w-[180px] h-[220px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: -5 } : { rotate: -5 }} className="absolute right-[22%] top-10 pointer-events-none opacity-[0.15] z-0 hidden lg:block">
+          <VintageVespaDrawing className="w-[200px] h-[150px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgFast, rotate: 12 } : { rotate: 12 }} className="absolute left-[15%] bottom-[5%] pointer-events-none opacity-[0.15] z-0 hidden lg:block">
+          <BistroSetDrawing className="w-[220px] h-[220px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: -8 } : { rotate: -8 }} className="absolute right-[25%] bottom-[10%] pointer-events-none opacity-[0.18] z-0 hidden lg:block">
+          <BaguetteBasketDrawing className="w-[160px] h-[200px] stroke-[#1d3a2b]" />
+        </motion.div>
+
         <div className="relative mx-auto max-w-7xl px-6">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <motion.div
               variants={staggerContainer}
               initial="hidden"
               whileInView="show"
-              viewport={{ once: true, margin: "-100px" }}
+              viewport={{ once: true }}
               className="max-w-xl relative z-20"
             >
               <motion.p
@@ -135,23 +201,18 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
               <motion.button
                 variants={revealUp}
                 onClick={() => onNavigate("menu")}
-                whileHover={
-                  shouldReduceMotion ? undefined : { y: -2, scale: 1.02 }
-                }
-                whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+                whileHover={{ y: -2, scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
                 className="stamp-btn mt-8 bg-[#1d3a2b] px-7 py-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#f4f1ea] transition-all hover:bg-[#14281e]"
               >
                 Learn More
               </motion.button>
             </motion.div>
-            
-            {/* The cathedral is placed behind the text, to the left, as per screenshot */}
-            <SaigonCathedralDrawing className="!left-auto !right-0 !top-0 stroke-[#1d3a2b] !opacity-[0.06] !w-[600px] !h-[900px] pointer-events-none -z-10" />
 
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, ease: "easeOut" }}
               className="relative flex justify-center lg:justify-end mix-blend-multiply"
             >
@@ -171,8 +232,30 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
           SECTION 3 — "Cuisine Made Fresh Daily"
          ═══════════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden bg-[#f4f1ea] pb-10 lg:pb-16 pt-8">
-        {/* Botanical sprig decoration */}
-        <BotanicalSprigDrawing className="absolute left-[5%] top-[10%] w-20 h-20 rotate-12 !opacity-[0.15]" />
+        {/* Parallax Botanical sprig decoration */}
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: rotateBg } : {}} className="absolute left-[5%] top-[10%] pointer-events-none opacity-[0.15] z-0">
+          <BotanicalSprigDrawing className="w-24 h-24" />
+        </motion.div>
+
+        {/* Scattered SVG Sketches */}
+        <motion.div style={isMounted ? { y: yBgFast, rotate: -5 } : { rotate: -5 }} className="absolute -left-10 top-40 pointer-events-none opacity-[0.25] z-0">
+          <WineGlassDrawing className="w-[120px] h-[180px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: 8 } : { rotate: 8 }} className="absolute right-5 bottom-10 pointer-events-none opacity-[0.25] z-0">
+          <ArcDeTriompheDrawing className="w-[250px] h-[250px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgFast, rotate: -10 } : { rotate: -10 }} className="absolute left-[40%] top-10 pointer-events-none opacity-[0.25] z-0 hidden lg:block">
+          <CoffeeCupDrawing className="w-[160px] h-[160px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: 15 } : { rotate: 15 }} className="absolute left-[20%] bottom-[12%] pointer-events-none opacity-[0.20] z-0 hidden lg:block">
+          <BaguetteBasketDrawing className="w-[150px] h-[180px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgFast, rotate: -12 } : { rotate: -12 }} className="absolute right-[40%] bottom-[15%] pointer-events-none opacity-[0.18] z-0 hidden lg:block">
+          <VintageVespaDrawing className="w-[180px] h-[140px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: 6 } : { rotate: 6 }} className="absolute left-[5%] bottom-[35%] pointer-events-none opacity-[0.18] z-0 hidden lg:block">
+          <RibbonDrawing className="w-[160px] h-[120px] stroke-[#1d3a2b]" />
+        </motion.div>
 
         <div className="relative mx-auto max-w-7xl px-6">
           <div className="grid items-center gap-12 lg:grid-cols-2 flex-col-reverse flex lg:grid">
@@ -180,7 +263,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, ease: "easeOut" }}
               className="relative flex items-center justify-center py-8 mix-blend-multiply"
             >
@@ -198,11 +281,13 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
               variants={staggerContainer}
               initial="hidden"
               whileInView="show"
-              viewport={{ once: true, margin: "-80px" }}
+              viewport={{ once: true }}
               className="relative"
             >
-              {/* Flying birds accent */}
-              <FlyingBirdsSketch className="!absolute !right-0 !-top-12 !w-32 !h-24 !opacity-[0.12]" />
+              {/* Flying birds parallax accent */}
+              <motion.div style={isMounted ? { y: yBgFast, x: yBgFast } : {}} className="absolute right-0 -top-16 opacity-[0.12] pointer-events-none">
+                <FlyingBirdsSketch className="w-40 h-32" />
+              </motion.div>
 
               <motion.h2
                 variants={revealUp}
@@ -248,13 +333,207 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
+          SECTION 3.1 — SEE WHAT'S COOKING! (PARISIAN STACK)
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden bg-[#f4f1ea] pt-8 pb-16 lg:pt-12 lg:pb-24">
+        {/* Background Sketch (Eiffel Tower) */}
+        <motion.div style={isMounted ? { y: yBgFast, x: "-10%" } : { x: "-10%" }} className="absolute left-[5%] top-10 pointer-events-none opacity-[0.07] z-0">
+          <EiffelTowerDrawing className="w-[500px] h-[900px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, x: "10%" } : { x: "10%" }} className="absolute right-[5%] top-12 pointer-events-none opacity-[0.06] z-0 hidden lg:block">
+          <ParisNotreDameDrawing className="w-[450px] h-[550px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgFast, rotate: 15 } : { rotate: 15 }} className="absolute left-[15%] bottom-[12%] pointer-events-none opacity-[0.16] z-0 hidden lg:block">
+          <BistroSetDrawing className="w-[200px] h-[200px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: -10 } : { rotate: -10 }} className="absolute right-[18%] top-[25%] pointer-events-none opacity-[0.16] z-0 hidden lg:block">
+          <BirdOnBranchSketch className="w-[180px] h-[180px] stroke-[#1d3a2b]" />
+        </motion.div>
+
+        <div className="relative mx-auto max-w-7xl px-6">
+          {/* Header */}
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="mb-20 relative z-10"
+          >
+        <motion.h2 variants={revealUp} className="font-heading text-4xl font-bold text-[#1d3a2b] sm:text-5xl lg:text-6xl">
+              See <span className="font-script text-[#e59b27] text-5xl sm:text-6xl lg:text-7xl">what's</span> cooking!
+            </motion.h2>
+            <motion.p variants={revealUp} className="mt-6 max-w-sm text-sm sm:text-base leading-relaxed text-[#1d3a2b]/70">
+              From fresh baked pastries to rich savory soups, take a peek behind the scenes and discover what's freshly prepared in our Parisian kitchen.
+            </motion.p>
+          </motion.div>
+
+          {/* Central Stack Collage Area */}
+          <div className="relative h-[500px] sm:h-[700px] w-full flex justify-center mt-6">
+
+            {/* The Wood Board Base */}
+            <motion.div
+              style={isMounted ? { y: stackBase } : {}}
+              className="absolute bottom-[5%] w-full max-w-[300px] sm:max-w-[500px] mix-blend-multiply z-[1]"
+            >
+              <Image src="/wood_board.png" alt="Wood board" width={600} height={400} className="w-full object-contain" />
+            </motion.div>
+
+            {/* Coffee - Bottom Right */}
+            <motion.div
+              style={isMounted ? { y: stackL1 } : {}}
+              initial={{ opacity: 0, scale: 0.8, x: 40 }}
+              whileInView={{ opacity: 1, scale: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+              whileHover={{ scale: 1.08, rotate: 2, zIndex: 20 }}
+              className="absolute bottom-[10%] right-[5%] sm:right-[15%] lg:right-[30%] w-[120px] sm:w-[180px] mix-blend-multiply z-[5] cursor-pointer"
+            >
+              <Image src="/paris_coffee.png" alt="Espresso" width={300} height={300} className="w-full object-contain" />
+              {/* Label */}
+              <div className="hidden sm:flex absolute top-[60%] sm:top-[100%] right-[-140px] w-[180px] items-center gap-3">
+                <div className="w-12 border-b border-[#1d3a2b]/40"></div>
+                <div className="flex gap-3 items-center">
+                  <div className="w-10 h-10 rounded-full bg-[#1d3a2b] flex items-center justify-center shrink-0">
+                    <CoffeeCupDrawing className="w-5 h-5 stroke-[#f4f1ea] text-[#f4f1ea]" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-[#1d3a2b] block text-sm">Espresso</span>
+                    <span className="text-[10px] text-[#1d3a2b]/70 leading-tight block">Slow-dripped to satisfaction</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Croissant - Bottom Left */}
+            <motion.div
+              style={isMounted ? { y: stackL1 } : {}}
+              initial={{ opacity: 0, scale: 0.8, x: -40 }}
+              whileInView={{ opacity: 1, scale: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+              whileHover={{ scale: 1.08, rotate: -2, zIndex: 20 }}
+              className="absolute bottom-[15%] left-[5%] sm:left-[15%] lg:left-[30%] w-[150px] sm:w-[220px] mix-blend-multiply z-[4] cursor-pointer"
+            >
+              <Image src="/paris_croissant.png" alt="Croissant" width={400} height={300} className="w-full object-contain" />
+              {/* Label */}
+              <div className="hidden sm:flex absolute top-[80%] left-[-160px] w-[190px] items-center gap-3 flex-row-reverse">
+                <div className="w-12 border-b border-[#1d3a2b]/40"></div>
+                <div className="flex gap-3 items-center flex-row-reverse text-right">
+                  <div className="w-10 h-10 rounded-full bg-[#1d3a2b] flex items-center justify-center shrink-0">
+                    <CroissantDrawing className="w-5 h-5 stroke-[#f4f1ea] text-[#f4f1ea]" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-[#1d3a2b] block text-sm">Croissant</span>
+                    <span className="text-[10px] text-[#1d3a2b]/70 leading-tight block">Crunchy & tender in every bite</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Crepes - Middle Left */}
+            <motion.div
+              style={isMounted ? { y: stackL2 } : {}}
+              initial={{ opacity: 0, scale: 0.8, x: -40 }}
+              whileInView={{ opacity: 1, scale: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+              whileHover={{ scale: 1.08, rotate: -1, zIndex: 20 }}
+              className="absolute bottom-[35%] left-[10%] sm:left-[20%] lg:left-[32%] w-[180px] sm:w-[280px] mix-blend-multiply z-[3] cursor-pointer"
+            >
+              <Image src="/paris_crepes.png" alt="Crepes" width={500} height={400} className="w-full object-contain" />
+              {/* Label */}
+              <div className="hidden sm:flex absolute top-[50%] left-[-180px] w-[210px] items-center gap-3 flex-row-reverse">
+                <div className="w-12 border-b border-[#1d3a2b]/40"></div>
+                <div className="flex gap-3 items-center flex-row-reverse text-right">
+                  <div className="w-10 h-10 rounded-full bg-[#1d3a2b] flex items-center justify-center shrink-0">
+                    <BotanicalSprigDrawing className="w-5 h-5 stroke-[#f4f1ea] text-[#f4f1ea]" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-[#1d3a2b] block text-sm">Crêpes</span>
+                    <span className="text-[10px] text-[#1d3a2b]/70 leading-tight block">Freshly folded, generously served</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Soup - Middle Right */}
+            <motion.div
+              style={isMounted ? { y: stackL3 } : {}}
+              initial={{ opacity: 0, scale: 0.8, x: 40 }}
+              whileInView={{ opacity: 1, scale: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 0.4 }}
+              whileHover={{ scale: 1.08, rotate: 1, zIndex: 20 }}
+              className="absolute bottom-[50%] right-[10%] sm:right-[15%] lg:right-[28%] w-[180px] sm:w-[260px] mix-blend-multiply z-[2] cursor-pointer"
+            >
+              <Image src="/french_soup.png" alt="French Onion Soup" width={500} height={400} className="w-full object-contain" />
+              {/* Label */}
+              <div className="hidden sm:flex absolute top-[50%] right-[-200px] w-[230px] items-center gap-3">
+                <div className="w-12 border-b border-[#1d3a2b]/40"></div>
+                <div className="flex gap-3 items-center">
+                  <div className="w-10 h-10 rounded-full bg-[#1d3a2b] flex items-center justify-center shrink-0">
+                    <WineGlassDrawing className="w-4 h-4 stroke-[#f4f1ea] text-[#f4f1ea]" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-[#1d3a2b] block text-sm">Soupe à l'Oignon</span>
+                    <span className="text-[10px] text-[#1d3a2b]/70 leading-tight block">Legacy flavours that bring you home</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Macarons - Top Center */}
+            <motion.div
+              style={isMounted ? { y: stackL4 } : {}}
+              initial={{ opacity: 0, scale: 0.8, y: -40 }}
+              whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 0.5 }}
+              whileHover={{ scale: 1.08, rotate: 3, zIndex: 20 }}
+              className="absolute bottom-[70%] left-[50%] -translate-x-1/2 w-[140px] sm:w-[220px] mix-blend-multiply z-[6] cursor-pointer"
+            >
+              <Image src="/paris_macarons.png" alt="Macarons" width={400} height={300} className="w-full object-contain" />
+              {/* Label */}
+              <div className="hidden sm:flex absolute top-[30%] right-[-180px] w-[200px] items-center gap-3">
+                <div className="w-12 border-b border-[#1d3a2b]/40"></div>
+                <div className="flex gap-3 items-center">
+                  <div className="w-10 h-10 rounded-full bg-[#1d3a2b] flex items-center justify-center shrink-0">
+                    <ArcDeTriompheDrawing className="w-5 h-5 stroke-[#f4f1ea] text-[#f4f1ea]" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-[#1d3a2b] block text-sm">Macarons</span>
+                    <span className="text-[10px] text-[#1d3a2b]/70 leading-tight block">A different flavour for every craving</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
           SECTION 3.5 — PARIS VIEW SPAN (ilparis.jpg)
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative w-full bg-[#f4f1ea] py-10 flex justify-center overflow-hidden">
+      <section className="relative w-full bg-[#f4f1ea] py-12 lg:py-16 flex flex-col items-center overflow-hidden">
+        {/* Giant faintly parallaxing cathedral */}
+        <motion.div style={isMounted ? { y: yBgSlow, x: "-10%" } : { x: "-10%" }} className="absolute left-0 top-0 pointer-events-none opacity-[0.03] z-0 hidden lg:block">
+          <SaigonCathedralDrawing className="w-[1000px] h-[1000px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgFast, x: "10%" } : { x: "10%" }} className="absolute right-0 top-0 pointer-events-none opacity-[0.03] z-0 hidden lg:block">
+          <ParisNotreDameDrawing className="w-[900px] h-[900px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgFast, rotate: 10 } : { rotate: 10 }} className="absolute left-8 bottom-6 pointer-events-none opacity-[0.22] z-0 hidden lg:block">
+          <StreetLampDrawing className="w-[140px] h-[280px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: -8 } : { rotate: -8 }} className="absolute right-10 bottom-6 pointer-events-none opacity-[0.22] z-0 hidden lg:block">
+          <FlowerPotSketch className="w-[160px] h-[220px] stroke-[#1d3a2b]" />
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="w-full max-w-6xl px-6 flex justify-center mix-blend-multiply"
         >
@@ -266,90 +545,229 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             className="w-full h-auto object-contain transition-transform duration-700 hover:scale-[1.02]"
           />
         </motion.div>
+
+        <motion.div
+          variants={revealUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          className="relative z-20 mt-8"
+        >
+          <motion.button
+            onClick={() => onNavigate("assistant")}
+            whileHover={{ y: -2, scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className="stamp-btn bg-[#e59b27] px-8 py-4 text-[14px] font-bold uppercase tracking-[0.1em] text-[#1d3a2b] shadow-sm transition-all hover:bg-[#d9911f]"
+          >
+            Order Now
+          </motion.button>
+        </motion.div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
           SECTION 4 — "Gather 'round, it's family time!"
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-[#f4f1ea] py-16 lg:py-24">
-        {/* Subtle cathedral drawing behind text */}
-        <SaigonCathedralDrawing className="!left-1/2 !top-0 !-translate-x-1/2 stroke-[#1d3a2b] !opacity-[0.04] !w-[600px] !h-[800px] pointer-events-none" />
+      <section className="relative overflow-hidden bg-[#f4f1ea] pt-16 pb-20 lg:pt-20 lg:pb-28">
+        {/* Parallax Subtle cathedral drawing behind text */}
+        <motion.div style={isMounted ? { y: yBgFast, x: "-50%" } : { x: "-50%" }} className="absolute left-1/2 top-0 pointer-events-none opacity-[0.04] z-0">
+          <SaigonCathedralDrawing className="w-[700px] h-[900px] stroke-[#1d3a2b]" />
+        </motion.div>
+
+        {/* Scattered SVG Sketches */}
+        <motion.div style={isMounted ? { y: yBgFast, rotate: -12 } : { rotate: -12 }} className="absolute -left-5 top-10 pointer-events-none opacity-[0.25] z-0">
+          <StreetLampDrawing className="w-[150px] h-[300px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: 15 } : { rotate: 15 }} className="absolute -right-5 top-1/3 pointer-events-none opacity-[0.25] z-0">
+          <HeelsDrawing className="w-[160px] h-[160px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgFast, rotate: -8 } : { rotate: -8 }} className="absolute -left-5 -bottom-10 pointer-events-none opacity-[0.25] z-0">
+          <RibbonDrawing className="w-[200px] h-[150px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: 8 } : { rotate: 8 }} className="absolute right-12 top-6 pointer-events-none opacity-[0.20] z-0 hidden lg:block">
+          <BirdOnBranchSketch className="w-[160px] h-[160px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgFast, rotate: -10 } : { rotate: -10 }} className="absolute left-8 bottom-12 pointer-events-none opacity-[0.15] z-0 hidden lg:block">
+          <BistroSetDrawing className="w-[200px] h-[200px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: 12 } : { rotate: 12 }} className="absolute right-10 bottom-6 pointer-events-none opacity-[0.15] z-0 hidden lg:block">
+          <VintageVespaDrawing className="w-[180px] h-[140px] stroke-[#1d3a2b]" />
+        </motion.div>
 
         <div className="relative mx-auto max-w-7xl px-6">
           <motion.div
             variants={staggerContainer}
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true }}
             className="text-center"
           >
             <BotanicalSprigDrawing className="mx-auto w-10 h-10 !opacity-[0.3] mb-2 !relative" />
-            <h2 className="font-heading text-4xl font-bold text-[#1d3a2b] sm:text-5xl">
+            <motion.h2 variants={revealUp} className="font-heading text-4xl font-bold text-[#1d3a2b] sm:text-5xl">
               Gather &apos;round,
               <br />
               it&apos;s{" "}
               <span className="font-script text-[#e59b27]">family</span>{" "}
               time!
-            </h2>
+            </motion.h2>
             <motion.button
+              variants={revealUp}
               onClick={() => onNavigate("assistant")}
-              whileHover={
-                shouldReduceMotion ? undefined : { y: -2, scale: 1.02 }
-              }
-              whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
-              className="stamp-btn mt-6 bg-[#1d3a2b] px-7 py-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#f4f1ea] transition-all hover:bg-[#14281e]"
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              className="bg-[#1d3a2b] px-7 py-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#f4f1ea] border-2 border-dashed border-[#e59b27]/40 rounded-sm transition-all hover:bg-[#14281e] active:scale-[0.97] mt-6"
             >
               Order Now
             </motion.button>
           </motion.div>
+        </div>
+      </section>
 
-          {/* Food/Sketches spread (using mix-blend-multiply for a painted feel) */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
-            className="mt-16 grid gap-8 sm:grid-cols-3 items-end mix-blend-multiply"
-          >
-            <div className="flex justify-center transition-transform duration-500 hover:scale-[1.05]">
-              <Image
-                src="/download2.jpg"
-                alt="Shop exterior sketch"
-                width={400}
-                height={400}
-                className="w-full max-w-[320px] object-contain"
-              />
+
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION 4.2 — CONTACT FORM ("Meal's Done. Always here, Always home")
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden bg-[#f4f1ea] py-16 lg:py-20 border-t border-[#e9e5da]/40">
+        {/* Scattered SVG Sketches */}
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: -8 } : { rotate: -8 }} className="absolute right-6 top-10 pointer-events-none opacity-[0.12] z-0 hidden lg:block">
+          <BistroSetDrawing className="w-[190px] h-[190px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgFast, rotate: 14 } : { rotate: 14 }} className="absolute left-6 bottom-10 pointer-events-none opacity-[0.12] z-0 hidden lg:block">
+          <VintageVespaDrawing className="w-[180px] h-[140px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: -5 } : { rotate: -5 }} className="absolute right-12 bottom-12 pointer-events-none opacity-[0.12] z-0 hidden lg:block">
+          <BaguetteBasketDrawing className="w-[150px] h-[180px] stroke-[#1d3a2b]" />
+        </motion.div>
+
+        <div className="relative mx-auto max-w-6xl px-6">
+          <div className="text-center mb-12">
+            <h2 className="font-heading text-4xl font-bold text-[#1d3a2b] sm:text-5xl">
+              Meal&apos;s Done.
+              <br />
+              <span className="font-script text-[#e59b27] text-5xl sm:text-6xl">Always here</span> , Always home
+            </h2>
+          </div>
+
+          <div className="grid gap-12 lg:grid-cols-2 items-start">
+            {/* Left Column */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-bold text-[#1d3a2b]">
+                We&apos;d Love to Hear from You.
+              </h3>
+              <p className="text-sm leading-relaxed text-[#1d3a2b]/70">
+                As a valued patron, you are our extended family. Whether you have
+                questions, catering requests, or simply want to connect, we&apos;re here
+                to make you feel at home!
+              </p>
+              <div>
+                <button
+                  onClick={() => onNavigate("menu")}
+                  className="bg-[#1d3a2b] px-6 py-2.5 text-[12px] font-bold uppercase tracking-[0.1em] text-[#f4f1ea] border-2 border-dashed border-[#e59b27]/40 rounded-sm transition-all hover:bg-[#14281e]"
+                >
+                  VISIT US IN STORE
+                </button>
+              </div>
+              <div className="pt-4 opacity-85 max-w-[400px]">
+                <PaddlingBoatDrawing className="w-full h-auto stroke-[#1d3a2b]" />
+              </div>
             </div>
-            <div className="flex justify-center transition-transform duration-500 hover:scale-[1.05] pb-4">
-              <Image
-                src="/download3.jpg"
-                alt="Macaron box sketch"
-                width={400}
-                height={400}
-                className="w-full max-w-[340px] object-contain"
-              />
-            </div>
-            <div className="flex justify-center transition-transform duration-500 hover:scale-[1.05]">
-              <Image
-                src="/baby.jpg"
-                alt="Girl sketch"
-                width={400}
-                height={400}
-                className="w-full max-w-[300px] object-contain"
-              />
-            </div>
-          </motion.div>
+
+            {/* Right Column (Form) */}
+            <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block space-y-2 text-xs font-bold uppercase tracking-wider text-[#1d3a2b]/70">
+                  YOUR NAME
+                  <input
+                    type="text"
+                    required
+                    className="w-full mt-1.5 rounded-sm border border-[#e9e5da] bg-[#fffdf9]/50 px-4 py-2.5 text-sm text-[#1d3a2b] outline-none transition focus:border-[#1d3a2b]"
+                  />
+                </label>
+                <label className="block space-y-2 text-xs font-bold uppercase tracking-wider text-[#1d3a2b]/70">
+                  EMAIL ADDRESS
+                  <input
+                    type="email"
+                    required
+                    className="w-full mt-1.5 rounded-sm border border-[#e9e5da] bg-[#fffdf9]/50 px-4 py-2.5 text-sm text-[#1d3a2b] outline-none transition focus:border-[#1d3a2b]"
+                  />
+                </label>
+              </div>
+              <label className="block space-y-2 text-xs font-bold uppercase tracking-wider text-[#1d3a2b]/70">
+                YOUR MESSAGE
+                <textarea
+                  rows={5}
+                  required
+                  className="w-full mt-1.5 rounded-sm border border-[#e9e5da] bg-[#fffdf9]/50 px-4 py-2.5 text-sm text-[#1d3a2b] outline-none transition focus:border-[#1d3a2b] resize-none"
+                />
+              </label>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  className="bg-[#e59b27] px-6 py-2.5 text-[12px] font-bold uppercase tracking-[0.1em] text-[#1d3a2b] border-2 border-dashed border-[#1d3a2b]/40 rounded-sm transition-all hover:bg-[#d9911f]"
+                >
+                  SUBMIT
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
           SECTION 4.5 — MACARONS SPAN
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative w-full bg-[#f4f1ea] py-12 flex justify-center overflow-hidden">
+      <section className="relative w-full bg-[#f4f1ea] py-12 lg:py-16 flex flex-col items-center overflow-hidden">
+        {/* Parallax Background Drawings */}
+        <motion.div style={isMounted ? { y: yBgFast, x: "-10%" } : { x: "-10%" }} className="absolute left-0 top-0 pointer-events-none opacity-[0.15] z-0 hidden lg:block">
+          <ParisNotreDameDrawing className="w-[900px] h-[900px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, x: "10%" } : { x: "10%" }} className="absolute right-0 top-0 pointer-events-none opacity-[0.15] z-0 hidden lg:block">
+          <EiffelTowerDrawing className="w-[900px] h-[900px] stroke-[#1d3a2b]" />
+        </motion.div>
+        
+        <motion.div style={isMounted ? { y: yBgFast, rotate: 12 } : { rotate: 12 }} className="absolute left-[25%] bottom-10 pointer-events-none opacity-[0.35] z-0 hidden lg:block">
+          <StreetLampDrawing className="w-[140px] h-[280px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: -10 } : { rotate: -10 }} className="absolute right-[25%] bottom-12 pointer-events-none opacity-[0.35] z-0 hidden lg:block">
+          <CoffeeCupDrawing className="w-[150px] h-[150px] stroke-[#1d3a2b]" />
+        </motion.div>
+
+        {/* Extra Paris Background Drawings added */}
+        <motion.div style={isMounted ? { y: stackL1, rotate: 5 } : { rotate: 5 }} className="absolute left-[15%] top-[10%] pointer-events-none opacity-[0.30] z-0 hidden lg:block">
+          <ArcDeTriompheDrawing className="w-[200px] h-[200px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: stackL2, rotate: -15 } : { rotate: -15 }} className="absolute right-[20%] top-[20%] pointer-events-none opacity-[0.35] z-0 hidden lg:block">
+          <CroissantDrawing className="w-[120px] h-[90px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: stackL3, rotate: -8 } : { rotate: -8 }} className="absolute left-[40%] bottom-[20%] pointer-events-none opacity-[0.30] z-0 hidden lg:block">
+          <RoseBouquetDrawing className="w-[160px] h-[220px] stroke-[#1d3a2b]" />
+        </motion.div>
+
+        {/* EVEN MORE Drawings near Macarons */}
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: 10 } : { rotate: 10 }} className="absolute right-[12%] top-[30%] pointer-events-none opacity-[0.25] z-0 hidden lg:block">
+          <RibbonDrawing className="w-[180px] h-[120px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgFast, rotate: -5 } : { rotate: -5 }} className="absolute left-[8%] bottom-[30%] pointer-events-none opacity-[0.30] z-0 hidden lg:block">
+          <FlowerPotSketch className="w-[140px] h-[180px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: stackBase, rotate: 15 } : { rotate: 15 }} className="absolute right-[35%] top-[5%] pointer-events-none opacity-[0.35] z-0 hidden lg:block">
+          <FlyingBirdsSketch className="w-[120px] h-[100px] stroke-[#1d3a2b]" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: stackL4, rotate: -20 } : { rotate: -20 }} className="absolute left-[30%] top-[15%] pointer-events-none opacity-[0.30] z-0 hidden lg:block">
+          <BaguetteBasketDrawing className="w-[140px] h-[160px] stroke-[#1d3a2b]" />
+        </motion.div>
+
+        {/* Parallax Sprigs */}
+        <motion.div style={isMounted ? { y: yBgFast, rotate: rotateBg } : {}} className="absolute left-[10%] top-[20%] pointer-events-none opacity-[0.35] z-0 hidden sm:block">
+          <BotanicalSprigDrawing className="w-32 h-32" />
+        </motion.div>
+        <motion.div style={isMounted ? { y: yBgSlow, rotate: rotateBg } : {}} className="absolute right-[5%] bottom-[10%] pointer-events-none opacity-[0.35] z-0">
+          <BotanicalSprigDrawing className="w-48 h-48 scale-x-[-1]" />
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="w-full max-w-7xl px-6 flex justify-center mix-blend-multiply"
         >
@@ -361,6 +779,142 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             className="w-full h-auto object-contain transition-transform duration-700 hover:scale-[1.02]"
           />
         </motion.div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION 4.6 — VIET CUISINE ORDER SECTION (TORN PAPER)
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="relative w-full bg-[#f4f1ea] py-20 lg:py-28 flex flex-col items-center overflow-hidden">
+        {/* Scattered Background Drawings */}
+        <div className="absolute right-[5%] top-[15%] pointer-events-none opacity-[0.40] z-0 hidden lg:block rotate-12 scale-125">
+          <WineGlassDrawing className="w-24 h-24 stroke-[#1d3a2b]" />
+        </div>
+        <div className="absolute left-[3%] bottom-[15%] pointer-events-none opacity-[0.40] z-0 hidden lg:block -rotate-6 scale-110">
+          <HeelsDrawing className="w-32 h-32 stroke-[#1d3a2b]" />
+        </div>
+        <div className="absolute right-[15%] bottom-[10%] pointer-events-none opacity-[0.40] z-0 hidden lg:block -rotate-12 scale-150">
+          <BotanicalSprigDrawing className="w-28 h-28 stroke-[#1d3a2b]" />
+        </div>
+        <div className="absolute left-[40%] top-[8%] pointer-events-none opacity-[0.40] z-0 hidden lg:block rotate-45 scale-110">
+          <BotanicalSprigDrawing className="w-20 h-20 stroke-[#1d3a2b]" />
+        </div>
+        <div className="absolute left-[30%] bottom-[8%] pointer-events-none opacity-[0.40] z-0 hidden lg:block -rotate-12 scale-90">
+          <WineGlassDrawing className="w-20 h-20 stroke-[#1d3a2b]" />
+        </div>
+        <div className="absolute right-[40%] top-[35%] pointer-events-none opacity-[0.40] z-0 hidden lg:block -rotate-45 scale-100">
+          <HeelsDrawing className="w-24 h-24 stroke-[#1d3a2b]" />
+        </div>
+
+        {/* Torn Paper Top Border */}
+        <div className="absolute top-0 left-0 w-full overflow-hidden leading-none z-10 translate-y-[-1px]">
+          <svg
+            viewBox="0 0 1200 40"
+            className="relative block w-full h-10 text-white fill-current filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.06)]"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M 0 0 L 1200 0 L 1200 25 L 1200.0 24.3 L 1185.0 23.8 L 1170.0 26.4 L 1155.0 30.8 L 1140.0 31.4 L 1125.0 27.5 L 1110.0 24.5 L 1095.0 24.3 L 1080.0 22.7 L 1065.0 19.0 L 1050.0 17.9 L 1035.0 22.0 L 1020.0 26.4 L 1005.0 27.2 L 990.0 27.2 L 975.0 29.6 L 960.0 30.9 L 945.0 27.4 L 930.0 22.6 L 915.0 21.8 L 900.0 23.5 L 885.0 23.1 L 870.0 21.9 L 855.0 24.1 L 840.0 28.4 L 825.0 29.0 L 810.0 25.7 L 795.0 23.8 L 780.0 24.6 L 765.0 23.9 L 750.0 20.9 L 735.0 20.6 L 720.0 24.9 L 705.0 28.8 L 690.0 28.6 L 675.0 27.8 L 660.0 29.2 L 645.0 29.3 L 630.0 24.9 L 615.0 19.9 L 600.0 19.3 L 585.0 21.4 L 570.0 21.7 L 555.0 21.5 L 540.0 25.0 L 525.0 30.1 L 510.0 31.1 L 495.0 28.1 L 480.0 26.3 L 465.0 26.7 L 450.0 25.0 L 435.0 21.0 L 420.0 19.9 L 405.0 23.5 L 390.0 26.5 L 375.0 25.9 L 360.0 25.4 L 345.0 27.4 L 330.0 28.2 L 315.0 24.5 L 300.0 20.7 L 285.0 21.3 L 270.0 23.9 L 255.0 24.2 L 240.0 24.0 L 225.0 27.1 L 210.0 31.3 L 195.0 30.9 L 180.0 26.8 L 165.0 24.4 L 150.0 24.2 L 135.0 22.2 L 120.0 18.4 L 105.0 18.3 L 90.0 22.9 L 75.0 26.8 L 60.0 27.1 L 45.0 27.5 L 30.0 30.1 L 15.0 30.6 L 0.0 26.5 Z"
+              className="text-white fill-current"
+            />
+          </svg>
+          
+          {/* Sketchy leaf drawing elements in the top border */}
+          <div className="absolute left-[12%] top-0 pointer-events-none opacity-[0.25] z-20">
+            <BotanicalSprigDrawing className="w-16 h-16 stroke-[#1d3a2b]" />
+          </div>
+          <div className="absolute right-[12%] top-0 pointer-events-none opacity-[0.25] z-20 scale-x-[-1]">
+            <BotanicalSprigDrawing className="w-16 h-16 stroke-[#1d3a2b]" />
+          </div>
+        </div>
+
+        {/* Content container */}
+        <div className="relative w-full max-w-7xl px-6 py-8 flex flex-col lg:flex-row items-center justify-between gap-12 z-20">
+          
+          {/* Left Column: Mascot Girl Sticker */}
+          <div className="relative w-full lg:w-1/2 flex items-center justify-center min-h-[360px]">
+            
+            {/* Chef Girl Mascot Sticker */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, rotate: -2 }}
+              whileInView={{ opacity: 1, scale: 1, rotate: -2 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="relative z-30 w-[240px] sm:w-[320px] drop-shadow-[0_8px_16px_rgba(0,0,0,0.12)] cursor-pointer"
+              whileHover={{ scale: 1.05, rotate: -4 }}
+            >
+              <Image
+                src="/viet_chef_girl.png"
+                alt="Chef mascot"
+                width={250}
+                height={250}
+                className="w-full h-auto object-contain"
+              />
+            </motion.div>
+          </div>
+
+          {/* Right Column: Title, Description, and Buttons */}
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="w-full lg:w-1/2 flex flex-col justify-center text-left"
+          >
+            <motion.h2
+              variants={revealUp}
+              className="font-heading leading-[0.9] text-[#1d3a2b] flex flex-col"
+            >
+              <span className="text-5xl sm:text-7xl font-bold uppercase tracking-wider">Viet</span>
+              <span className="font-script text-[#e59b27] text-6xl sm:text-8xl lowercase mt-2 -mb-2">cuisine</span>
+              <span className="text-5xl sm:text-7xl font-bold uppercase tracking-wider mt-2">Made</span>
+              <div className="flex flex-wrap items-baseline gap-4 mt-2">
+                <span className="font-script text-[#e59b27] text-6xl sm:text-8xl lowercase">fresh</span>
+                <span className="text-5xl sm:text-7xl font-bold uppercase tracking-wider">Daily</span>
+              </div>
+            </motion.h2>
+
+            <motion.p
+              variants={revealUp}
+              className="mt-6 max-w-lg text-sm sm:text-base leading-relaxed text-[#1d3a2b]/80 font-sans"
+            >
+              For Mr. Spring & Mrs. Fresh, every meal is a shared memory. Taste the authentic dishes we
+              grew up loving — prepared daily with fresh ingredients and care, using recipes honoured
+              through generations.
+            </motion.p>
+
+            <motion.div
+              variants={revealUp}
+              className="mt-8 flex flex-wrap gap-4"
+            >
+              <button
+                onClick={() => onNavigate("menu")}
+                className="bg-[#1d3a2b] text-[#f4f1ea] border-2 border-dashed border-[#e59b27]/40 rounded-sm px-6 py-3 font-bold uppercase text-[12px] tracking-[0.1em] transition-all hover:bg-[#14281e] active:scale-[0.97]"
+              >
+                Explore Our Menu
+              </button>
+              <button
+                onClick={() => onNavigate("assistant")}
+                className="bg-[#e59b27] text-[#1d3a2b] border-2 border-dashed border-[#1d3a2b]/40 rounded-sm px-6 py-3 font-bold uppercase text-[12px] tracking-[0.1em] transition-all hover:bg-[#d9911f] active:scale-[0.97]"
+              >
+                Order Now
+              </button>
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Torn Paper Bottom Border */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10 translate-y-[1px]">
+          <svg
+            viewBox="0 0 1200 40"
+            className="relative block w-full h-10 text-white fill-current filter drop-shadow-[0_-4px_6px_rgba(0,0,0,0.06)]"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M 0 40 L 1200 40 L 1200 15 L 1200.0 11.3 L 1185.0 12.5 L 1170.0 13.2 L 1155.0 13.3 L 1140.0 15.3 L 1125.0 19.4 L 1110.0 22.0 L 1095.0 19.7 L 1080.0 14.1 L 1065.0 10.1 L 1050.0 10.0 L 1035.0 11.8 L 1020.0 12.7 L 1005.0 13.6 L 990.0 16.5 L 975.0 20.3 L 960.0 21.2 L 945.0 17.4 L 930.0 12.4 L 915.0 10.7 L 900.0 12.6 L 885.0 14.6 L 870.0 14.8 L 855.0 14.8 L 840.0 16.5 L 825.0 18.2 L 810.0 16.7 L 795.0 12.6 L 780.0 10.1 L 765.0 12.1 L 750.0 16.4 L 735.0 18.8 L 720.0 18.1 L 705.0 16.9 L 690.0 16.8 L 675.0 15.9 L 660.0 12.4 L 645.0 8.6 L 630.0 8.7 L 615.0 13.4 L 600.0 18.7 L 585.0 20.3 L 570.0 18.9 L 555.0 17.5 L 540.0 16.9 L 525.0 15.0 L 510.0 11.1 L 495.0 8.6 L 480.0 10.6 L 465.0 15.7 L 450.0 19.1 L 435.0 18.4 L 420.0 16.0 L 405.0 15.1 L 390.0 15.3 L 375.0 14.4 L 360.0 12.3 L 345.0 12.2 L 330.0 15.6 L 315.0 19.3 L 300.0 19.2 L 285.0 15.3 L 270.0 11.8 L 255.0 11.4 L 240.0 12.7 L 225.0 13.2 L 210.0 13.5 L 195.0 15.9 L 180.0 20.1 L 165.0 22.0 L 150.0 18.9 L 135.0 13.2 L 120.0 9.8 L 105.0 10.3 L 90.0 12.0 L 75.0 12.8 L 60.0 13.9 L 45.0 17.2 L 30.0 20.8 L 15.0 20.8 L 0.0 16.5 Z"
+              className="text-white fill-current"
+            />
+          </svg>
+        </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
@@ -422,10 +976,32 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
 
         {/* Copyright bar */}
         <div className="border-t border-white/10 bg-[#14281e] py-3 text-center text-[11px] text-[#f4f1ea]/40">
-          © {new Date().getFullYear()} GrubToGo. All rights reserved. Designed
+          © 2026 GrubToGo. All rights reserved. Designed
           with ♥ for good food.
         </div>
       </footer>
+
+      {/* Floating Scroll to Top button */}
+      {showScrollTop && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-8 right-8 z-50 flex h-10 w-10 items-center justify-center bg-[#e59b27] text-[#1d3a2b] border-2 border-dashed border-[#1d3a2b]/30 rounded-sm shadow-md transition-all hover:bg-[#d9911f] active:scale-[1.10] cursor-pointer"
+          title="Back to Top"
+        >
+          <svg
+            className="w-5 h-5 stroke-current"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          </svg>
+        </motion.button>
+      )}
     </div>
   );
 }

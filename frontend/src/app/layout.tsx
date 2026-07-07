@@ -49,9 +49,7 @@ export default function RootLayout({
       className={`${headingFont.variable} ${bodyFont.variable} ${scriptFont.variable} ${monoFont.variable}`}
     >
       <body className="font-sans min-h-screen bg-[#f3eedf] text-[#1d3a2b] antialiased selection:bg-emerald-800/15 selection:text-[#1d3a2b]">
-        <MotionConfig reducedMotion="user">
-          <StateProvider>{children}</StateProvider>
-        </MotionConfig>
+        <StateProvider>{children}</StateProvider>
       </body>
     </html>
   );

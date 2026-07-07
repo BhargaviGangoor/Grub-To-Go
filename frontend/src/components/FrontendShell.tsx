@@ -158,14 +158,21 @@ function AppHeader({
         <button
           type="button"
           onClick={() => onNavigate("assistant")}
-          className="stamp-btn bg-[#e59b27] text-[13px] font-extrabold tracking-[0.06em] text-[#1d3a2b] transition-all hover:bg-[#d9911f] active:scale-[0.97]"
+          className="bg-[#e59b27] px-4 py-2 text-[13px] font-extrabold tracking-[0.06em] text-[#1d3a2b] border-2 border-dashed border-[#1d3a2b]/40 rounded-sm transition-all hover:bg-[#d9911f] active:scale-[0.97]"
         >
           ORDER NOW
         </button>
       </div>
 
       {/* ── Mobile nav (hamburger-free, scrollable row) ── */}
-      <div className="flex gap-1 overflow-x-auto border-t border-white/10 px-4 md:hidden">
+      <div className="flex items-center gap-2 overflow-x-auto border-t border-white/10 px-4 py-2 md:hidden">
+        <button
+          type="button"
+          onClick={() => onNavigate("assistant")}
+          className="shrink-0 bg-[#e59b27] px-3 py-1.5 text-[11px] font-extrabold tracking-[0.06em] text-[#1d3a2b] border-2 border-dashed border-[#1d3a2b]/40 rounded-sm transition-all hover:bg-[#d9911f] active:scale-[0.97]"
+        >
+          ORDER NOW
+        </button>
         {navItems.map((item) => {
           const active = screen === item.screen;
           return (
@@ -173,7 +180,7 @@ function AppHeader({
               key={item.screen}
               type="button"
               onClick={() => onNavigate(item.screen)}
-              className={`whitespace-nowrap px-3 py-2.5 text-[11px] font-semibold tracking-[0.08em] transition-colors ${
+              className={`shrink-0 whitespace-nowrap px-3 py-2 text-[11px] font-semibold tracking-[0.08em] transition-colors ${
                 active
                   ? "border-b-2 border-[#e59b27] text-[#f4f1ea]"
                   : "text-[#f4f1ea]/55 hover:text-[#f4f1ea]"
