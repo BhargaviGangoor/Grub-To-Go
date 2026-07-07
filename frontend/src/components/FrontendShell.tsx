@@ -1,18 +1,10 @@
 "use client";
-
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";{/*react hooks and types */}
 import { motion } from "framer-motion";
 import {
   ArrowRight,
-  BookOpen,
-  ChefHat,
-  Home,
-  LayoutDashboard,
-  LogIn,
-  MenuSquare,
   Sparkles,
   ShieldCheck,
-  UserPlus,
 } from "lucide-react";
 import LandingView from "@/components/landing/LandingView";
 import GenerateView from "@/components/GenerateView";
@@ -27,7 +19,7 @@ import DietaryFilters from "@/components/DietaryFilters";
 import DishCard from "@/components/DishCard";
 import AppBackdrop from "@/components/AppBackdrop";
 
-type Screen =
+type Screen ={/*types defined*/}
   | "home"
   | "assistant"
   | "menu"
@@ -53,7 +45,7 @@ type MenuItem = {
   tags: string[];
 };
 
-const menuCatalog: MenuItem[] = [
+const menuCatalog: MenuItem[] = [ {/*an array*/}
   {
     title: "Spicy Cream Paneer Udon",
     ingredients: ["Paneer", "Udon Noodles", "Heavy Cream"],
@@ -100,89 +92,97 @@ const menuCatalog: MenuItem[] = [
   },
 ];
 
-function AppHeader({
+function AppHeader({  {/*React functional xomponent in typescript*/}
   screen,
-  authMode,
   onNavigate,
-}: {
+}: {  {/*properties are defined here*/}
   screen: Screen;
   authMode: AuthMode;
   onNavigate: (screen: Screen) => void;
 }) {
-  const navItems: Array<{ label: string; screen: Screen; icon: typeof Home }> =
-    [
-      { label: "Home", screen: "home", icon: Home },
-      { label: "Assistant", screen: "assistant", icon: ChefHat },
-      { label: "Menu", screen: "menu", icon: MenuSquare },
-      { label: "Dashboard", screen: "dashboard", icon: LayoutDashboard },
-      { label: "Research", screen: "research", icon: BookOpen },
-    ];
+  const navItems: Array<{ label: string; screen: Screen }> = [{
+    { label: "HOME", screen: "home" },
+    { label: "ASSISTANT", screen: "assistant" },
+    { label: "MENU", screen: "menu" },
+    { label: "DASHBOARD", screen: "dashboard" },
+    { label: "RESEARCH", screen: "research" },{/*this is a typescript array of objects, each object has a label and a screen property*/}
+  ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#274629] bg-[#2c4a2f]/96 text-[#f4f1ea] shadow-[0_10px_35px_rgba(21,39,24,0.14)] backdrop-blur">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e59b27] text-[#2c4a2f] shadow-md">
-            <Sparkles className="h-5 w-5" />
+    <header className="sticky top-0 z-40 bg-[#2c4a2f] text-[#f4f1ea] shadow-[0_4px_20px_rgba(0,0,0,0.15)]">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-0">
+        {/* ── Logo ── */}
+        <button {/*this is the logo container written in typescript*/}
+          type="button"
+          onClick={() => onNavigate("home")}
+          className="flex items-center gap-2.5 py-3 transition-opacity hover:opacity-85"
+        >
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e59b27]/20">
+            <Sparkles className="h-4 w-4 text-[#e59b27]" />
           </div>
-          <div>
-            <div className="text-lg font-extrabold tracking-tight text-[#f4f1ea]">
-              GrubToGo
-            </div>
-            <div className="text-xs font-mono text-[#f4f1ea]/75">
-              Family-style dining assistant
-            </div>
-          </div>
-        </div>
+          <span className="text-lg font-extrabold tracking-tight text-[#f4f1ea]">
+            GrubToGo
+          </span>
+        </button>
 
-        <nav className="flex flex-wrap gap-2 lg:justify-center">
-          {navItems.map((item) => {
+        {/* ── Navigation links ── */}
+        <nav className="hidden items-center gap-1 md:flex">
+          {navItems.map((item) => { {/*this is written in typescript*/}
             const active = screen === item.screen;
-            const Icon = item.icon;
             return (
               <button
                 key={item.screen}
                 type="button"
-                onClick={() => onNavigate(item.screen)}
-                className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
+                onClick={() => onNavigate(item.screen)} {/*this line handles the navigation to a specific screen based on the item clicked*/} 
+                className={`relative px-4 py-4 text-[13px] font-semibold tracking-[0.08em] transition-colors ${
                   active
-                    ? "border-[#e59b27] bg-[#e59b27] text-[#2c4a2f] shadow-sm"
-                    : "border-white/10 bg-white/5 text-[#f4f1ea] hover:border-[#e59b27]/30 hover:bg-white/10"
+                    ? "text-[#f4f1ea]"
+                    : "text-[#f4f1ea]/65 hover:text-[#f4f1ea]"
                 }`}
               >
-                <Icon className="h-4 w-4" />
-                <span>{item.label}</span>
+                {item.label}
+                {/* Active underline indicator */}
+                {active && (
+                  <motion.span
+                    layoutId="nav-underline"
+                    className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full bg-[#e59b27]"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
               </button>
             );
           })}
         </nav>
 
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => onNavigate("login")}
-            className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
-              screen === "login"
-                ? "border-[#e59b27] bg-[#e59b27] text-[#2c4a2f] shadow-sm"
-                : "border-white/10 bg-white/5 text-[#f4f1ea] hover:border-[#e59b27]/40 hover:bg-white/10"
-            }`}
-          >
-            <LogIn className="h-4 w-4" />
-            <span>{authMode === "login" ? "Login" : "Continue"}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigate("register")}
-            className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
-              screen === "register"
-                ? "border-[#e59b27] bg-white text-[#2c4a2f]"
-                : "border-white/10 bg-white/5 text-[#f4f1ea] hover:border-[#e59b27]/40 hover:bg-white/10"
-            }`}
-          >
-            <UserPlus className="h-4 w-4" />
-            <span>Register</span>
-          </button>
-        </div>
+        {/* ── CTA Button ── */}
+        <button
+          type="button"
+          onClick={() => onNavigate("assistant")}
+          className="rounded-sm bg-[#e59b27] px-5 py-2 text-[13px] font-bold tracking-[0.06em] text-[#1d3a2b] transition-all hover:bg-[#d9911f] hover:shadow-md active:scale-[0.97]"
+        >
+          ORDER NOW
+        </button>
+      </div>
+
+      {/* ── Mobile nav (hamburger-free, scrollable row) ── */}
+      <div className="flex gap-1 overflow-x-auto border-t border-white/10 px-4 md:hidden">
+        {navItems.map((item) => {
+          const active = screen === item.screen;
+          return (
+            <button
+              key={item.screen}
+              type="button"
+              onClick={() => onNavigate(item.screen)}
+              className={`whitespace-nowrap px-3 py-2.5 text-[11px] font-semibold tracking-[0.08em] transition-colors ${
+                active
+                  ? "border-b-2 border-[#e59b27] text-[#f4f1ea]"
+                  : "text-[#f4f1ea]/55 hover:text-[#f4f1ea]"
+              }`}
+            >
+              {item.label}
+            </button>
+          );
+        })}
       </div>
     </header>
   );
