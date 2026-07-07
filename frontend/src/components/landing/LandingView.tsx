@@ -94,131 +94,103 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
           SECTION 2 — WELCOME ("Authentic Parisian Flavours!")
          ═══════════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden bg-[#f4f1ea] py-20 lg:py-28">
-        {/* Faint cathedral drawing on right side */}
-        <SaigonCathedralDrawing className="!left-auto !right-4 !bottom-auto !top-0 stroke-[#1d3a2b] !opacity-[0.06] !w-[500px] !h-[800px]" />
-
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-100px" }}
-          className="relative z-10 mx-auto max-w-7xl px-6"
-        >
+        <div className="relative mx-auto max-w-7xl px-6">
           <div className="grid items-center gap-12 lg:grid-cols-2">
-            <div className="max-w-xl">
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-100px" }}
+              className="max-w-xl relative z-20"
+            >
               <motion.p
-              variants={revealUp}
-              className="text-xs font-bold uppercase tracking-[0.2em] text-[#1d3a2b]/50"
-            >
-              Welcome Home to
-            </motion.p>
+                variants={revealUp}
+                className="text-xs font-bold uppercase tracking-[0.2em] text-[#1d3a2b]/50"
+              >
+                Welcome Home to
+              </motion.p>
 
-            <motion.h2
-              variants={revealUp}
-              className="mt-3 font-heading text-4xl font-bold leading-tight text-[#1d3a2b] sm:text-5xl lg:text-6xl"
-            >
-              Authentic
-              <br />
-              <span className="font-script text-[#e59b27]">Parisian </span>
-              Flavours!
-            </motion.h2>
+              <motion.h2
+                variants={revealUp}
+                className="mt-3 font-heading text-4xl font-bold leading-tight text-[#1d3a2b] sm:text-5xl lg:text-6xl"
+              >
+                Authentic
+                <br />
+                <span className="font-script text-[#e59b27]">Parisian </span>
+                Flavours!
+              </motion.h2>
 
-            <motion.p
-              variants={revealUp}
-              className="mt-6 text-sm leading-relaxed text-[#1d3a2b]/70 sm:text-base"
-            >
-              We&apos;re a family from the vibrant streets of Paris, sharing
-              the beloved flavours of our childhood. At our table, you&apos;ll
-              find the warmth of mom&apos;s cooking, the brightness of fresh
-              herbs, and the satisfying crunch of golden spring rolls — all
-              served with the spirit of home. From our kitchen to your family&apos;s
-              table, every dish carries a piece of our story.
-            </motion.p>
+              <motion.p
+                variants={revealUp}
+                className="mt-6 text-sm leading-relaxed text-[#1d3a2b]/70 sm:text-base"
+              >
+                We&apos;re a family from the vibrant streets of Paris, sharing
+                the beloved flavours of our childhood. At our table, you&apos;ll
+                find the warmth of mom&apos;s cooking, the brightness of fresh
+                herbs, and the satisfying crunch of golden spring rolls — all
+                served with the spirit of home. From our kitchen to your family&apos;s
+                table, every dish carries a piece of our story.
+              </motion.p>
 
-            <motion.button
-              variants={revealUp}
-              onClick={() => onNavigate("menu")}
-              whileHover={
-                shouldReduceMotion ? undefined : { y: -2, scale: 1.02 }
-              }
-              whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
-              className="stamp-btn mt-8 bg-[#1d3a2b] px-7 py-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#f4f1ea] transition-all hover:bg-[#14281e]"
-            >
-              Learn More
-            </motion.button>
-            </div>
+              <motion.button
+                variants={revealUp}
+                onClick={() => onNavigate("menu")}
+                whileHover={
+                  shouldReduceMotion ? undefined : { y: -2, scale: 1.02 }
+                }
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+                className="stamp-btn mt-8 bg-[#1d3a2b] px-7 py-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#f4f1ea] transition-all hover:bg-[#14281e]"
+              >
+                Learn More
+              </motion.button>
+            </motion.div>
             
+            {/* The cathedral is placed behind the text, to the left, as per screenshot */}
+            <SaigonCathedralDrawing className="!left-auto !right-0 !top-0 stroke-[#1d3a2b] !opacity-[0.06] !w-[600px] !h-[900px] pointer-events-none -z-10" />
+
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.6, ease: "easeOut" }}
-              className="relative flex justify-center lg:justify-end"
+              className="relative flex justify-center lg:justify-end mix-blend-multiply"
             >
-              <div className="stamp-frame rotate-2 transition-transform duration-500 hover:rotate-0 hover:scale-105">
-                <Image
-                  src="/frenchme.jpg"
-                  alt="Authentic Parisian"
-                  width={400}
-                  height={500}
-                  className="h-80 w-64 rounded-sm object-cover sm:h-96 sm:w-80"
-                />
-              </div>
+              <Image
+                src="/frenchme.jpg"
+                alt="Authentic Parisian"
+                width={500}
+                height={500}
+                className="w-full max-w-[450px] object-contain transition-transform duration-500 hover:scale-[1.02]"
+              />
             </motion.div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          SECTION 3 — PHOTO COLLAGE + "Made Fresh Daily"
+          SECTION 3 — "Cuisine Made Fresh Daily"
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-[#f4f1ea] pb-20 pt-8 lg:pb-28">
+      <section className="relative overflow-hidden bg-[#f4f1ea] pb-10 lg:pb-16 pt-8">
         {/* Botanical sprig decoration */}
         <BotanicalSprigDrawing className="absolute left-[5%] top-[10%] w-20 h-20 rotate-12 !opacity-[0.15]" />
 
-        <div className="relative z-10 mx-auto max-w-7xl px-6">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            {/* Left: Stamp-framed photo collage */}
+        <div className="relative mx-auto max-w-7xl px-6">
+          <div className="grid items-center gap-12 lg:grid-cols-2 flex-col-reverse flex lg:grid">
+            {/* Left: Illustration of Good Food */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.6, ease: "easeOut" }}
-              className="relative flex items-center justify-center py-8"
+              className="relative flex items-center justify-center py-8 mix-blend-multiply"
             >
-              {/* Photo 1 — large, tilted left */}
-              <div className="stamp-frame relative z-10 -rotate-3 transition-transform duration-500 hover:rotate-0 hover:scale-105">
-                <Image
-                  src="/good food.jpg"
-                  alt="Fresh cuisine"
-                  width={320}
-                  height={240}
-                  className="h-52 w-72 rounded-sm object-cover sm:h-64 sm:w-80"
-                />
-              </div>
-              {/* Photo 2 — overlapping, tilted right */}
-              <div className="stamp-frame relative -ml-16 z-20 rotate-[5deg] transition-transform duration-500 hover:rotate-0 hover:scale-105">
-                <Image
-                  src="/download4.jpg"
-                  alt="Golden spring rolls"
-                  width={260}
-                  height={200}
-                  className="h-44 w-60 rounded-sm object-cover sm:h-56 sm:w-72"
-                />
-              </div>
-              {/* Photo 3 — small accent, top-right */}
-              <div className="stamp-frame absolute -right-2 top-0 z-30 rotate-[8deg] transition-transform duration-500 hover:rotate-0 hover:scale-105 hidden sm:block">
-                <Image
-                  src="/cute.jpg"
-                  alt="Dessert plate"
-                  width={180}
-                  height={130}
-                  className="h-28 w-40 rounded-sm object-cover"
-                />
-              </div>
-
-              {/* Decorative sprig near photos */}
-              <BotanicalSprigDrawing className="absolute -bottom-4 left-4 w-16 h-16 -rotate-45 !opacity-[0.20]" />
+              <Image
+                src="/good-food.jpg"
+                alt="Fresh cuisine"
+                width={600}
+                height={600}
+                className="w-full max-w-[500px] object-contain transition-transform duration-500 hover:scale-[1.02]"
+              />
             </motion.div>
 
             {/* Right: "Made Fresh Daily" text block */}
@@ -276,58 +248,41 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          SECTION 3.5 — PARIS VIEW (ilparis.jpg)
+          SECTION 3.5 — PARIS VIEW SPAN (ilparis.jpg)
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative h-[40vh] min-h-[300px] w-full overflow-hidden">
-        <Image
-          src="/ilparis.jpg"
-          alt="Paris view"
-          fill
-          className="object-cover"
-        />
+      <section className="relative w-full bg-[#f4f1ea] py-10 flex justify-center overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="w-full max-w-6xl px-6 flex justify-center mix-blend-multiply"
+        >
+          <Image
+            src="/ilparis.jpg"
+            alt="Paris view"
+            width={1200}
+            height={600}
+            className="w-full h-auto object-contain transition-transform duration-700 hover:scale-[1.02]"
+          />
+        </motion.div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
           SECTION 4 — "Gather 'round, it's family time!"
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-[#f4f1ea] py-20 lg:py-28">
-        {/* Cathedral drawing centered behind */}
-        <svg
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[800px] pointer-events-none opacity-[0.05] select-none z-0"
-          viewBox="0 0 500 850"
-          fill="none"
-          stroke="#1d3a2b"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M 175 220 L 175 70" />
-          <path d="M 140 220 L 175 70 L 210 220" />
-          <path d="M 355 220 L 355 70" />
-          <path d="M 320 220 L 355 70 L 390 220" />
-          <path d="M 140 220 L 140 720 L 210 720 L 210 220 Z" />
-          <path d="M 320 220 L 320 720 L 390 720 L 390 220 Z" />
-          <path d="M 210 310 L 320 310" />
-          <path d="M 210 430 L 320 430" />
-          <path d="M 210 630 L 320 630" />
-          <path d="M 210 720 L 320 720" />
-          <path d="M 210 310 L 265 250 L 320 310" />
-          <circle cx="265" cy="370" r="32" />
-          <circle cx="265" cy="370" r="7" />
-          <path d="M 265 338 L 265 402" />
-          <path d="M 233 370 L 297 370" />
-          <path d="M 235 720 C 235 640, 295 640, 295 720" />
-          <path d="M 20 720 L 480 720" />
-        </svg>
+      <section className="relative overflow-hidden bg-[#f4f1ea] py-16 lg:py-24">
+        {/* Subtle cathedral drawing behind text */}
+        <SaigonCathedralDrawing className="!left-1/2 !top-0 !-translate-x-1/2 stroke-[#1d3a2b] !opacity-[0.04] !w-[600px] !h-[800px] pointer-events-none" />
 
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-100px" }}
-          className="relative z-10 mx-auto max-w-7xl px-6"
-        >
-          <motion.div variants={revealUp} className="text-center">
+        <div className="relative mx-auto max-w-7xl px-6">
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-100px" }}
+            className="text-center"
+          >
             <BotanicalSprigDrawing className="mx-auto w-10 h-10 !opacity-[0.3] mb-2 !relative" />
             <h2 className="font-heading text-4xl font-bold text-[#1d3a2b] sm:text-5xl">
               Gather &apos;round,
@@ -348,55 +303,64 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             </motion.button>
           </motion.div>
 
-          {/* Food image spread */}
+          {/* Food/Sketches spread (using mix-blend-multiply for a painted feel) */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
-            className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+            className="mt-16 grid gap-8 sm:grid-cols-3 items-end mix-blend-multiply"
           >
-            <div className="overflow-hidden rounded-2xl shadow-lg transition-transform duration-500 hover:scale-[1.03]">
+            <div className="flex justify-center transition-transform duration-500 hover:scale-[1.05]">
               <Image
                 src="/download2.jpg"
-                alt="Ginger garlic rice bowl"
-                width={500}
-                height={350}
-                className="h-64 w-full object-cover sm:h-72"
+                alt="Shop exterior sketch"
+                width={400}
+                height={400}
+                className="w-full max-w-[320px] object-contain"
               />
             </div>
-            <div className="overflow-hidden rounded-2xl shadow-lg transition-transform duration-500 hover:scale-[1.03]">
+            <div className="flex justify-center transition-transform duration-500 hover:scale-[1.05] pb-4">
               <Image
                 src="/download3.jpg"
-                alt="Wild mushroom bowl"
-                width={500}
-                height={350}
-                className="h-64 w-full object-cover sm:h-72"
+                alt="Macaron box sketch"
+                width={400}
+                height={400}
+                className="w-full max-w-[340px] object-contain"
               />
             </div>
-            <div className="overflow-hidden rounded-2xl shadow-lg transition-transform duration-500 hover:scale-[1.03] sm:col-span-2 lg:col-span-1">
+            <div className="flex justify-center transition-transform duration-500 hover:scale-[1.05]">
               <Image
                 src="/baby.jpg"
-                alt="Family dining"
-                width={500}
-                height={350}
-                className="h-64 w-full object-cover sm:h-72"
+                alt="Girl sketch"
+                width={400}
+                height={400}
+                className="w-full max-w-[300px] object-contain"
               />
             </div>
           </motion.div>
-        </motion.div>
+        </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
           SECTION 4.5 — MACARONS SPAN
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative h-[40vh] min-h-[300px] w-full overflow-hidden">
-        <Image
-          src="/macarons.jpg"
-          alt="Macarons"
-          fill
-          className="object-cover"
-        />
+      <section className="relative w-full bg-[#f4f1ea] py-12 flex justify-center overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="w-full max-w-7xl px-6 flex justify-center mix-blend-multiply"
+        >
+          <Image
+            src="/macarons.jpg"
+            alt="Macarons span"
+            width={1400}
+            height={600}
+            className="w-full h-auto object-contain transition-transform duration-700 hover:scale-[1.02]"
+          />
+        </motion.div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
@@ -404,9 +368,9 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
          ═══════════════════════════════════════════════════════════ */}
 
       {/* Boat illustration divider */}
-      <div className="relative bg-[#f4f1ea] pb-4 pt-8">
+      <div className="relative bg-[#f4f1ea] pb-6 pt-4">
         <div className="mx-auto flex max-w-sm justify-center">
-          <PaddlingBoatDrawing className="!relative !block !w-[320px] !h-[140px] !opacity-[0.18]" />
+          <PaddlingBoatDrawing className="!relative !block !w-[320px] !h-[140px] !opacity-[0.20]" />
         </div>
       </div>
 
