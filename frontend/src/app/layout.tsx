@@ -7,6 +7,21 @@ import {
 } from "next/font/google";
 import { StateProvider } from "@/context/StateContext";
 import { MotionConfig } from "framer-motion";
+import { AIAssistant } from "@/components/AIAssistant";
+
+/**
+ * Root Layout — mounts the AIAssistant globally.
+ *
+ * NEXT.JS CONCEPT: Root Layout
+ * layout.tsx wraps EVERY page in the app.
+ * Components mounted here appear on all pages.
+ * This is how global UI (AI copilot, toast notifications, modals) works in Next.js App Router.
+ *
+ * WHY AIAssistant IS HERE (not in individual pages):
+ * The floating AI copilot should be available everywhere — landing, generate, research, redeem.
+ * Mounting it in the root layout means it loads once, persists across navigation,
+ * and the conversation continues even as the user browses different pages.
+ */
 
 const headingFont = Fredoka({
   subsets: ["latin"],
@@ -49,7 +64,11 @@ export default function RootLayout({
       className={`${headingFont.variable} ${bodyFont.variable} ${scriptFont.variable} ${monoFont.variable}`}
     >
       <body className="font-sans min-h-screen bg-[#f3eedf] text-[#1d3a2b] antialiased selection:bg-emerald-800/15 selection:text-[#1d3a2b]">
-        <StateProvider>{children}</StateProvider>
+        <StateProvider>
+          {children}
+          {/* AI Copilot — globally available on every page */}
+          <AIAssistant />
+        </StateProvider>
       </body>
     </html>
   );

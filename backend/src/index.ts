@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import chatRouter from "./routes/chat.routes";
+import { errorHandler } from "./middleware/errorHandler";
+import { validateConfig } from "./config";
 import {
   connectDB,
   getPantry,
@@ -384,11 +387,26 @@ app.post("/api/validate-dct", async (req, res) => {
   }
 });
 
+// ─── AI Assistant Chat Endpoint ──────────────────────────────────────────────
+// Mount the new clean-architecture chat router alongside the existing endpoints.
+// This adds POST /api/chat without touching any existing routes.
+// Architecture: chat.routes.ts → ChatController → ChatService → GroqProvider
+app.use(chatRouter);
+
+// ─── Global Error Handler ────────────────────────────────────────────────────
+// MUST be mounted AFTER all routes. Express identifies error middleware
+// by the 4-parameter signature (err, req, res, next).
+app.use(errorHandler);
+
 // Boot Database & Server
 const boot = async () => {
+  // Validate config at startup — warns if GROQ_API_KEY is missing
+  validateConfig();
+
   await connectDB();
   app.listen(PORT, () => {
-    console.log(`🚀 GrubToGo Backend Attestation Server listening on port ${PORT}`);
+    console.log(`🚀 GrubToGo Backend listening on port ${PORT}`);
+    console.log(`🤖 AI Chat endpoint: POST http://localhost:${PORT}/api/chat`);
   });
 };
 
