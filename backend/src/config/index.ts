@@ -1,3 +1,4 @@
+//reads all environment variables once and exports in typed constants
 import dotenv from "dotenv";
 import path from "path";
 
