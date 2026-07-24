@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { Message, ChatState } from "./types";
 import { sendChatMessage } from "./api";
+import { triggerAgentAutomation } from "@/components/AgentGhostOverlay";
 
 /**
  * useChat.ts — Custom React Hook for AI Chat State
@@ -92,6 +93,9 @@ export function useChat(): UseChatReturn {
 
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
+
+    // Trigger visual agent screen automation cursor movement
+    triggerAgentAutomation();
 
     try {
       // 2. Call the backend

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Message, AgentStep } from "./types";
-import { ChevronDown, ChevronUp, CheckCircle, AlertTriangle, Info, ShieldCheck, Ticket } from "lucide-react";
+import { Message } from "./types";
+import { ShieldCheck, Ticket } from "lucide-react";
 
 interface MessageBubbleProps {
   message: Message;
@@ -10,7 +9,6 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === "user";
-  const [showSteps, setShowSteps] = useState(true);
 
   const formatTime = (date: Date): string => {
     return new Intl.DateTimeFormat("en-IN", {
@@ -18,19 +16,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       minute: "2-digit",
       hour12: true,
     }).format(new Date(date));
-  };
-
-  const getStatusIcon = (status: AgentStep["status"]) => {
-    switch (status) {
-      case "success":
-        return <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />;
-      case "warning":
-        return <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />;
-      case "error":
-        return <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />;
-      default:
-        return <Info className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />;
-    }
   };
 
   return (
@@ -118,43 +103,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           </div>
         )}
 
-        {/* Collapsible Agent Execution Trace */}
-        {!isUser && message.agentSteps && message.agentSteps.length > 0 && (
-          <div className="w-full bg-stone-50 border border-stone-200 rounded-xl overflow-hidden shadow-xs text-xs">
-            <button
-              onClick={() => setShowSteps(!showSteps)}
-              className="w-full flex items-center justify-between px-3 py-2 bg-stone-100/80 hover:bg-stone-100 text-stone-700 font-medium transition-colors border-b border-stone-200/60"
-            >
-              <div className="flex items-center gap-1.5 font-semibold text-[11px] text-stone-800">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>⚡ Agent Reasoning & Execution Trace ({message.agentSteps.length} steps)</span>
-              </div>
-              {showSteps ? (
-                <ChevronUp className="w-3.5 h-3.5 text-stone-500" />
-              ) : (
-                <ChevronDown className="w-3.5 h-3.5 text-stone-500" />
-              )}
-            </button>
 
-            {showSteps && (
-              <div className="p-2.5 flex flex-col gap-2 bg-white">
-                {message.agentSteps.map((step, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-stone-700 bg-stone-50/70 p-2 rounded-lg border border-stone-100">
-                    <div className="mt-0.5">{getStatusIcon(step.status)}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-[11px] text-stone-900">
-                        {step.title}
-                      </div>
-                      <div className="text-[11px] text-stone-600 font-mono leading-tight mt-0.5 break-words">
-                        {step.detail}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Timestamp */}
         <span className="text-[10px] text-stone-400 px-1">
