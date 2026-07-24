@@ -107,7 +107,7 @@ const EXACT_DISH_IMAGES = [
   {
     id: "mousse_au_chocolat",
     name: "Mousse au Chocolat",
-    url: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?auto=format&fit=crop&w=600&q=80",
+    url: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=600&q=80",
   },
   {
     id: "madeleines",
