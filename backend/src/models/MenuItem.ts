@@ -45,7 +45,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 120,
     ingredients: ["Flour", "Butter", "Yeast"],
     description: "Buttery, flaky classic French breakfast pastry freshly baked daily.",
-    imageUrl: "/paris_croissant.png",
+    imageUrl: "/dishes/croissant.png",
   },
   {
     id: "fr-002",
@@ -56,7 +56,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 150,
     ingredients: ["Flour", "Butter", "Chocolate"],
     description: "Flaky puff pastry baked with two batons of rich dark French chocolate.",
-    imageUrl: "/paris_croissant.png",
+    imageUrl: "/dishes/pain_au_chocolat.png",
   },
   {
     id: "fr-003",
@@ -67,7 +67,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 160,
     ingredients: ["Flour", "Butter", "Custard", "Raisins"],
     description: "Golden spiral puff pastry filled with vanilla creme patissiere & juicy raisins.",
-    imageUrl: "/macarons.jpg",
+    imageUrl: "/dishes/pain_aux_raisins.png",
   },
   {
     id: "fr-004",
@@ -78,7 +78,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 140,
     ingredients: ["Flour", "Butter", "Eggs", "Sugar"],
     description: "Soft, golden, sweet French brioche loaf slice baked with farm butter.",
-    imageUrl: "/paris_croissant.png",
+    imageUrl: "/dishes/brioche.png",
   },
   {
     id: "fr-005",
@@ -89,7 +89,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 170,
     ingredients: ["Flour", "Butter", "Apples"],
     description: "Crispy turnover filled with slow-caramelized French apple compote.",
-    imageUrl: "/download3.jpg",
+    imageUrl: "/dishes/chausson_aux_pommes.png",
   },
 
   // 🍞 Tartines & Light Plates
@@ -102,7 +102,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 130,
     ingredients: ["Baguette", "Butter", "Strawberry Jam"],
     description: "Crusty French baguette slice with Beurre d'Isigny & artisan strawberry jam.",
-    imageUrl: "/frenchme.jpg",
+    imageUrl: "/dishes/tartine_beurre_confiture.png",
   },
   {
     id: "fr-007",
@@ -113,7 +113,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 180,
     ingredients: ["Baguette", "Cheese Spread", "Herbs"],
     description: "Toasted baguette topped with garlic-herb whipped cream cheese spread.",
-    imageUrl: "/frenchme.jpg",
+    imageUrl: "/dishes/tartine_au_fromage.png",
   },
   {
     id: "fr-008",
@@ -124,7 +124,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 320,
     ingredients: ["Brie", "Camembert", "Baguette"],
     description: "Selection of aged Brie, Camembert & Roquefort served with baguette.",
-    imageUrl: "/frenchme.jpg",
+    imageUrl: "/dishes/assiette_de_fromages.png",
   },
   {
     id: "fr-009",
@@ -135,7 +135,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 350,
     ingredients: ["Cold Cuts", "Cornichons", "Baguette"],
     description: "Assorted cured meats, saucisson sec, cornichons pickles & rustic sourdough.",
-    imageUrl: "/frenchme.jpg",
+    imageUrl: "/dishes/assiette_de_charcuterie.png",
   },
 
   // 🥗 Salads & Savory Dishes
@@ -148,7 +148,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 280,
     ingredients: ["Tuna", "Olives", "Eggs", "Green Beans"],
     description: "Provençal salad with seared tuna, Niçoise olives, soft egg & green beans.",
-    imageUrl: "/good-food.jpg",
+    imageUrl: "/dishes/salade_nicoise.png",
   },
   {
     id: "fr-011",
@@ -159,7 +159,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 260,
     ingredients: ["Goat Cheese", "Greens", "Sourdough", "Honey"],
     description: "Warm goat cheese melted on crostini served over honey-dressed greens.",
-    imageUrl: "/good-food.jpg",
+    imageUrl: "/dishes/salade_chevre_chaud.png",
   },
   {
     id: "fr-012",
@@ -170,7 +170,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 240,
     ingredients: ["Eggs", "Cream", "Bacon", "Gruyère Cheese"],
     description: "Classic French egg tart baked with smoky bacon lardons & melted Gruyère.",
-    imageUrl: "/good-food.jpg",
+    imageUrl: "/dishes/quiche_lorraine.png",
   },
   {
     id: "fr-013",
@@ -181,7 +181,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 270,
     ingredients: ["Bread", "Ham", "Gruyère Cheese", "Bechamel"],
     description: "Classic Parisian grilled ham & melted Gruyère sandwich with rich Béchamel.",
-    imageUrl: "/frenchme.jpg",
+    imageUrl: "/dishes/croque_monsieur.png",
   },
   {
     id: "fr-014",
@@ -192,7 +192,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 290,
     ingredients: ["Bread", "Ham", "Gruyère Cheese", "Egg"],
     description: "Croque Monsieur topped with a sunny-side-up fried farm egg.",
-    imageUrl: "/frenchme.jpg",
+    imageUrl: "/dishes/croque_madame.png",
   },
 
   // 🍲 Soups & Warm Plates
@@ -205,7 +205,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 250,
     ingredients: ["Onions", "Broth", "Baguette", "Gruyère Cheese"],
     description: "Caramelized French onion soup topped with toasted baguette & broiled Gruyère.",
-    imageUrl: "/french_soup.png",
+    imageUrl: "/dishes/soupe_a_loignon.png",
   },
   {
     id: "fr-016",
@@ -216,7 +216,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 190,
     ingredients: ["Seasonal Vegetables", "Butter", "Herbs"],
     description: "Chef's daily seasonal vegetable soup served with warm French bread.",
-    imageUrl: "/french_soup.png",
+    imageUrl: "/dishes/potage_du_jour.png",
   },
   {
     id: "fr-017",
@@ -227,7 +227,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 230,
     ingredients: ["Zucchini", "Eggplant", "Tomatoes", "Bell Peppers"],
     description: "Slow-simmered Provençal vegetable stew with fresh thyme, garlic & olive oil.",
-    imageUrl: "/french_soup.png",
+    imageUrl: "/dishes/ratatouille.png",
   },
 
   // 🍰 Desserts
@@ -240,7 +240,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 220,
     ingredients: ["Apples", "Butter", "Sugar", "Pastry Crust"],
     description: "Caramelized upside-down apple tart served warm with creme fraiche.",
-    imageUrl: "/macarons.jpg",
+    imageUrl: "/dishes/tarte_tatin.png",
   },
   {
     id: "fr-019",
@@ -251,7 +251,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 200,
     ingredients: ["Heavy Cream", "Egg Yolks", "Sugar", "Vanilla"],
     description: "Rich Tahitian vanilla bean custard topped with hard burnt caramel crust.",
-    imageUrl: "/macarons.jpg",
+    imageUrl: "/dishes/creme_brulee.png",
   },
   {
     id: "fr-020",
@@ -262,7 +262,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 180,
     ingredients: ["Dark Chocolate", "Cream", "Eggs", "Sugar"],
     description: "Decadent, airy dark Valrhona chocolate mousse with whipped cream.",
-    imageUrl: "/macarons.jpg",
+    imageUrl: "/dishes/mousse_au_chocolat.png",
   },
   {
     id: "fr-021",
@@ -273,7 +273,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 130,
     ingredients: ["Flour", "Butter", "Sugar", "Lemon Zest"],
     description: "Freshly baked shell-shaped sponge cakes dusted with lemon zest & powder sugar.",
-    imageUrl: "/macarons.jpg",
+    imageUrl: "/dishes/madeleines.png",
   },
   {
     id: "fr-022",
@@ -284,7 +284,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 160,
     ingredients: ["Choux Pastry", "Cream", "Chocolate", "Coffee"],
     description: "Choux pastry filled with silky coffee or chocolate cream & dark cocoa glaze.",
-    imageUrl: "/paris_macarons.png",
+    imageUrl: "/dishes/eclair.png",
   },
 
   // ☕ Beverages
@@ -297,7 +297,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 110,
     ingredients: ["Espresso", "Steamed Milk"],
     description: "Classic Parisian dark roast coffee served with rich steamed milk.",
-    imageUrl: "/paris_coffee.png",
+    imageUrl: "/dishes/cafe_au_lait.png",
   },
   {
     id: "fr-024",
@@ -308,7 +308,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 90,
     ingredients: ["Espresso Beans", "Water"],
     description: "Short, intense shot of dark roasted arabica coffee with golden crema.",
-    imageUrl: "/paris_coffee.png",
+    imageUrl: "/dishes/espresso.png",
   },
   {
     id: "fr-025",
@@ -319,7 +319,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 150,
     ingredients: ["Dark Chocolate", "Milk", "Heavy Cream"],
     description: "Thick Parisian melted dark chocolate drink topped with Chantilly cream.",
-    imageUrl: "/paris_coffee.png",
+    imageUrl: "/dishes/chocolat_chaud.png",
   },
   {
     id: "fr-026",
@@ -330,7 +330,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 100,
     ingredients: ["Tea Leaves", "Hot Water"],
     description: "Selection of loose-leaf Earl Grey, Chamomile, or Jasmine teas.",
-    imageUrl: "/paris_coffee.png",
+    imageUrl: "/dishes/the.png",
   },
   {
     id: "fr-027",
@@ -341,7 +341,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 120,
     ingredients: ["Fresh Oranges"],
     description: "100% freshly squeezed Valencia orange juice served chilled.",
-    imageUrl: "/paris_coffee.png",
+    imageUrl: "/dishes/jus_dorange.png",
   },
   {
     id: "fr-028",
@@ -352,7 +352,7 @@ export const menuItemSeedData: MenuItemData[] = [
     estimatedCost: 300,
     ingredients: ["French Wine Grapes"],
     description: "Glass of house French wine (Bordeaux Red or Chardonnay White).",
-    imageUrl: "/paris_coffee.png",
+    imageUrl: "/dishes/vin_maison.png",
   },
 ];
 

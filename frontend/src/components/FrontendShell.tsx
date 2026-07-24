@@ -55,7 +55,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "5 mins",
     calories: 260,
     description: "Buttery, flaky classic French breakfast pastry freshly baked daily.",
-    backdropImage: "/paris_croissant.png",
+    backdropImage: "/dishes/croissant.png",
     tags: ["pastries", "breakfast", "vegetarian", "classic"],
   },
   {
@@ -65,7 +65,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "5 mins",
     calories: 320,
     description: "Flaky puff pastry baked with two batons of rich dark French chocolate.",
-    backdropImage: "/paris_croissant.png",
+    backdropImage: "/dishes/pain_au_chocolat.png",
     tags: ["pastries", "chocolate", "vegetarian", "sweet"],
   },
   {
@@ -75,7 +75,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "5 mins",
     calories: 310,
     description: "Golden spiral puff pastry filled with vanilla creme patissiere & raisins.",
-    backdropImage: "/macarons.jpg",
+    backdropImage: "/dishes/pain_aux_raisins.png",
     tags: ["pastries", "custard", "vegetarian"],
   },
   {
@@ -85,7 +85,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "5 mins",
     calories: 280,
     description: "Soft, golden, sweet French brioche loaf slice baked with farm butter.",
-    backdropImage: "/paris_croissant.png",
+    backdropImage: "/dishes/brioche.png",
     tags: ["pastries", "sweet", "vegetarian"],
   },
   {
@@ -95,7 +95,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "6 mins",
     calories: 290,
     description: "Crispy turnover filled with slow-caramelized French apple compote.",
-    backdropImage: "/download3.jpg",
+    backdropImage: "/dishes/chausson_aux_pommes.png",
     tags: ["pastries", "apple", "vegetarian", "vegan"],
   },
 
@@ -107,7 +107,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "8 mins",
     calories: 290,
     description: "Crusty French baguette slice with Beurre d'Isigny & artisan strawberry jam.",
-    backdropImage: "/frenchme.jpg",
+    backdropImage: "/dishes/tartine_beurre_confiture.png",
     tags: ["tartines", "breakfast", "vegetarian"],
   },
   {
@@ -117,7 +117,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "8 mins",
     calories: 340,
     description: "Toasted baguette topped with garlic-herb whipped cream cheese spread.",
-    backdropImage: "/frenchme.jpg",
+    backdropImage: "/dishes/tartine_au_fromage.png",
     tags: ["tartines", "cheese", "vegetarian"],
   },
   {
@@ -127,7 +127,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "10 mins",
     calories: 520,
     description: "Selection of aged Brie, Camembert & Roquefort served with baguette.",
-    backdropImage: "/frenchme.jpg",
+    backdropImage: "/dishes/assiette_de_fromages.png",
     tags: ["tartines", "cheese", "gluten-free"],
   },
   {
@@ -137,7 +137,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "10 mins",
     calories: 580,
     description: "Assorted cured meats, saucisson sec, cornichons pickles & rustic sourdough.",
-    backdropImage: "/frenchme.jpg",
+    backdropImage: "/dishes/assiette_de_charcuterie.png",
     tags: ["tartines", "charcuterie", "savory"],
   },
 
@@ -149,7 +149,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "12 mins",
     calories: 410,
     description: "Provençal salad with seared tuna, Niçoise olives, soft egg & green beans.",
-    backdropImage: "/good-food.jpg",
+    backdropImage: "/dishes/salade_nicoise.png",
     tags: ["salads", "tuna", "gluten-free"],
   },
   {
@@ -159,7 +159,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "12 mins",
     calories: 420,
     description: "Warm goat cheese melted on crostini served over honey-dressed greens.",
-    backdropImage: "/good-food.jpg",
+    backdropImage: "/dishes/salade_chevre_chaud.png",
     tags: ["salads", "goat cheese", "vegetarian"],
   },
   {
@@ -169,7 +169,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "15 mins",
     calories: 490,
     description: "Classic French egg tart baked with smoky bacon lardons & melted Gruyère.",
-    backdropImage: "/good-food.jpg",
+    backdropImage: "/dishes/quiche_lorraine.png",
     tags: ["salads", "quiche", "savory"],
   },
   {
@@ -179,7 +179,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "12 mins",
     calories: 560,
     description: "Classic Parisian grilled ham & melted Gruyère sandwich with rich Béchamel.",
-    backdropImage: "/frenchme.jpg",
+    backdropImage: "/dishes/croque_monsieur.png",
     tags: ["salads", "sandwich", "savory"],
   },
   {
@@ -189,7 +189,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "14 mins",
     calories: 610,
     description: "Croque Monsieur topped with a sunny-side-up fried farm egg.",
-    backdropImage: "/frenchme.jpg",
+    backdropImage: "/dishes/croque_madame.png",
     tags: ["salads", "sandwich", "egg"],
   },
 
@@ -201,7 +201,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "18 mins",
     calories: 480,
     description: "Caramelized French onion soup topped with toasted baguette & broiled Gruyère.",
-    backdropImage: "/french_soup.png",
+    backdropImage: "/dishes/soupe_a_loignon.png",
     tags: ["soups", "onion soup", "warm", "cheese"],
   },
   {
@@ -211,7 +211,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "12 mins",
     calories: 230,
     description: "Chef's daily seasonal vegetable soup served with warm French bread.",
-    backdropImage: "/french_soup.png",
+    backdropImage: "/dishes/potage_du_jour.png",
     tags: ["soups", "vegetable", "vegan", "gluten-free"],
   },
   {
@@ -221,7 +221,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "20 mins",
     calories: 310,
     description: "Slow-simmered Provençal vegetable stew with fresh thyme, garlic & olive oil.",
-    backdropImage: "/french_soup.png",
+    backdropImage: "/dishes/ratatouille.png",
     tags: ["soups", "provençal", "vegan", "gluten-free"],
   },
 
@@ -233,7 +233,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "10 mins",
     calories: 390,
     description: "Caramelized upside-down apple tart served warm with creme fraiche.",
-    backdropImage: "/macarons.jpg",
+    backdropImage: "/dishes/tarte_tatin.png",
     tags: ["desserts", "apple", "caramel", "sweet"],
   },
   {
@@ -243,7 +243,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "10 mins",
     calories: 380,
     description: "Rich Tahitian vanilla bean custard topped with hard burnt caramel crust.",
-    backdropImage: "/macarons.jpg",
+    backdropImage: "/dishes/creme_brulee.png",
     tags: ["desserts", "custard", "vanilla", "gluten-free"],
   },
   {
@@ -253,7 +253,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "5 mins",
     calories: 340,
     description: "Decadent, airy dark Valrhona chocolate mousse with whipped cream.",
-    backdropImage: "/macarons.jpg",
+    backdropImage: "/dishes/mousse_au_chocolat.png",
     tags: ["desserts", "chocolate", "mousse", "gluten-free"],
   },
   {
@@ -263,7 +263,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "5 mins",
     calories: 220,
     description: "Freshly baked shell-shaped sponge cakes dusted with lemon zest & powder sugar.",
-    backdropImage: "/macarons.jpg",
+    backdropImage: "/dishes/madeleines.png",
     tags: ["desserts", "lemon", "cake", "sweet"],
   },
   {
@@ -273,7 +273,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "5 mins",
     calories: 310,
     description: "Choux pastry filled with silky coffee or chocolate cream & dark cocoa glaze.",
-    backdropImage: "/paris_macarons.png",
+    backdropImage: "/dishes/eclair.png",
     tags: ["desserts", "eclair", "pastry"],
   },
 
@@ -285,7 +285,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "4 mins",
     calories: 120,
     description: "Classic Parisian dark roast coffee served with rich steamed milk.",
-    backdropImage: "/paris_coffee.png",
+    backdropImage: "/dishes/cafe_au_lait.png",
     tags: ["beverages", "coffee", "milk"],
   },
   {
@@ -295,7 +295,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "2 mins",
     calories: 5,
     description: "Short, intense shot of dark roasted arabica coffee with golden crema.",
-    backdropImage: "/paris_coffee.png",
+    backdropImage: "/dishes/espresso.png",
     tags: ["beverages", "coffee", "vegan", "gluten-free"],
   },
   {
@@ -305,7 +305,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "6 mins",
     calories: 290,
     description: "Thick Parisian melted dark chocolate drink topped with Chantilly cream.",
-    backdropImage: "/paris_coffee.png",
+    backdropImage: "/dishes/chocolat_chaud.png",
     tags: ["beverages", "hot chocolate", "sweet"],
   },
   {
@@ -315,7 +315,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "3 mins",
     calories: 0,
     description: "Selection of loose-leaf Earl Grey, Chamomile, or Jasmine teas.",
-    backdropImage: "/paris_coffee.png",
+    backdropImage: "/dishes/the.png",
     tags: ["beverages", "tea", "vegan", "gluten-free"],
   },
   {
@@ -325,7 +325,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "4 mins",
     calories: 110,
     description: "100% freshly squeezed Valencia orange juice served chilled.",
-    backdropImage: "/paris_coffee.png",
+    backdropImage: "/dishes/jus_dorange.png",
     tags: ["beverages", "juice", "vegan", "fresh"],
   },
   {
@@ -335,7 +335,7 @@ const menuCatalog: MenuItem[] = [
     prepTime: "2 mins",
     calories: 125,
     description: "Glass of house French wine (Bordeaux Red or Chardonnay White).",
-    backdropImage: "/paris_coffee.png",
+    backdropImage: "/dishes/vin_maison.png",
     tags: ["beverages", "wine", "alcohol", "vegan"],
   },
 ];
