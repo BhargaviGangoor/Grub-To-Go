@@ -47,6 +47,7 @@ type MenuItem = {
 };
 
 const menuCatalog: MenuItem[] = [
+  // 🥐 Viennoiseries
   {
     title: "Croissant",
     ingredients: ["Flour", "Butter", "Yeast"],
@@ -55,7 +56,7 @@ const menuCatalog: MenuItem[] = [
     calories: 260,
     description: "Buttery, flaky classic French breakfast pastry freshly baked daily.",
     backdropImage: "/paris_croissant.png",
-    tags: ["breakfast", "pastry", "vegetarian", "classic"],
+    tags: ["pastries", "breakfast", "vegetarian", "classic"],
   },
   {
     title: "Pain au Chocolat",
@@ -65,8 +66,40 @@ const menuCatalog: MenuItem[] = [
     calories: 320,
     description: "Flaky puff pastry baked with two batons of rich dark French chocolate.",
     backdropImage: "/paris_croissant.png",
-    tags: ["chocolate", "pastry", "vegetarian", "sweet"],
+    tags: ["pastries", "chocolate", "vegetarian", "sweet"],
   },
+  {
+    title: "Pain aux Raisins",
+    ingredients: ["Flour", "Butter", "Custard", "Raisins"],
+    cost: 160,
+    prepTime: "5 mins",
+    calories: 310,
+    description: "Golden spiral puff pastry filled with vanilla creme patissiere & raisins.",
+    backdropImage: "/macarons.jpg",
+    tags: ["pastries", "custard", "vegetarian"],
+  },
+  {
+    title: "Brioche",
+    ingredients: ["Flour", "Butter", "Eggs", "Sugar"],
+    cost: 140,
+    prepTime: "5 mins",
+    calories: 280,
+    description: "Soft, golden, sweet French brioche loaf slice baked with farm butter.",
+    backdropImage: "/paris_croissant.png",
+    tags: ["pastries", "sweet", "vegetarian"],
+  },
+  {
+    title: "Chausson aux Pommes",
+    ingredients: ["Flour", "Butter", "Apples"],
+    cost: 170,
+    prepTime: "6 mins",
+    calories: 290,
+    description: "Crispy turnover filled with slow-caramelized French apple compote.",
+    backdropImage: "/download3.jpg",
+    tags: ["pastries", "apple", "vegetarian", "vegan"],
+  },
+
+  // 🍞 Tartines & Light Plates
   {
     title: "Tartine Beurre et Confiture",
     ingredients: ["Baguette", "Butter", "Strawberry Jam"],
@@ -75,7 +108,49 @@ const menuCatalog: MenuItem[] = [
     calories: 290,
     description: "Crusty French baguette slice with Beurre d'Isigny & artisan strawberry jam.",
     backdropImage: "/frenchme.jpg",
-    tags: ["breakfast", "tartine", "vegetarian", "french"],
+    tags: ["tartines", "breakfast", "vegetarian"],
+  },
+  {
+    title: "Tartine au Fromage",
+    ingredients: ["Baguette", "Cheese Spread", "Herbs"],
+    cost: 180,
+    prepTime: "8 mins",
+    calories: 340,
+    description: "Toasted baguette topped with garlic-herb whipped cream cheese spread.",
+    backdropImage: "/frenchme.jpg",
+    tags: ["tartines", "cheese", "vegetarian"],
+  },
+  {
+    title: "Assiette de Fromages",
+    ingredients: ["Brie", "Camembert", "Baguette"],
+    cost: 320,
+    prepTime: "10 mins",
+    calories: 520,
+    description: "Selection of aged Brie, Camembert & Roquefort served with baguette.",
+    backdropImage: "/frenchme.jpg",
+    tags: ["tartines", "cheese", "gluten-free"],
+  },
+  {
+    title: "Assiette de Charcuterie",
+    ingredients: ["Cold Cuts", "Cornichons", "Baguette"],
+    cost: 350,
+    prepTime: "10 mins",
+    calories: 580,
+    description: "Assorted cured meats, saucisson sec, cornichons pickles & rustic sourdough.",
+    backdropImage: "/frenchme.jpg",
+    tags: ["tartines", "charcuterie", "savory"],
+  },
+
+  // 🥗 Salads & Savory Dishes
+  {
+    title: "Salade Niçoise",
+    ingredients: ["Tuna", "Olives", "Eggs", "Green Beans"],
+    cost: 280,
+    prepTime: "12 mins",
+    calories: 410,
+    description: "Provençal salad with seared tuna, Niçoise olives, soft egg & green beans.",
+    backdropImage: "/good-food.jpg",
+    tags: ["salads", "tuna", "gluten-free"],
   },
   {
     title: "Salade de Chèvre Chaud",
@@ -85,8 +160,40 @@ const menuCatalog: MenuItem[] = [
     calories: 420,
     description: "Warm goat cheese melted on crostini served over honey-dressed greens.",
     backdropImage: "/good-food.jpg",
-    tags: ["salad", "goat cheese", "vegetarian", "fresh"],
+    tags: ["salads", "goat cheese", "vegetarian"],
   },
+  {
+    title: "Quiche Lorraine",
+    ingredients: ["Eggs", "Cream", "Bacon", "Gruyère Cheese"],
+    cost: 240,
+    prepTime: "15 mins",
+    calories: 490,
+    description: "Classic French egg tart baked with smoky bacon lardons & melted Gruyère.",
+    backdropImage: "/good-food.jpg",
+    tags: ["salads", "quiche", "savory"],
+  },
+  {
+    title: "Croque Monsieur",
+    ingredients: ["Bread", "Ham", "Gruyère Cheese", "Bechamel"],
+    cost: 270,
+    prepTime: "12 mins",
+    calories: 560,
+    description: "Classic Parisian grilled ham & melted Gruyère sandwich with rich Béchamel.",
+    backdropImage: "/frenchme.jpg",
+    tags: ["salads", "sandwich", "savory"],
+  },
+  {
+    title: "Croque Madame",
+    ingredients: ["Bread", "Ham", "Gruyère Cheese", "Egg"],
+    cost: 290,
+    prepTime: "14 mins",
+    calories: 610,
+    description: "Croque Monsieur topped with a sunny-side-up fried farm egg.",
+    backdropImage: "/frenchme.jpg",
+    tags: ["salads", "sandwich", "egg"],
+  },
+
+  // 🍲 Soups & Warm Plates
   {
     title: "Soupe à l’Oignon Gratinée",
     ingredients: ["Onions", "Broth", "Baguette", "Gruyère Cheese"],
@@ -95,7 +202,39 @@ const menuCatalog: MenuItem[] = [
     calories: 480,
     description: "Caramelized French onion soup topped with toasted baguette & broiled Gruyère.",
     backdropImage: "/french_soup.png",
-    tags: ["soup", "warm", "cheese", "classic"],
+    tags: ["soups", "onion soup", "warm", "cheese"],
+  },
+  {
+    title: "Potage du Jour",
+    ingredients: ["Seasonal Vegetables", "Butter", "Herbs"],
+    cost: 190,
+    prepTime: "12 mins",
+    calories: 230,
+    description: "Chef's daily seasonal vegetable soup served with warm French bread.",
+    backdropImage: "/french_soup.png",
+    tags: ["soups", "vegetable", "vegan", "gluten-free"],
+  },
+  {
+    title: "Ratatouille",
+    ingredients: ["Zucchini", "Eggplant", "Tomatoes", "Bell Peppers"],
+    cost: 230,
+    prepTime: "20 mins",
+    calories: 310,
+    description: "Slow-simmered Provençal vegetable stew with fresh thyme, garlic & olive oil.",
+    backdropImage: "/french_soup.png",
+    tags: ["soups", "provençal", "vegan", "gluten-free"],
+  },
+
+  // 🍰 Desserts
+  {
+    title: "Tarte Tatin",
+    ingredients: ["Apples", "Butter", "Sugar", "Pastry Crust"],
+    cost: 220,
+    prepTime: "10 mins",
+    calories: 390,
+    description: "Caramelized upside-down apple tart served warm with creme fraiche.",
+    backdropImage: "/macarons.jpg",
+    tags: ["desserts", "apple", "caramel", "sweet"],
   },
   {
     title: "Crème Brûlée",
@@ -105,8 +244,40 @@ const menuCatalog: MenuItem[] = [
     calories: 380,
     description: "Rich Tahitian vanilla bean custard topped with hard burnt caramel crust.",
     backdropImage: "/macarons.jpg",
-    tags: ["dessert", "custard", "sweet", "classic"],
+    tags: ["desserts", "custard", "vanilla", "gluten-free"],
   },
+  {
+    title: "Mousse au Chocolat",
+    ingredients: ["Dark Chocolate", "Cream", "Eggs", "Sugar"],
+    cost: 180,
+    prepTime: "5 mins",
+    calories: 340,
+    description: "Decadent, airy dark Valrhona chocolate mousse with whipped cream.",
+    backdropImage: "/macarons.jpg",
+    tags: ["desserts", "chocolate", "mousse", "gluten-free"],
+  },
+  {
+    title: "Madeleines",
+    ingredients: ["Flour", "Butter", "Sugar", "Lemon Zest"],
+    cost: 130,
+    prepTime: "5 mins",
+    calories: 220,
+    description: "Freshly baked shell-shaped sponge cakes dusted with lemon zest & powder sugar.",
+    backdropImage: "/macarons.jpg",
+    tags: ["desserts", "lemon", "cake", "sweet"],
+  },
+  {
+    title: "Éclair au Café/Chocolat",
+    ingredients: ["Choux Pastry", "Cream", "Chocolate", "Coffee"],
+    cost: 160,
+    prepTime: "5 mins",
+    calories: 310,
+    description: "Choux pastry filled with silky coffee or chocolate cream & dark cocoa glaze.",
+    backdropImage: "/paris_macarons.png",
+    tags: ["desserts", "eclair", "pastry"],
+  },
+
+  // ☕ Beverages
   {
     title: "Café au Lait",
     ingredients: ["Espresso", "Steamed Milk"],
@@ -115,7 +286,57 @@ const menuCatalog: MenuItem[] = [
     calories: 120,
     description: "Classic Parisian dark roast coffee served with rich steamed milk.",
     backdropImage: "/paris_coffee.png",
-    tags: ["beverage", "coffee", "parisian"],
+    tags: ["beverages", "coffee", "milk"],
+  },
+  {
+    title: "Espresso",
+    ingredients: ["Espresso Beans", "Water"],
+    cost: 90,
+    prepTime: "2 mins",
+    calories: 5,
+    description: "Short, intense shot of dark roasted arabica coffee with golden crema.",
+    backdropImage: "/paris_coffee.png",
+    tags: ["beverages", "coffee", "vegan", "gluten-free"],
+  },
+  {
+    title: "Chocolat Chaud",
+    ingredients: ["Dark Chocolate", "Milk", "Heavy Cream"],
+    cost: 150,
+    prepTime: "6 mins",
+    calories: 290,
+    description: "Thick Parisian melted dark chocolate drink topped with Chantilly cream.",
+    backdropImage: "/paris_coffee.png",
+    tags: ["beverages", "hot chocolate", "sweet"],
+  },
+  {
+    title: "Thé",
+    ingredients: ["Tea Leaves", "Hot Water"],
+    cost: 100,
+    prepTime: "3 mins",
+    calories: 0,
+    description: "Selection of loose-leaf Earl Grey, Chamomile, or Jasmine teas.",
+    backdropImage: "/paris_coffee.png",
+    tags: ["beverages", "tea", "vegan", "gluten-free"],
+  },
+  {
+    title: "Jus d’Orange Pressé",
+    ingredients: ["Fresh Oranges"],
+    cost: 120,
+    prepTime: "4 mins",
+    calories: 110,
+    description: "100% freshly squeezed Valencia orange juice served chilled.",
+    backdropImage: "/paris_coffee.png",
+    tags: ["beverages", "juice", "vegan", "fresh"],
+  },
+  {
+    title: "Vin Maison",
+    ingredients: ["French Wine Grapes"],
+    cost: 300,
+    prepTime: "2 mins",
+    calories: 125,
+    description: "Glass of house French wine (Bordeaux Red or Chardonnay White).",
+    backdropImage: "/paris_coffee.png",
+    tags: ["beverages", "wine", "alcohol", "vegan"],
   },
 ];
 
@@ -436,16 +657,32 @@ function MenuWorkspace({
 }: {
   onNavigate: (screen: Screen) => void;
 }) {
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+  const categories = [
+    { id: "all", label: "All Dishes (28)" },
+    { id: "pastries", label: "🥐 Pastries (5)" },
+    { id: "tartines", label: "🍞 Tartines (4)" },
+    { id: "salads", label: "🥗 Salads & Savory (5)" },
+    { id: "soups", label: "🍲 Soups & Warm (3)" },
+    { id: "desserts", label: "🍰 Desserts (5)" },
+    { id: "beverages", label: "☕ Beverages (6)" },
+  ];
+
+  const filteredDishes =
+    selectedCategory === "all"
+      ? menuCatalog
+      : menuCatalog.filter((dish) => dish.tags.includes(selectedCategory));
+
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 space-y-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-[#1d3a2b]">
-            Menu Explorer
+            French Bistro Menu Explorer
           </h1>
           <p className="text-sm text-[#1d3a2b]/65">
-            A browsable menu page with quick comparisons and recommendation
-            cards.
+            Browse our full authentic 28-dish Parisian café menu with live stock & pricing.
           </p>
         </div>
         <button
@@ -458,8 +695,25 @@ function MenuWorkspace({
         </button>
       </div>
 
+      {/* Category Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-[#e9e5da]">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.id)}
+            className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition cursor-pointer ${
+              selectedCategory === cat.id
+                ? "bg-[#1d3a2b] text-[#f4f1ea] shadow-xs"
+                : "bg-white text-[#1d3a2b] border border-[#e9e5da] hover:bg-[#fffdf9]"
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-2">
-        {menuCatalog.map((dish) => (
+        {filteredDishes.map((dish) => (
           <DishCard key={dish.title} {...dish} />
         ))}
       </div>
