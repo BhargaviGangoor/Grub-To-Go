@@ -1,79 +1,47 @@
-import { LLMProvider } from "../llm/LLMProvider.interface";
+import { PlannerAgent } from "../agents/PlannerAgent";
 
 /**
  * ChatService.ts
  *
  * The Business Logic Layer for the AI chat feature.
  *
- * ─── WHAT GOES IN A SERVICE ──────────────────────────────────────────────────
- * Business logic. NOT HTTP concerns (no req/res here).
- * NOT LLM implementation details (no Groq-specific code here).
+ * ─── PHASE 2 UPDATE ──────────────────────────────────────────────────────────
+ * ChatService now routes ALL messages through PlannerAgent.
+ * PlannerAgent handles intent detection internally:
+ *   - ORDER_FOOD intent  → full autonomous ordering pipeline
+ *   - everything else   → falls back to GroqProvider.chat() (existing behavior)
  *
- * The service asks: "Given this user message, what should happen?"
- * The answer today: forward to LLM, return reply.
- * The answer in Phase 2: run through a multi-agent pipeline.
+ * The controller and frontend are completely unchanged.
+ * The /api/chat request and response contracts are unchanged.
  *
- * ─── WHY DEPENDENCY INJECTION ────────────────────────────────────────────────
- * The LLMProvider is passed into the constructor — not instantiated inside.
- * This is "Dependency Injection" (DI), a core pattern in SOLID architecture.
- *
- * Benefits:
- *   1. Testability: pass MockProvider in tests, no real API calls needed
- *   2. Flexibility: pass GroqProvider today, PlannerAgent tomorrow
- *   3. Single Responsibility: the service doesn't decide which LLM to use
- *
- * ─── HOW THIS EVOLVES INTO MULTI-AGENT ──────────────────────────────────────
- *
- * Today:
- *   processMessage(msg) → this.llm.chat(msg) → string
- *
- * Phase 2 (just change what's passed as `llm`):
- *   processMessage(msg)
- *     → detectIntent(msg)           ← IntentAgent
- *     → fetchRestaurants(intent)     ← RestaurantAgent
- *     → filterMenu(restaurants)      ← MenuAgent + InventoryAgent
- *     → buildRecommendation()        ← RecommendationAgent
- *     → return formatted response
- *
- * Phase 3 (LangGraph):
- *   processMessage(msg) → graph.invoke({ message: msg }) → AgentState
- *
- * THE CONTROLLER AND FRONTEND NEVER CHANGE.
+ * ─── DEPENDENCY INJECTION ────────────────────────────────────────────────────
+ * PlannerAgent is injected via the constructor (assembled in chat.routes.ts).
+ * ChatService has no knowledge of Groq, tools, or DB internals.
  */
 export class ChatService {
-  private llm: LLMProvider;
+  private planner: PlannerAgent;
 
-  /**
-   * TypeScript concept: Constructor injection.
-   * `private llm: LLMProvider` both declares the property AND assigns it.
-   * The type is the INTERFACE, not the concrete class — crucial.
-   */
-  constructor(llm: LLMProvider) {
-    this.llm = llm;
+  constructor(planner: PlannerAgent) {
+    this.planner = planner;
   }
 
   /**
    * Process a user's chat message and return the AI's reply.
    *
-   * This is the single method that will evolve into the multi-agent
-   * orchestration layer. Today it's one line. That's intentional.
-   * Clean architecture starts simple and grows in the right direction.
+   * Routes through PlannerAgent which decides:
+   *  - Is this an order? → run autonomous pipeline
+   *  - Otherwise?       → general LLM food chat
    *
    * @param userMessage - The raw text from the user
    * @returns The AI assistant's reply string
    */
   async processMessage(userMessage: string): Promise<string> {
-    // Sanitize: trim whitespace
     const cleanedMessage = userMessage.trim();
 
     if (!cleanedMessage) {
       return "I didn't quite catch that. Could you tell me what you're craving? 🍽️";
     }
 
-    // TODAY: Direct LLM call through the interface.
-    // FUTURE: This single line becomes the multi-agent orchestration call.
-    const reply = await this.llm.chat(cleanedMessage);
-
-    return reply;
+    return await this.planner.process(cleanedMessage);
   }
 }
