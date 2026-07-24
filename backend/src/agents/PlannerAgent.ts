@@ -105,9 +105,9 @@ Analyze the user's message and return a JSON object with this exact structure:
 }
 
 Rules:
-- Use "ORDER_FOOD" when the user explicitly wants to order, buy, or get food delivered.
-- Use "RECIPE_REQUEST" when they want a recipe idea or meal suggestion without ordering.
-- Use "GENERAL_CHAT" for all other food questions.
+- Use "ORDER_FOOD" when the user wants to order food, select a meal, find something to eat, or asks for dish recommendations.
+- Use "RECIPE_REQUEST" when they explicitly ask how to cook or make a dish at home.
+- Use "GENERAL_CHAT" for all non-menu food questions.
 - dietary should normalize: "veg" → "vegetarian", "vegan", "gluten free" → "Gluten-Free"
 - spiceLevel: "spicy" → "Spicy", "mild" → "Mild", "medium" → "Medium"
 - Return ONLY the JSON object. No markdown. No explanation.
