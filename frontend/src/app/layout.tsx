@@ -61,6 +61,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${headingFont.variable} ${bodyFont.variable} ${scriptFont.variable} ${monoFont.variable}`}
     >
       <body className="font-sans min-h-screen bg-[#f3eedf] text-[#1d3a2b] antialiased selection:bg-emerald-800/15 selection:text-[#1d3a2b]">
