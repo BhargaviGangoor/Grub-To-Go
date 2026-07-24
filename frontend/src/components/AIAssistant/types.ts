@@ -18,16 +18,32 @@
  *   - dctToken?: string          — secure order token for checkout
  */
 
+export interface AgentStep {
+  title: string;
+  detail: string;
+  status: "success" | "warning" | "info" | "error";
+  timestamp?: string;
+}
+
 /**
  * A single message in the chat.
- * role: "user" renders on the right with emerald styling.
- * role: "assistant" renders on the left with warm white styling.
  */
 export interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  agentSteps?: AgentStep[];
+  dish?: {
+    name: string;
+    estimatedCost: number;
+    imageUrl?: string;
+    description?: string;
+    spiceLevel?: string;
+    dietary?: string[];
+  };
+  dctTokenId?: string;
+  orderId?: string;
 }
 
 /**

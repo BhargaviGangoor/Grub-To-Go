@@ -95,14 +95,18 @@ export function useChat(): UseChatReturn {
 
     try {
       // 2. Call the backend
-      const reply = await sendChatMessage(content.trim());
+      const res = await sendChatMessage(content.trim());
 
       // 3. Add AI reply to the chat
       const assistantMessage: Message = {
         id: generateId(),
         role: "assistant",
-        content: reply,
+        content: res.reply,
         timestamp: new Date(),
+        agentSteps: res.agentSteps,
+        dish: res.dish,
+        dctTokenId: res.dctTokenId,
+        orderId: res.orderId,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);

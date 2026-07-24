@@ -8,6 +8,7 @@ import {
   OrderConstraints,
   MenuItemData,
   PlannerResult,
+  AgentStep,
 } from "../types/agent.types";
 
 /**
@@ -39,20 +40,47 @@ export class PlannerAgent {
 
   // ─── Main Entry Point ────────────────────────────────────────────────────────
 
-  async process(userMessage: string): Promise<string> {
+  // ─── Main Entry Point ────────────────────────────────────────────────────────
+
+  async process(userMessage: string): Promise<PlannerResult> {
+    const steps: AgentStep[] = [];
+
     // 1. Extract intent from natural language
     const intent = await this.extractIntent(userMessage);
     console.log(`[Planner] Intent: ${intent.intent}`);
 
+    steps.push({
+      title: "🎯 Intent & Constraint Analysis",
+      detail: `Intent: ${intent.intent}${
+        intent.intent === "ORDER_FOOD"
+          ? ` | Budget: ₹${intent.constraints.maxBudget ?? "Unlimited"}, Diet: [${
+              intent.constraints.dietary?.join(", ") || "Any"
+            }], Spice: ${intent.constraints.spiceLevel || "Any"}`
+          : " | General conversation query"
+      }`,
+      status: "success",
+    });
+
     if (intent.intent === "ORDER_FOOD") {
       console.log(`[Planner] Constraints: ${JSON.stringify(intent.constraints)}`);
-      const result = await this.executeOrder(intent);
-      return result.message;
+      return await this.executeOrder(intent, steps);
     }
 
     // All non-ORDER_FOOD intents fall back to general LLM chat
     console.log(`[Planner] Non-order intent detected. Routing to general chat.`);
-    return await this.llm.chat(userMessage);
+    const reply = await this.llm.chat(userMessage);
+
+    steps.push({
+      title: "💬 LLM Knowledge Response",
+      detail: "Answered user query using Groq LLM general food knowledge",
+      status: "info",
+    });
+
+    return {
+      success: true,
+      message: reply,
+      agentSteps: steps,
+    };
   }
 
   // ─── Intent Extraction ───────────────────────────────────────────────────────
@@ -98,23 +126,28 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
       const parsed = JSON.parse(cleaned);
 
       // Validate required fields
-      if (!parsed.intent || !["ORDER_FOOD", "RECIPE_REQUEST", "GENERAL_CHAT", "UNKNOWN"].includes(parsed.intent)) {
+      if (
+        !parsed.intent ||
+        !["ORDER_FOOD", "RECIPE_REQUEST", "GENERAL_CHAT", "UNKNOWN"].includes(parsed.intent)
+      ) {
         throw new Error("Invalid intent value");
       }
 
       const constraints: OrderConstraints = {
-        maxBudget: typeof parsed.constraints?.maxBudget === "number"
-          ? parsed.constraints.maxBudget
-          : undefined,
+        maxBudget:
+          typeof parsed.constraints?.maxBudget === "number"
+            ? parsed.constraints.maxBudget
+            : undefined,
         dietary: Array.isArray(parsed.constraints?.dietary)
           ? parsed.constraints.dietary
           : [],
         spiceLevel: ["Mild", "Medium", "Spicy"].includes(parsed.constraints?.spiceLevel)
           ? parsed.constraints.spiceLevel
           : undefined,
-        cuisine: typeof parsed.constraints?.cuisine === "string" && parsed.constraints.cuisine
-          ? parsed.constraints.cuisine
-          : undefined,
+        cuisine:
+          typeof parsed.constraints?.cuisine === "string" && parsed.constraints.cuisine
+            ? parsed.constraints.cuisine
+            : undefined,
       };
 
       return { intent: parsed.intent, constraints, rawMessage: userMessage };
@@ -134,17 +167,27 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
    * Full autonomous ordering pipeline.
    * Attempts up to MAX_ATTEMPTS candidates before giving up.
    */
-  private async executeOrder(intent: UserIntent): Promise<PlannerResult> {
+  private async executeOrder(
+    intent: UserIntent,
+    steps: AgentStep[]
+  ): Promise<PlannerResult> {
     const { constraints } = intent;
 
     // Step 1: Find candidates from real MongoDB data
     const candidates = await this.menuTool.findCandidates(constraints);
     console.log(`[MenuTool] Found ${candidates.length} candidate(s)`);
 
+    steps.push({
+      title: "🔍 Menu Catalog Search",
+      detail: `Queried MongoDB catalog: found ${candidates.length} candidate dish(es) matching constraints`,
+      status: candidates.length > 0 ? "success" : "warning",
+    });
+
     if (candidates.length === 0) {
       return {
         success: false,
         message: this.buildNoMatchMessage(constraints),
+        agentSteps: steps,
       };
     }
 
@@ -161,6 +204,11 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
       if (attempt > 0) {
         replanned = true;
         console.log(`[Planner] Replanning — attempt ${attempt + 1} with: ${candidate.name}`);
+        steps.push({
+          title: "🔄 Replanning Triggered",
+          detail: `Attempt ${attempt + 1}: selected next candidate "${candidate.name}" (₹${candidate.estimatedCost})`,
+          status: "info",
+        });
       } else {
         console.log(`[Planner] Selected candidate: ${candidate.name} (₹${candidate.estimatedCost})`);
       }
@@ -169,18 +217,41 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
       const inventoryCheck = await this.inventoryTool.checkAvailability(candidate, constraints);
       if (!inventoryCheck.available) {
         console.log(`[InventoryTool] ${candidate.name} unavailable: ${inventoryCheck.outOfStock.join(", ")}`);
-        rejectedNames.push(`${candidate.name} (inventory/dietary issue: ${inventoryCheck.outOfStock.join(", ")})`);
+        rejectedNames.push(
+          `${candidate.name} (inventory/dietary issue: ${inventoryCheck.outOfStock.join(", ")})`
+        );
+        steps.push({
+          title: "📦 Live Inventory Audit",
+          detail: `${candidate.name}: ✗ Out of stock / dietary mismatch (${inventoryCheck.outOfStock.join(", ")})`,
+          status: "warning",
+        });
         continue;
       }
+
+      steps.push({
+        title: "📦 Live Inventory Audit",
+        detail: `${candidate.name}: ✓ All required ingredients in stock (${candidate.ingredients.join(", ")})`,
+        status: "success",
+      });
 
       // Step 4: Generate GB-DCT token
       let dctResult;
       try {
         dctResult = await this.dctTool.generate(candidate, constraints);
         console.log(`[DCTTool] Token generated: ${dctResult.tokenId}`);
+        steps.push({
+          title: "🎟️ GB-DCT Token Generation",
+          detail: `Generated dynamic commitment lease token: ${dctResult.tokenId}`,
+          status: "success",
+        });
       } catch (err) {
         console.error(`[DCTTool] Token generation failed:`, err);
         rejectedNames.push(`${candidate.name} (DCT generation error)`);
+        steps.push({
+          title: "🎟️ GB-DCT Token Generation",
+          detail: `Token generation failed for ${candidate.name}`,
+          status: "error",
+        });
         continue;
       }
 
@@ -193,21 +264,47 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
         rejectedNames.push(
           `${candidate.name} (drift: ${validation.driftsDetected.slice(0, 2).join("; ")})`
         );
+        steps.push({
+          title: "🛡️ World State Attestation",
+          detail: `State drift detected on ${dctResult.tokenId}: ${validation.driftsDetected.join("; ")}`,
+          status: "error",
+        });
         continue;
       }
+
+      steps.push({
+        title: "🛡️ World State Attestation",
+        detail: `Verified ${dctResult.tokenId} against live world state: 0 price/stock/dietary drift detected`,
+        status: "success",
+      });
 
       // Step 6: Create simulated order in MongoDB
       let order;
       try {
-        order = await this.orderTool.createOrder(candidate, dctResult.tokenId, constraints, replanned);
+        order = await this.orderTool.createOrder(
+          candidate,
+          dctResult.tokenId,
+          constraints,
+          replanned
+        );
         console.log(`[OrderTool] Order created: ${order._id}`);
+        steps.push({
+          title: "🛒 Order Execution",
+          detail: `Simulated order #${order._id} successfully created & saved to database`,
+          status: "success",
+        });
       } catch (err) {
         console.error(`[OrderTool] Order creation failed:`, err);
         rejectedNames.push(`${candidate.name} (order persistence error)`);
+        steps.push({
+          title: "🛒 Order Execution",
+          detail: `Failed to save order to database`,
+          status: "error",
+        });
         continue;
       }
 
-      // Step 7: Return success message
+      // Step 7: Return success message & complete payload
       return {
         success: true,
         dishName: candidate.name,
@@ -217,6 +314,8 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
         replanned,
         rejectedCandidates: rejectedNames,
         message: this.buildSuccessMessage(candidate, dctResult.tokenId, replanned, rejectedNames),
+        agentSteps: steps,
+        dish: candidate,
       };
     }
 
@@ -225,6 +324,7 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
       success: false,
       rejectedCandidates: rejectedNames,
       message: this.buildExhaustedMessage(rejectedNames, constraints),
+      agentSteps: steps,
     };
   }
 

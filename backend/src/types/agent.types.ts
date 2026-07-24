@@ -66,6 +66,15 @@ export interface DCTValidateResult {
   logs: string[];
 }
 
+// ─── Agent Step Execution Trace ──────────────────────────────────────────────
+
+export interface AgentStep {
+  title: string;
+  detail: string;
+  status: "success" | "warning" | "info" | "error";
+  timestamp?: string;
+}
+
 // ─── Planner Result ───────────────────────────────────────────────────────────
 
 export interface PlannerResult {
@@ -77,4 +86,7 @@ export interface PlannerResult {
   replanned?: boolean;       // true if the first candidate was rejected
   rejectedCandidates?: string[];
   message: string;           // Natural language summary for the user
+  agentSteps?: AgentStep[];  // Step-by-step reasoning/action trace
+  dish?: MenuItemData;       // Candidate dish object details
 }
+

@@ -98,13 +98,8 @@ export class ChatController {
         return;
       }
 
-      // ── 2. Call Service ──────────────────────────────────────────────────
-      // The controller has NO idea how processMessage works internally.
-      // It just knows: give it a string, get back a string.
-      const reply = await this.chatService.processMessage(message);
-
-      // ── 3. Return Response ───────────────────────────────────────────────
-      const response: ChatResponse = { reply };
+      // ── 2. Call Service & 3. Return Response ──────────────────────────────
+      const response: ChatResponse = await this.chatService.processMessage(message);
       res.status(200).json(response);
 
     } catch (error) {

@@ -24,15 +24,17 @@ export interface ChatRequest {
   message: string;
 }
 
+import { AgentStep } from "./agent.types";
+
 /**
  * Shape of the success response from POST /api/chat.
- * Simple today. Could grow to include:
- *   - agentTrace: AgentStep[]  (show which agents ran)
- *   - suggestedActions: Action[]
- *   - dctToken: string         (when ordering is ready)
  */
 export interface ChatResponse {
   reply: string;
+  agentSteps?: AgentStep[];
+  dish?: any;
+  dctTokenId?: string;
+  orderId?: string;
 }
 
 /**

@@ -26,31 +26,34 @@
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
+import { AgentStep } from "./types";
+
+export interface ChatApiResponse {
+  reply: string;
+  agentSteps?: AgentStep[];
+  dish?: any;
+  dctTokenId?: string;
+  orderId?: string;
+}
+
 /**
- * Send a message to the AI assistant and receive a reply.
- *
- * @param message - The user's plain text message
- * @returns The AI assistant's reply string
- * @throws Error with descriptive message if the request fails
+ * Send a message to the AI assistant and receive structured response.
  */
-export async function sendChatMessage(message: string): Promise<string> {
+export async function sendChatMessage(message: string): Promise<ChatApiResponse> {
   const response = await fetch(`${BACKEND_URL}/api/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      // Future: "Authorization": `Bearer ${getAuthToken()}`
     },
     body: JSON.stringify({ message }),
   });
 
   if (!response.ok) {
-    // Try to extract the error message from the response body
     let errorMessage = `Backend error: ${response.status}`;
     try {
       const errorBody = await response.json();
       errorMessage = errorBody.error || errorMessage;
     } catch {
-      // Response wasn't JSON — use the status text
       errorMessage = response.statusText || errorMessage;
     }
     throw new Error(errorMessage);
@@ -62,5 +65,11 @@ export async function sendChatMessage(message: string): Promise<string> {
     throw new Error("Received empty reply from AI assistant.");
   }
 
-  return data.reply as string;
+  return {
+    reply: data.reply,
+    agentSteps: data.agentSteps,
+    dish: data.dish,
+    dctTokenId: data.dctTokenId,
+    orderId: data.orderId,
+  };
 }
