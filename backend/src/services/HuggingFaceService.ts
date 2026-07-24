@@ -16,47 +16,47 @@ import { config } from "../config";
 const HF_MODEL = process.env.HF_MODEL || "black-forest-labs/FLUX.1-schnell";
 const HF_TOKEN = process.env.HF_TOKEN || process.env.HUGGINGFACE_API_KEY || "";
 
-// Default visual map for French Bistro dishes to public assets
+// Default visual map for French Bistro dishes to verified high-definition dish assets
 const DISH_IMAGE_MAP: Record<string, string> = {
   // Viennoiseries
-  "Croissant": "/paris_croissant.png",
-  "Pain au Chocolat": "/paris_croissant.png",
-  "Pain aux Raisins": "/macarons.jpg",
-  "Brioche": "/paris_croissant.png",
-  "Chausson aux Pommes": "/download3.jpg",
+  "Croissant": "/dishes/croissant.png",
+  "Pain au Chocolat": "/dishes/pain_au_chocolat.png",
+  "Pain aux Raisins": "/dishes/pain_aux_raisins.png",
+  "Brioche": "/dishes/brioche.png",
+  "Chausson aux Pommes": "/dishes/chausson_aux_pommes.png",
 
   // Tartines & Light Plates
-  "Tartine Beurre et Confiture": "/frenchme.jpg",
-  "Tartine au Fromage": "/frenchme.jpg",
-  "Assiette de Fromages": "/frenchme.jpg",
-  "Assiette de Charcuterie": "/frenchme.jpg",
+  "Tartine Beurre et Confiture": "/dishes/tartine_beurre_confiture.png",
+  "Tartine au Fromage": "/dishes/tartine_au_fromage.png",
+  "Assiette de Fromages": "/dishes/assiette_de_fromages.png",
+  "Assiette de Charcuterie": "/dishes/assiette_de_charcuterie.png",
 
   // Salads & Savory
-  "Salade Niçoise": "/good-food.jpg",
-  "Salade de Chèvre Chaud": "/good-food.jpg",
-  "Quiche Lorraine": "/good-food.jpg",
-  "Croque Monsieur": "/frenchme.jpg",
-  "Croque Madame": "/frenchme.jpg",
+  "Salade Niçoise": "/dishes/salade_nicoise.png",
+  "Salade de Chèvre Chaud": "/dishes/salade_chevre_chaud.png",
+  "Quiche Lorraine": "/dishes/quiche_lorraine.png",
+  "Croque Monsieur": "/dishes/croque_monsieur.png",
+  "Croque Madame": "/dishes/croque_madame.png",
 
   // Soups & Warm Plates
-  "Soupe à l’Oignon Gratinée": "/french_soup.png",
-  "Potage du Jour": "/french_soup.png",
-  "Ratatouille": "/french_soup.png",
+  "Soupe à l’Oignon Gratinée": "/dishes/soupe_a_loignon.png",
+  "Potage du Jour": "/dishes/potage_du_jour.png",
+  "Ratatouille": "/dishes/ratatouille.png",
 
   // Desserts
-  "Tarte Tatin": "/macarons.jpg",
-  "Crème Brûlée": "/macarons.jpg",
-  "Mousse au Chocolat": "/macarons.jpg",
-  "Madeleines": "/macarons.jpg",
-  "Éclair au Café/Chocolat": "/paris_macarons.png",
+  "Tarte Tatin": "/dishes/tarte_tatin.png",
+  "Crème Brûlée": "/dishes/creme_brulee.png",
+  "Mousse au Chocolat": "/dishes/mousse_au_chocolat.png",
+  "Madeleines": "/dishes/madeleines.png",
+  "Éclair au Café/Chocolat": "/dishes/eclair.png",
 
   // Beverages
-  "Café au Lait": "/paris_coffee.png",
-  "Espresso": "/paris_coffee.png",
-  "Chocolat Chaud": "/paris_coffee.png",
-  "Thé": "/paris_coffee.png",
-  "Jus d’Orange Pressé": "/paris_coffee.png",
-  "Vin Maison": "/paris_coffee.png",
+  "Café au Lait": "/dishes/cafe_au_lait.png",
+  "Espresso": "/dishes/espresso.png",
+  "Chocolat Chaud": "/dishes/chocolat_chaud.png",
+  "Thé": "/dishes/the.png",
+  "Jus d’Orange Pressé": "/dishes/jus_dorange.png",
+  "Vin Maison": "/dishes/vin_maison.png",
 };
 
 export class HuggingFaceService {
