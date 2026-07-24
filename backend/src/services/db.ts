@@ -76,39 +76,177 @@ const memoryStore = {
 
 // Seed Defaults
 export const defaultInventory: Record<string, number> = {
-  "Paneer": 15,
-  "Udon Noodles": 25,
-  "Chicken": 10,
-  "Ramen Noodles": 20,
-  "Mushrooms": 25,
-  "Sage": 10,
-  "Heavy Cream": 12,
-  "Saffron": 8,
-  "Basmati Rice": 30,
+  "Flour": 50,
+  "Butter": 40,
+  "Yeast": 30,
+  "Chocolate": 25,
+  "Custard": 20,
+  "Raisins": 30,
+  "Eggs": 60,
+  "Sugar": 45,
+  "Apples": 35,
+  "Baguette": 40,
+  "Strawberry Jam": 25,
+  "Cheese Spread": 30,
+  "Herbs": 25,
+  "Brie": 15,
+  "Camembert": 15,
+  "Cold Cuts": 20,
+  "Cornichons": 25,
+  "Tuna": 20,
+  "Olives": 30,
+  "Green Beans": 25,
+  "Goat Cheese": 20,
+  "Greens": 35,
+  "Sourdough": 30,
+  "Honey": 25,
+  "Cream": 30,
+  "Bacon": 20,
+  "Gruyère Cheese": 25,
+  "Bread": 40,
+  "Ham": 25,
+  "Bechamel": 20,
+  "Egg": 50,
+  "Onions": 40,
+  "Broth": 30,
+  "Seasonal Vegetables": 35,
+  "Zucchini": 30,
+  "Eggplant": 25,
+  "Tomatoes": 40,
+  "Bell Peppers": 30,
+  "Pastry Crust": 25,
+  "Heavy Cream": 30,
+  "Egg Yolks": 40,
+  "Vanilla": 20,
+  "Dark Chocolate": 25,
+  "Lemon Zest": 30,
+  "Choux Pastry": 20,
+  "Coffee": 35,
+  "Espresso": 50,
+  "Steamed Milk": 40,
+  "Espresso Beans": 50,
+  "Water": 100,
+  "Milk": 50,
+  "Tea Leaves": 40,
+  "Hot Water": 100,
+  "Fresh Oranges": 45,
+  "French Wine Grapes": 30,
 };
 
 export const defaultPricing: Record<string, number> = {
-  "Paneer": 90,
-  "Udon Noodles": 45,
-  "Chicken": 120,
-  "Ramen Noodles": 35,
-  "Mushrooms": 60,
-  "Sage": 20,
-  "Heavy Cream": 30,
-  "Saffron": 150,
-  "Basmati Rice": 25,
+  "Flour": 15,
+  "Butter": 40,
+  "Yeast": 10,
+  "Chocolate": 50,
+  "Custard": 30,
+  "Raisins": 25,
+  "Eggs": 20,
+  "Sugar": 15,
+  "Apples": 35,
+  "Baguette": 30,
+  "Strawberry Jam": 25,
+  "Cheese Spread": 40,
+  "Herbs": 15,
+  "Brie": 90,
+  "Camembert": 85,
+  "Cold Cuts": 100,
+  "Cornichons": 30,
+  "Tuna": 80,
+  "Olives": 35,
+  "Green Beans": 25,
+  "Goat Cheese": 85,
+  "Greens": 30,
+  "Sourdough": 35,
+  "Honey": 30,
+  "Cream": 35,
+  "Bacon": 75,
+  "Gruyère Cheese": 90,
+  "Bread": 25,
+  "Ham": 70,
+  "Bechamel": 30,
+  "Egg": 15,
+  "Onions": 20,
+  "Broth": 25,
+  "Seasonal Vegetables": 35,
+  "Zucchini": 25,
+  "Eggplant": 30,
+  "Tomatoes": 20,
+  "Bell Peppers": 25,
+  "Pastry Crust": 35,
+  "Heavy Cream": 40,
+  "Egg Yolks": 20,
+  "Vanilla": 45,
+  "Dark Chocolate": 60,
+  "Lemon Zest": 15,
+  "Choux Pastry": 35,
+  "Coffee": 30,
+  "Espresso": 35,
+  "Steamed Milk": 25,
+  "Espresso Beans": 40,
+  "Water": 5,
+  "Milk": 20,
+  "Tea Leaves": 25,
+  "Hot Water": 5,
+  "Fresh Oranges": 35,
+  "French Wine Grapes": 120,
 };
 
 export const defaultDietaryRules: Record<string, string[]> = {
-  "Paneer": ["Vegetarian", "Jain", "Gluten Free", "Gluten-Free"],
-  "Udon Noodles": ["Vegetarian", "Vegan"],
-  "Chicken": [],
-  "Ramen Noodles": ["Vegetarian", "Vegan"],
-  "Mushrooms": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
-  "Sage": ["Vegetarian", "Vegan", "Jain", "Gluten Free", "Gluten-Free"],
+  "Flour": ["Vegetarian", "Vegan"],
+  "Butter": ["Vegetarian"],
+  "Yeast": ["Vegetarian", "Vegan"],
+  "Chocolate": ["Vegetarian"],
+  "Custard": ["Vegetarian"],
+  "Raisins": ["Vegetarian", "Vegan"],
+  "Eggs": ["Non-Vegetarian"],
+  "Sugar": ["Vegetarian", "Vegan"],
+  "Apples": ["Vegetarian", "Vegan"],
+  "Baguette": ["Vegetarian", "Vegan"],
+  "Strawberry Jam": ["Vegetarian", "Vegan"],
+  "Cheese Spread": ["Vegetarian"],
+  "Herbs": ["Vegetarian", "Vegan"],
+  "Brie": ["Vegetarian", "Gluten Free", "Gluten-Free"],
+  "Camembert": ["Vegetarian", "Gluten Free", "Gluten-Free"],
+  "Cold Cuts": ["Non-Vegetarian"],
+  "Cornichons": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Tuna": ["Non-Vegetarian", "Gluten Free", "Gluten-Free"],
+  "Olives": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Green Beans": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Goat Cheese": ["Vegetarian", "Gluten Free", "Gluten-Free"],
+  "Greens": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Sourdough": ["Vegetarian", "Vegan"],
+  "Honey": ["Vegetarian", "Gluten Free", "Gluten-Free"],
+  "Cream": ["Vegetarian", "Gluten Free", "Gluten-Free"],
+  "Bacon": ["Non-Vegetarian"],
+  "Gruyère Cheese": ["Vegetarian", "Gluten Free", "Gluten-Free"],
+  "Bread": ["Vegetarian", "Vegan"],
+  "Ham": ["Non-Vegetarian"],
+  "Bechamel": ["Vegetarian"],
+  "Egg": ["Non-Vegetarian"],
+  "Onions": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Broth": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Seasonal Vegetables": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Zucchini": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Eggplant": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Tomatoes": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Bell Peppers": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Pastry Crust": ["Vegetarian"],
   "Heavy Cream": ["Vegetarian", "Gluten Free", "Gluten-Free"],
-  "Saffron": ["Vegetarian", "Vegan", "Jain", "Gluten Free", "Gluten-Free"],
-  "Basmati Rice": ["Vegetarian", "Vegan", "Jain", "Gluten Free", "Gluten-Free"],
+  "Egg Yolks": ["Non-Vegetarian", "Gluten Free", "Gluten-Free"],
+  "Vanilla": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Dark Chocolate": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Lemon Zest": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Choux Pastry": ["Vegetarian"],
+  "Coffee": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Espresso": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Steamed Milk": ["Vegetarian", "Gluten Free", "Gluten-Free"],
+  "Espresso Beans": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Water": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Milk": ["Vegetarian", "Gluten Free", "Gluten-Free"],
+  "Tea Leaves": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Hot Water": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "Fresh Oranges": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
+  "French Wine Grapes": ["Vegetarian", "Vegan", "Gluten Free", "Gluten-Free"],
 };
 
 export const defaultStats = {
@@ -153,7 +291,7 @@ export const connectDB = async () => {
     // Seed database if empty
     const count = await PantryItemModel.countDocuments();
     if (count === 0) {
-      console.log("Seeding initial database baseline to MongoDB...");
+      console.log("Seeding French Bistro database baseline to MongoDB...");
       await resetDatabase();
     }
   } catch (error: any) {
@@ -258,22 +396,20 @@ export const resetDatabase = async () => {
   await TelemetryLogModel.deleteMany({});
   await SystemStatModel.deleteMany({});
 
-  // Seed inventory
-  for (const [name, quantity] of Object.entries(defaultInventory)) {
-    await PantryItemModel.create({ name, quantity });
-  }
-  // Seed pricing
-  for (const [name, price] of Object.entries(defaultPricing)) {
-    await PricingRuleModel.create({ name, price });
-  }
-  // Seed dietary rules
-  for (const [name, rules] of Object.entries(defaultDietaryRules)) {
-    await DietaryRuleModel.create({ name, rules });
-  }
-  // Seed stats
-  await SystemStatModel.create(defaultStats);
-  // Log event
+  // Bulk seed inventory, pricing, dietary rules in parallel
+  const pantryDocs = Object.entries(defaultInventory).map(([name, quantity]) => ({ name, quantity }));
+  const pricingDocs = Object.entries(defaultPricing).map(([name, price]) => ({ name, price }));
+  const dietaryDocs = Object.entries(defaultDietaryRules).map(([name, rules]) => ({ name, rules }));
+
+  await Promise.all([
+    PantryItemModel.insertMany(pantryDocs),
+    PricingRuleModel.insertMany(pricingDocs),
+    DietaryRuleModel.insertMany(dietaryDocs),
+    SystemStatModel.create(defaultStats),
+  ]);
+
   await addTelemetryLog(logMsg, "info");
+  console.log("✓ French Bistro database baseline seeded successfully.");
 };
 
 export const getTokens = async () => {

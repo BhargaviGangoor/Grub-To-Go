@@ -166,9 +166,12 @@ export class DCTService {
       dietary: [] as string[],
     };
 
+    const originalInventory = token.originalState?.inventory || {};
+    const originalPricing = token.originalState?.pricing || {};
+
     // 1. Inventory stock checks
     token.dish.ingredients.forEach((ing: string) => {
-      const origQty = token.originalState.inventory[ing] ?? 0;
+      const origQty = originalInventory[ing] ?? 0;
       const liveQty = livePantry[ing] ?? 0;
       beforeState.inventory[ing] = `Available (${origQty} units)`;
       afterState.inventory[ing] = `Available (${liveQty} units)`;
@@ -189,8 +192,8 @@ export class DCTService {
       currentRecipeCost += livePrice;
     });
 
-    const basePricingSum = Object.keys(token.originalState.pricing).reduce(
-      (acc: number, k: string) => acc + (token.originalState.pricing[k] ?? 0),
+    const basePricingSum = Object.keys(originalPricing).reduce(
+      (acc: number, k: string) => acc + (originalPricing[k] ?? 0),
       0
     );
     const costMultiplier = basePricingSum > 0 ? currentRecipeCost / basePricingSum : 1;

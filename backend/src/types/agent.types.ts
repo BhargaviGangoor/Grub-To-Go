@@ -21,6 +21,7 @@ export interface OrderConstraints {
   dietary?: string[];           // e.g. ["vegetarian", "gluten-free"]
   spiceLevel?: "Mild" | "Medium" | "Spicy";
   cuisine?: string;
+  dishNameQuery?: string;       // e.g. "croissant", "ratatouille", "quiche"
 }
 
 // ─── Extracted User Intent ───────────────────────────────────────────────────

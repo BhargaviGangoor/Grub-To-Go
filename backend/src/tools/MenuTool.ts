@@ -55,6 +55,14 @@ export class MenuTool {
         }
       }
 
+      // 5. Dish name keyword query filter
+      if (constraints.dishNameQuery) {
+        const query = constraints.dishNameQuery.toLowerCase().trim();
+        const itemName = item.name.toLowerCase();
+        const matches = itemName.includes(query) || query.includes(itemName);
+        if (!matches) return false;
+      }
+
       return true;
     });
 

@@ -100,7 +100,8 @@ Analyze the user's message and return a JSON object with this exact structure:
     "maxBudget": <number in INR or null>,
     "dietary": <array of dietary restrictions e.g. ["vegetarian"] or []>,
     "spiceLevel": "Mild" | "Medium" | "Spicy" | null,
-    "cuisine": <string e.g. "Indian" or null>
+    "cuisine": <string e.g. "French" or null>,
+    "dishNameQuery": <string e.g. "croissant" or "ratatouille" or null>
   }
 }
 
@@ -147,6 +148,10 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
         cuisine:
           typeof parsed.constraints?.cuisine === "string" && parsed.constraints.cuisine
             ? parsed.constraints.cuisine
+            : undefined,
+        dishNameQuery:
+          typeof parsed.constraints?.dishNameQuery === "string" && parsed.constraints.dishNameQuery
+            ? parsed.constraints.dishNameQuery
             : undefined,
       };
 
