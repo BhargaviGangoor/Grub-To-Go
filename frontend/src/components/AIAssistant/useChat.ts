@@ -115,6 +115,7 @@ export function useChat(): UseChatReturn {
       // 4. Trigger Interactive Ghost Automation & Floating Success Pop-up Toast!
       if (res.dish) {
         triggerAgentAutomation({
+          steps: res.agentSteps,
           dishName: res.dish.name,
           price: res.dish.estimatedCost,
           imageUrl: res.dish.imageUrl,
