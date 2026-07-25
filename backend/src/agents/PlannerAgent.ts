@@ -7,12 +7,16 @@ import { AgentPolicyGate } from "./AgentPolicyGate";
 import {
   UserIntent,
   OrderAuthorization,
+  SemanticPreferences,
   MenuItemData,
   PlannerResult,
   AgentStep,
   AgentState,
   AgentAction,
   AgentObservation,
+  ItemType,
+  MealType,
+  PreferredCategory,
 } from "../types/agent.types";
 
 /**
@@ -23,16 +27,28 @@ import {
  * Implements a bounded Reason → Act → Observe → Update State → Replan → Execute loop.
  *
  * Key Architectural Guarantees:
- *   1. Single Reasoning Agent: Uses multiple deterministic tools (MenuTool, InventoryTool, DCTTool, OrderTool).
- *   2. Immutable Authorization Gate: User's original hard constraints (maxBudget, dietary, excludedIngredients)
- *      are frozen at task start. Replanning NEVER relaxes hard constraints.
+ *   1. Hard Constraints vs Semantic Preferences Separation:
+ *      - Hard Constraints (maxBudget, dietary, excludedIngredients) are frozen in OrderAuthorization.
+ *        Violations = Hard Policy Block (AUTHORIZATION_DRIFT).
+ *      - Semantic Preferences (itemType, mealType, preferredCategory, desiredAttributes) drive Semantic Goal Ranking.
+ *        Does NOT silently relax hard constraints; ensures "something vegetarian under ₹300" picks a food meal, not Espresso!
+ *   2. Single Reasoning Agent: Uses multiple deterministic tools (MenuTool, InventoryTool, DCTTool, OrderTool).
  *   3. GB-DCT Commitment Gate: OrderTool can ONLY be invoked after explicit cryptographic GB-DCT state attestation.
- *   4. Zero Hallucination: All dish facts, prices, and stock levels originate deterministically from MongoDB.
+ *   4. Zero Hallucination: All dish facts originate deterministically from MongoDB. LLM candidate reranking is strictly checked against real candidate IDs.
  *   5. Loop Safety: Enforces MAX_STEPS = 10 and MAX_REPLANS = 3 bounds.
  */
 
 const MAX_STEPS = 10;
 const MAX_REPLANS = 3;
+
+const BEVERAGE_IDS = [
+  "fr-023", // Café au Lait
+  "fr-024", // Espresso
+  "fr-025", // Chocolat Chaud
+  "fr-026", // Thé
+  "fr-027", // Jus d’Orange Pressé
+  "fr-028", // Vin Maison
+];
 
 export class PlannerAgent {
   constructor(
@@ -48,17 +64,17 @@ export class PlannerAgent {
   async process(userMessage: string): Promise<PlannerResult> {
     const steps: AgentStep[] = [];
 
-    // 1. Extract intent from natural language
+    // 1. Extract intent & semantic preferences from natural language
     const intent = await this.extractIntent(userMessage);
     console.log(`[PlannerAgent] Extracted Intent: ${intent.intent}`);
 
     steps.push({
-      title: "🎯 Intent & Constraint Analysis",
+      title: "🎯 Intent & Semantic Analysis",
       detail: `Intent: ${intent.intent}${
         intent.intent === "ORDER_FOOD"
-          ? ` | Budget: ₹${intent.constraints.maxBudget ?? "Unlimited"}, Diet: [${
-              intent.constraints.dietary?.join(", ") || "Any"
-            }], Excluded: [${intent.constraints.excludedIngredients?.join(", ") || "None"}]`
+          ? ` | Goal: ${intent.preferences.itemType || "FOOD"} (${intent.preferences.mealType || "ANY"}), Budget: ₹${
+              intent.constraints.maxBudget ?? "Unlimited"
+            }, Diet: [${intent.constraints.dietary?.join(", ") || "Any"}]`
           : " | General conversational query"
       }`,
       status: "success",
@@ -97,10 +113,21 @@ export class PlannerAgent {
         : [],
     });
 
+    const frozenPreferences: SemanticPreferences = Object.freeze({
+      itemType: intent.preferences.itemType || "FOOD",
+      mealType: intent.preferences.mealType || "ANY",
+      preferredCategory: intent.preferences.preferredCategory || "ANY",
+      desiredAttributes: intent.preferences.desiredAttributes
+        ? [...intent.preferences.desiredAttributes]
+        : [],
+      preferCheapest: intent.preferences.preferCheapest ?? false,
+    });
+
     const state: AgentState = {
       originalRequest: userMessage,
       intent: intent.intent,
       authorization: frozenAuthorization,
+      preferences: frozenPreferences,
       candidates: [],
       attemptedDishIds: [],
       observations: [],
@@ -109,7 +136,8 @@ export class PlannerAgent {
       status: "PLANNING",
     };
 
-    console.log(`[PlannerAgent] Initialized task state. Immutable Authorization:`, JSON.stringify(frozenAuthorization));
+    console.log(`[PlannerAgent] Immutable Authorization:`, JSON.stringify(frozenAuthorization));
+    console.log(`[PlannerAgent] Semantic Preferences:`, JSON.stringify(frozenPreferences));
 
     // 3. Execute Autonomous Reasoning Loop
     return await this.runAutonomousLoop(state, steps);
@@ -118,28 +146,34 @@ export class PlannerAgent {
   // ─── Intent Extraction ───────────────────────────────────────────────────────
 
   private async extractIntent(userMessage: string): Promise<UserIntent> {
-    const prompt = `You are an intent classification assistant for an autonomous French Bistro food ordering app.
+    const prompt = `You are an intent and semantic goal extraction assistant for a French Bistro food ordering app.
 
 Analyze the user's message and return a JSON object with this exact structure:
 {
   "intent": "ORDER_FOOD" | "RECIPE_REQUEST" | "GENERAL_CHAT" | "RECOMMENDATION" | "UNKNOWN",
   "constraints": {
     "maxBudget": <number in INR or null>,
-    "dietary": <array of dietary restrictions e.g. ["Vegetarian", "Gluten-Free"] or []>,
-    "excludedIngredients": <array of ingredients user wants to avoid e.g. ["peanuts"] or []>,
+    "dietary": <array e.g. ["Vegetarian", "Gluten-Free"] or []>,
+    "excludedIngredients": <array e.g. ["peanuts", "raisins"] or []>,
     "spiceLevel": "Mild" | "Medium" | "Spicy" | null,
     "cuisine": <string e.g. "French" or null>,
-    "dishNameQuery": <string e.g. "croissant" or "ratatouille" or null>,
-    "softPreferences": <array of descriptive preferences e.g. ["warm", "sweet"] or []>
+    "dishNameQuery": <string e.g. "croissant" or "ratatouille" or null>
+  },
+  "preferences": {
+    "itemType": "FOOD" | "BEVERAGE" | "ANY",
+    "mealType": "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK" | "DESSERT" | "ANY",
+    "preferredCategory": "PASTRIES" | "TARTINES" | "SALADS" | "SOUPS" | "DESSERTS" | "BEVERAGES" | "COFFEE" | "TEA" | "WINE" | "JUICE" | "ANY",
+    "desiredAttributes": <array of strings e.g. ["warm", "sweet", "savory", "spicy"] or []>,
+    "preferCheapest": <boolean true if user asks "cheapest option" or "cheapest">
   }
 }
 
-Rules:
-- Use "ORDER_FOOD" when the user asks to order, buy, get food, or find a meal under a budget/diet.
-- Use "RECIPE_REQUEST" when they explicitly ask how to cook a dish.
-- Use "GENERAL_CHAT" for general food questions.
+SEMANTIC INTENT RULES:
+- Use "ORDER_FOOD" whenever the user wants to order, buy, get, select, or expresses a desire/craving to eat/drink something (e.g. "I want dessert", "Order me something", "Get me coffee", "I'd like food").
+- Use "RECIPE_REQUEST" only when they explicitly ask how to cook/make a dish at home.
+- Use "GENERAL_CHAT" for general food knowledge questions (e.g. "What is ratatouille?").
 - Normalize dietary: "veg" → "Vegetarian", "vegan" → "Vegan", "gluten free" → "Gluten-Free".
-- Return ONLY valid JSON. No markdown fences.
+- Return ONLY valid JSON.
 
 User message: "${userMessage.replace(/"/g, "'")}"`;
 
@@ -148,9 +182,31 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
       const cleaned = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
       const parsed = JSON.parse(cleaned);
 
-      if (!parsed.intent || !["ORDER_FOOD", "RECIPE_REQUEST", "GENERAL_CHAT", "RECOMMENDATION", "UNKNOWN"].includes(parsed.intent)) {
-        throw new Error("Invalid intent type returned");
+      const msgLower = userMessage.toLowerCase();
+      const hasOrderKeywords = ["order", "get me", "cheapest", "under", "want", "prefer", "buy", "have", "food", "drink", "coffee", "tea", "dessert", "dinner", "lunch", "breakfast", "vegetarian", "veg"].some(k => msgLower.includes(k));
+
+      let finalIntent = parsed.intent;
+      if (hasOrderKeywords || parsed.constraints?.maxBudget || (parsed.constraints?.dietary && parsed.constraints.dietary.length > 0)) {
+        finalIntent = "ORDER_FOOD";
       }
+
+      if (!finalIntent || !["ORDER_FOOD", "RECIPE_REQUEST", "GENERAL_CHAT", "RECOMMENDATION", "UNKNOWN"].includes(finalIntent)) {
+        finalIntent = "ORDER_FOOD";
+      }
+
+      const itemType: ItemType = ["FOOD", "BEVERAGE", "ANY"].includes(parsed.preferences?.itemType)
+        ? parsed.preferences.itemType
+        : "FOOD";
+
+      const mealType: MealType = ["BREAKFAST", "LUNCH", "DINNER", "SNACK", "DESSERT", "ANY"].includes(parsed.preferences?.mealType)
+        ? parsed.preferences.mealType
+        : "ANY";
+
+      const preferredCategory: PreferredCategory = [
+        "PASTRIES", "TARTINES", "SALADS", "SOUPS", "DESSERTS", "BEVERAGES", "COFFEE", "TEA", "WINE", "JUICE", "ANY"
+      ].includes(parsed.preferences?.preferredCategory)
+        ? parsed.preferences.preferredCategory
+        : "ANY";
 
       return {
         intent: parsed.intent,
@@ -161,18 +217,179 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
           spiceLevel: ["Mild", "Medium", "Spicy"].includes(parsed.constraints?.spiceLevel) ? parsed.constraints.spiceLevel : undefined,
           cuisine: typeof parsed.constraints?.cuisine === "string" ? parsed.constraints.cuisine : undefined,
           dishNameQuery: typeof parsed.constraints?.dishNameQuery === "string" ? parsed.constraints.dishNameQuery : undefined,
-          softPreferences: Array.isArray(parsed.constraints?.softPreferences) ? parsed.constraints.softPreferences : [],
+        },
+        preferences: {
+          itemType,
+          mealType,
+          preferredCategory,
+          desiredAttributes: Array.isArray(parsed.preferences?.desiredAttributes) ? parsed.preferences.desiredAttributes : [],
+          preferCheapest: Boolean(parsed.preferences?.preferCheapest),
         },
         rawMessage: userMessage,
       };
     } catch (err) {
-      console.warn("[PlannerAgent] Intent extraction fallback to GENERAL_CHAT:", err);
+      console.warn("[PlannerAgent] LLM intent extraction error, using deterministic heuristic parser:", err);
+      const msgLower = userMessage.toLowerCase();
+
+      // Heuristic parsing
+      let maxBudget: number | undefined = undefined;
+      const budgetMatch = msgLower.match(/(?:under|below|max|budget|₹|\$)\s*(\d+)/i) || msgLower.match(/(\d+)\s*(?:rupees|rs|inr)/i);
+      if (budgetMatch) maxBudget = parseInt(budgetMatch[1], 10);
+
+      const dietary: string[] = [];
+      if (msgLower.includes("veg") || msgLower.includes("vegetarian")) dietary.push("Vegetarian");
+      if (msgLower.includes("vegan")) dietary.push("Vegan");
+      if (msgLower.includes("gluten")) dietary.push("Gluten-Free");
+
+      let itemType: ItemType = "FOOD";
+      if (["drink", "coffee", "tea", "beverage", "juice", "wine", "espresso"].some(k => msgLower.includes(k))) {
+        itemType = "BEVERAGE";
+      }
+
+      let mealType: MealType = "ANY";
+      if (msgLower.includes("dinner") || msgLower.includes("lunch")) mealType = "DINNER";
+      if (msgLower.includes("dessert")) mealType = "DESSERT";
+      if (msgLower.includes("breakfast") || msgLower.includes("pastry")) mealType = "BREAKFAST";
+
+      const preferCheapest = msgLower.includes("cheapest");
+
+      const isQuestion = msgLower.startsWith("what") || msgLower.startsWith("why") || msgLower.startsWith("how") || msgLower.startsWith("tell me");
+      const isOrder = !isQuestion || budgetMatch !== null || dietary.length > 0 || preferCheapest || msgLower.includes("order") || msgLower.includes("get me") || msgLower.includes("want");
+
       return {
-        intent: "GENERAL_CHAT",
-        constraints: {},
+        intent: isOrder ? "ORDER_FOOD" : "GENERAL_CHAT",
+        constraints: {
+          maxBudget,
+          dietary,
+          excludedIngredients: [],
+        },
+        preferences: {
+          itemType,
+          mealType,
+          preferredCategory: "ANY",
+          desiredAttributes: [],
+          preferCheapest,
+        },
         rawMessage: userMessage,
       };
     }
+  }
+
+  // ─── Semantic Candidate Ranking Engine ───────────────────────────────────────
+
+  /**
+   * Ranks eligible candidates (which have already passed Hard Authorization filtering)
+   * based on Semantic Goal alignment, meal type, category match, and Groq semantic reranking.
+   *
+   * NEVER overrides hard budget or dietary constraints.
+   */
+  private async rankCandidatesSemantically(
+    candidates: MenuItemData[],
+    userMessage: string,
+    prefs: SemanticPreferences
+  ): Promise<MenuItemData[]> {
+    if (candidates.length <= 1) return candidates;
+
+    console.log(`[SemanticRanker] Ranking ${candidates.length} candidate(s) for user goal: "${userMessage}"`);
+
+    // 1. Calculate deterministic semantic score for each candidate
+    const scored = candidates.map((dish) => {
+      const isBeverage = BEVERAGE_IDS.includes(dish.id) || dish.name.toLowerCase().includes("coffee") || dish.name.toLowerCase().includes("tea") || dish.name.toLowerCase().includes("vin") || dish.name.toLowerCase().includes("jus");
+      let score = 0;
+
+      // Rule A: Item Type Alignment (Food vs Beverage)
+      if (prefs.itemType === "FOOD") {
+        if (!isBeverage) score += 100;
+        else score -= 200; // Strong penalty for beverage when user asked for food
+      } else if (prefs.itemType === "BEVERAGE") {
+        if (isBeverage) score += 100;
+        else score -= 200; // Strong penalty for food when user asked for beverage
+      }
+
+      // Rule B: Meal Type Alignment
+      if (prefs.mealType === "DINNER" || prefs.mealType === "LUNCH") {
+        const isSavoryMeal = ["Salade", "Quiche", "Croque", "Soupe", "Potage", "Ratatouille", "Assiette"].some(k => dish.name.includes(k));
+        if (isSavoryMeal) score += 50;
+        if (isBeverage) score -= 50;
+      } else if (prefs.mealType === "DESSERT") {
+        const isDessert = ["Tarte", "Crème", "Mousse", "Madeleines", "Éclair"].some(k => dish.name.includes(k));
+        if (isDessert) score += 60;
+      } else if (prefs.mealType === "BREAKFAST") {
+        const isBreakfast = ["Croissant", "Pain", "Brioche", "Tartine", "Chausson"].some(k => dish.name.includes(k));
+        if (isBreakfast) score += 50;
+      }
+
+      // Rule C: Category Alignment
+      if (prefs.preferredCategory && prefs.preferredCategory !== "ANY") {
+        const cat = prefs.preferredCategory.toLowerCase();
+        if (cat.includes("coffee") && (dish.name.includes("Café") || dish.name.includes("Espresso"))) score += 60;
+        if (cat.includes("dessert") && ["Tarte", "Crème", "Mousse", "Madeleines", "Éclair"].some(k => dish.name.includes(k))) score += 60;
+        if (cat.includes("soup") && (dish.name.includes("Soupe") || dish.name.includes("Potage"))) score += 60;
+      }
+
+      // Rule D: Attribute Matching (e.g. warm, sweet, savory)
+      if (prefs.desiredAttributes && prefs.desiredAttributes.length > 0) {
+        const descLower = (dish.description + " " + dish.name).toLowerCase();
+        for (const attr of prefs.desiredAttributes) {
+          if (descLower.includes(attr.toLowerCase())) score += 20;
+        }
+      }
+
+      return { dish, score };
+    });
+
+    // Sort by deterministic score descending
+    scored.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      // If user explicitly asked for cheapest, sort by price
+      if (prefs.preferCheapest) return a.dish.estimatedCost - b.dish.estimatedCost;
+      return 0;
+    });
+
+    // Filter out items with severe negative score if better semantic options exist
+    const topScored = scored.filter(s => s.score > -50).map(s => s.dish);
+    const pool = topScored.length > 0 ? topScored : candidates;
+
+    // 2. Groq LLM Semantic Reranking among REAL eligible candidates
+    if (pool.length > 1 && !prefs.preferCheapest) {
+      try {
+        const candidateSummaries = pool.slice(0, 5).map(c => ({
+          id: c.id,
+          name: c.name,
+          cost: c.estimatedCost,
+          description: c.description,
+          dietary: c.dietary,
+        }));
+
+        const rerankPrompt = `You are a French Bistro dining assistant.
+User Goal: "${userMessage}"
+
+Select the single best candidate dish from this list of REAL menu items that best fulfills the user's semantic goal:
+${JSON.stringify(candidateSummaries, null, 2)}
+
+Respond ONLY with a JSON object:
+{ "recommendedId": "<exact id from candidate list>" }`;
+
+        const raw = await this.llm.chat(rerankPrompt);
+        const cleaned = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
+        const parsed = JSON.parse(cleaned);
+
+        if (parsed.recommendedId) {
+          // 🛡️ STRICT GROUNDING CHECK: Ensure recommendedId is in real candidate pool
+          const matchIndex = pool.findIndex(c => c.id === parsed.recommendedId);
+          if (matchIndex > -1) {
+            console.log(`[SemanticRanker] Groq semantic reranker selected: ${pool[matchIndex].name} (${pool[matchIndex].id})`);
+            const matched = pool.splice(matchIndex, 1)[0];
+            return [matched, ...pool];
+          }
+        }
+      } catch (err) {
+        console.warn("[SemanticRanker] Groq reranking fallback to deterministic score ranking:", err);
+      }
+    }
+
+    console.log(`[SemanticRanker] Ranked top candidate: ${pool[0].name} (Score: ${scored[0]?.score})`);
+    return pool;
   }
 
   // ─── Autonomous Bounded Loop ─────────────────────────────────────────────────
@@ -191,18 +408,21 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
         case "SEARCH_MENU": {
           state.status = "SEARCHING";
           const candidates = await this.menuTool.findCandidates(state.authorization, state.attemptedDishIds);
-          state.candidates = candidates;
+          
+          // 🧠 Apply Semantic Goal Candidate Ranking
+          const semanticallyRanked = await this.rankCandidatesSemantically(candidates, state.originalRequest, state.preferences);
+          state.candidates = semanticallyRanked;
 
           steps.push({
-            title: "🔍 Menu Catalog Search",
-            detail: `Queried MongoDB catalog: found ${candidates.length} candidate dish(es) matching authorization`,
-            status: candidates.length > 0 ? "success" : "warning",
+            title: "🔍 Menu Catalog Search & Semantic Ranking",
+            detail: `Queried catalog & ranked ${semanticallyRanked.length} eligible candidate(s) for goal "${state.originalRequest}"`,
+            status: semanticallyRanked.length > 0 ? "success" : "warning",
           });
 
-          this.recordObservation(state, "SEARCH_MENU", candidates.length > 0, `Found ${candidates.length} candidate(s)`, { candidatesCount: candidates.length });
+          this.recordObservation(state, "SEARCH_MENU", semanticallyRanked.length > 0, `Found ${semanticallyRanked.length} semantically ranked candidate(s)`, { candidatesCount: semanticallyRanked.length });
 
-          if (candidates.length === 0) {
-            console.log("[PlannerAgent] No candidates found matching authorization.");
+          if (semanticallyRanked.length === 0) {
+            console.log("[PlannerAgent] No candidates found matching authorization & semantic goal.");
             state.status = "FAILED";
             completed = true;
           }
@@ -211,13 +431,11 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
 
         case "SELECT_DISH": {
           state.status = "SELECTING";
-          // Pick top unattempted candidate (cheapest first)
-          const unattempted = state.candidates
-            .filter((c) => !state.attemptedDishIds.includes(c.id))
-            .sort((a, b) => a.estimatedCost - b.estimatedCost);
+          // Pick top unattempted candidate
+          const unattempted = state.candidates.filter((c) => !state.attemptedDishIds.includes(c.id));
 
           if (unattempted.length === 0) {
-            console.log("[PlannerAgent] All menu candidates exhausted.");
+            console.log("[PlannerAgent] All candidates exhausted.");
             this.recordObservation(state, "SELECT_DISH", false, "All candidates exhausted");
             state.status = "FAILED";
             completed = true;
@@ -404,7 +622,7 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
           state.status = "REPLANNING";
           steps.push({
             title: "🔄 Autonomous Replanning",
-            detail: `Replan attempt ${state.replanCount}/${MAX_REPLANS}: searching next valid candidate`,
+            detail: `Replan attempt ${state.replanCount}/${MAX_REPLANS}: searching next valid candidate matching semantic goal`,
             status: "info",
           });
           break;
@@ -436,7 +654,7 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
     return {
       success: false,
       rejectedCandidates: rejectedSummaries,
-      message: this.buildExhaustedMessage(rejectedSummaries, state.authorization),
+      message: this.buildExhaustedMessage(rejectedSummaries, state.authorization, state.preferences),
       agentSteps: steps,
     };
   }
@@ -449,7 +667,6 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
     }
 
     if (state.status === "REPLANNING") {
-      // Re-search menu excluding attempted IDs
       return { type: "SEARCH_MENU" };
     }
 
@@ -506,7 +723,7 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
 
     if (replanned && rejected.length > 0) {
       const firstRejected = rejected[0].split(" (")[0];
-      msg += `My initial choice (${firstRejected}) was unavailable, so I autonomously replanned. `;
+      msg += `My initial selection (${firstRejected}) became unavailable during state auditing, so I autonomously replanned. `;
     }
 
     msg += `I selected **${dish.name}** for ₹${dish.estimatedCost}. `;
@@ -517,14 +734,19 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
     return msg;
   }
 
-  private buildExhaustedMessage(rejected: string[], auth: OrderAuthorization): string {
-    let msg = "I evaluated menu candidates but could not complete the order under your authorization. ";
+  private buildExhaustedMessage(
+    rejected: string[],
+    auth: OrderAuthorization,
+    prefs: SemanticPreferences
+  ): string {
+    let msg = "I evaluated menu candidates but could not find a suitable option matching your goal. ";
 
-    if (auth.maxBudget) msg += `(Budget: ₹${auth.maxBudget}) `;
-    if (auth.dietary?.length) msg += `(Dietary: ${auth.dietary.join(", ")}) `;
+    const goalType = prefs.mealType && prefs.mealType !== "ANY" ? prefs.mealType.toLowerCase() : prefs.itemType === "BEVERAGE" ? "drink" : "option";
+    msg = `No suitable ${auth.dietary?.join(" ") || ""} ${goalType} is currently available `;
+    if (auth.maxBudget) msg += `under ₹${auth.maxBudget}. `;
 
     if (rejected.length > 0) {
-      msg += `Encountered issues: ${rejected.slice(0, 2).join("; ")}. `;
+      msg += `Issues encountered: ${rejected.slice(0, 2).join("; ")}. `;
     }
 
     msg += "Please try adjusting your budget or preferences!";

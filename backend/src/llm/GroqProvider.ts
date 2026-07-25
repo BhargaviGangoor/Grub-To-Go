@@ -55,30 +55,48 @@ export class GroqProvider implements LLMProvider {
       );
     }
 
-    const completion = await this.client.chat.completions.create({
-      model: this.model,
-      messages: [
-        {
-          role: "system",
-          content: GRUB_TO_GO_SYSTEM_PROMPT,
-        },
-        {
-          role: "user",
-          content: userMessage,
-        },
-      ],
-      temperature: 0.7,    // Balanced: creative but not hallucinating
-      max_tokens: 512,     // Concise responses for a chat copilot
-      top_p: 1,
-    });
+    let retries = 3;
+    let delay = 3000;
 
-    const reply = completion.choices[0]?.message?.content;
+    while (retries > 0) {
+      try {
+        const completion = await this.client.chat.completions.create({
+          model: this.model,
+          messages: [
+            {
+              role: "system",
+              content: GRUB_TO_GO_SYSTEM_PROMPT,
+            },
+            {
+              role: "user",
+              content: userMessage,
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 512,
+          top_p: 1,
+        });
 
-    if (!reply) {
-      throw new Error("Groq returned an empty response.");
+        const reply = completion.choices[0]?.message?.content;
+
+        if (!reply) {
+          throw new Error("Groq returned an empty response.");
+        }
+
+        return reply.trim();
+      } catch (err: any) {
+        if (err?.status === 429 && retries > 1) {
+          console.warn(`[GroqProvider] ⏳ 429 Rate limit hit. Retrying in ${delay / 1000}s... (${retries - 1} retries left)`);
+          await new Promise((r) => setTimeout(r, delay));
+          delay *= 2;
+          retries--;
+        } else {
+          throw err;
+        }
+      }
     }
 
-    return reply.trim();
+    throw new Error("Groq API failed after max retries.");
   }
 }
 

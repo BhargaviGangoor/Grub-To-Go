@@ -2,8 +2,8 @@
  * agent.types.ts
  *
  * TypeScript contracts for the autonomous PlannerAgent pipeline.
- * Defines the explicit agent state, immutable authorization constraints,
- * tool actions, observations, and result payloads.
+ * Defines explicit AgentState, OrderAuthorization (hard constraints),
+ * SemanticPreferences (soft intent/goals), tool actions, and observations.
  */
 
 // ─── Intent Types ─────────────────────────────────────────────────────────────
@@ -15,7 +15,7 @@ export type IntentKind =
   | "RECOMMENDATION"  // Recommendation inquiry
   | "UNKNOWN";        // Could not determine intent
 
-// ─── Immutable User Authorization ─────────────────────────────────────────────
+// ─── Immutable Hard Authorization Constraints ───────────────────────────────
 
 export interface OrderAuthorization {
   maxBudget?: number;
@@ -29,11 +29,37 @@ export interface OrderAuthorization {
 
 export interface OrderConstraints extends OrderAuthorization {}
 
+// ─── Soft Semantic Goal & Preferences (Does NOT alter hard budget/dietary gates)
+
+export type ItemType = "FOOD" | "BEVERAGE" | "ANY";
+export type MealType = "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK" | "DESSERT" | "ANY";
+export type PreferredCategory =
+  | "PASTRIES"
+  | "TARTINES"
+  | "SALADS"
+  | "SOUPS"
+  | "DESSERTS"
+  | "BEVERAGES"
+  | "COFFEE"
+  | "TEA"
+  | "WINE"
+  | "JUICE"
+  | "ANY";
+
+export interface SemanticPreferences {
+  itemType?: ItemType;
+  mealType?: MealType;
+  preferredCategory?: PreferredCategory;
+  desiredAttributes?: string[];  // e.g. ["warm", "sweet", "savory", "filling", "spicy"]
+  preferCheapest?: boolean;      // true if user explicitly asks for "cheapest option"
+}
+
 // ─── Extracted User Intent ───────────────────────────────────────────────────
 
 export interface UserIntent {
   intent: IntentKind;
   constraints: OrderConstraints;
+  preferences: SemanticPreferences;
   rawMessage: string;
 }
 
@@ -132,7 +158,8 @@ export type AgentStatus =
 export interface AgentState {
   originalRequest: string;
   intent: IntentKind;
-  authorization: OrderAuthorization;   // Frozen immutable constraints
+  authorization: OrderAuthorization;   // Frozen immutable hard constraints
+  preferences: SemanticPreferences;     // Soft semantic goal & preferences
   candidates: MenuItemData[];
   selectedDish?: MenuItemData;
   attemptedDishIds: string[];
