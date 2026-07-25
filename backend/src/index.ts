@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import chatRouter from "./routes/chat.routes";
+import agentEventsRouter from "./routes/agent.events";
 import { errorHandler } from "./middleware/errorHandler";
 import { validateConfig } from "./config";
 import { DCTService } from "./services/DCTService";
@@ -208,6 +209,7 @@ app.post("/api/validate-dct", async (req, res) => {
 // Mount the new clean-architecture chat router alongside the existing endpoints.
 // This adds POST /api/chat without touching any existing routes.
 // Architecture: chat.routes.ts → ChatController → ChatService → GroqProvider
+app.use("/api/agent", agentEventsRouter);
 app.use(chatRouter);
 
 // ─── Global Error Handler ────────────────────────────────────────────────────
