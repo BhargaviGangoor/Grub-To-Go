@@ -13,7 +13,7 @@ export class ChatService {
   /**
    * Process a user's chat message and return structured AI reply, steps, and order ticket data.
    */
-  async processMessage(userMessage: string): Promise<ChatResponse> {
+  async processMessage(userMessage: string, runId?: string): Promise<ChatResponse> {
     const cleanedMessage = userMessage.trim();
 
     if (!cleanedMessage) {
@@ -22,7 +22,8 @@ export class ChatService {
       };
     }
 
-    const result = await this.planner.process(cleanedMessage);
+    const activeRunId = runId || `run_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const result = await this.planner.process(cleanedMessage, activeRunId);
 
     // If an order was successfully placed by PlannerAgent, bundle order ticket metadata
     let orderTicket: any = undefined;
@@ -45,6 +46,7 @@ export class ChatService {
     }
 
     return {
+      runId: activeRunId,
       reply: result.message,
       agentSteps: result.agentSteps,
       dish: result.dish,

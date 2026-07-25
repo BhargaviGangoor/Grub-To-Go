@@ -50,6 +50,9 @@ const BEVERAGE_IDS = [
   "fr-028", // Vin Maison
 ];
 
+import { agentStreamManager } from "../services/AgentStreamManager";
+import { AgentUIEvent } from "../types/AgentUIEvent";
+
 export class PlannerAgent {
   constructor(
     private readonly llm: LLMProvider,
@@ -59,10 +62,24 @@ export class PlannerAgent {
     private readonly orderTool: OrderTool
   ) {}
 
+  private emitUIEvent(event: AgentUIEvent) {
+    if (event.runId) {
+      agentStreamManager.emitEvent(event);
+    }
+  }
+
   // ─── Main Entry Point ────────────────────────────────────────────────────────
 
-  async process(userMessage: string): Promise<PlannerResult> {
+  async process(userMessage: string, runId?: string): Promise<PlannerResult> {
+    const activeRunId = runId || `run_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const steps: AgentStep[] = [];
+
+    this.emitUIEvent({
+      runId: activeRunId,
+      type: "AGENT_STARTED",
+      timestamp: Date.now(),
+      goal: userMessage,
+    });
 
     // 1. Extract intent & semantic preferences from natural language
     const intent = await this.extractIntent(userMessage);
@@ -140,7 +157,7 @@ export class PlannerAgent {
     console.log(`[PlannerAgent] Semantic Preferences:`, JSON.stringify(frozenPreferences));
 
     // 3. Execute Autonomous Reasoning Loop
-    return await this.runAutonomousLoop(state, steps);
+    return await this.runAutonomousLoop(state, steps, activeRunId);
   }
 
   // In-memory LRU cache to prevent duplicate LLM calls and conserve tokens
@@ -376,7 +393,7 @@ Respond ONLY with a JSON object:
 
   // ─── Autonomous Bounded Loop ─────────────────────────────────────────────────
 
-  private async runAutonomousLoop(state: AgentState, steps: AgentStep[]): Promise<PlannerResult> {
+  private async runAutonomousLoop(state: AgentState, steps: AgentStep[], runId?: string): Promise<PlannerResult> {
     let completed = false;
     const rejectedSummaries: string[] = [];
 
@@ -389,11 +406,18 @@ Respond ONLY with a JSON object:
       switch (action.type) {
         case "SEARCH_MENU": {
           state.status = "SEARCHING";
+          if (runId) {
+            this.emitUIEvent({ runId, type: "SEARCH_MENU", timestamp: Date.now() });
+          }
           const candidates = await this.menuTool.findCandidates(state.authorization, state.attemptedDishIds);
           
           // 🧠 Apply Semantic Goal Candidate Ranking
           const semanticallyRanked = await this.rankCandidatesSemantically(candidates, state.originalRequest, state.preferences);
           state.candidates = semanticallyRanked;
+
+          if (runId) {
+            this.emitUIEvent({ runId, type: "MENU_RESULTS", count: semanticallyRanked.length, timestamp: Date.now() });
+          }
 
           steps.push({
             title: "🔍 Menu Catalog Search & Semantic Ranking",
@@ -407,6 +431,9 @@ Respond ONLY with a JSON object:
             console.log("[PlannerAgent] No candidates found matching authorization & semantic goal.");
             state.status = "FAILED";
             completed = true;
+            if (runId) {
+              this.emitUIEvent({ runId, type: "AGENT_FAILED", reasonCode: "NO_VALID_OPTION", timestamp: Date.now() });
+            }
           }
           break;
         }
@@ -421,11 +448,27 @@ Respond ONLY with a JSON object:
             this.recordObservation(state, "SELECT_DISH", false, "All candidates exhausted");
             state.status = "FAILED";
             completed = true;
+            if (runId) {
+              this.emitUIEvent({ runId, type: "AGENT_FAILED", reasonCode: "EXHAUSTED_CANDIDATES", timestamp: Date.now() });
+            }
             break;
           }
 
           const selected = unattempted[0];
           console.log(`[PlannerAgent] Selected candidate: ${selected.name} (₹${selected.estimatedCost})`);
+
+          if (runId) {
+            this.emitUIEvent({
+              runId,
+              type: "SELECT_DISH",
+              dishId: selected.id,
+              dishName: selected.name,
+              price: selected.estimatedCost,
+              imageUrl: selected.imageUrl,
+              dietary: selected.dietary,
+              timestamp: Date.now(),
+            });
+          }
 
           // 🛡️ Deterministic Policy Gate Verification (Immutable Authorization Gate)
           const policyCheck = AgentPolicyGate.validate(selected, state.authorization);
@@ -443,6 +486,10 @@ Respond ONLY with a JSON object:
             this.recordObservation(state, "SELECT_DISH", false, policyCheck.violations.join("; "));
             state.replanCount++;
             state.status = "REPLANNING";
+
+            if (runId) {
+              this.emitUIEvent({ runId, type: "REPLAN", reasonCode: policyCheck.violations[0], timestamp: Date.now() });
+            }
             break;
           }
 
@@ -459,7 +506,29 @@ Respond ONLY with a JSON object:
             break;
           }
 
+          if (runId) {
+            this.emitUIEvent({
+              runId,
+              type: "CHECK_INVENTORY",
+              dishId: state.selectedDish.id,
+              dishName: state.selectedDish.name,
+              timestamp: Date.now(),
+            });
+          }
+
           const inventoryCheck = await this.inventoryTool.checkAvailability(state.selectedDish, state.authorization);
+
+          if (runId) {
+            this.emitUIEvent({
+              runId,
+              type: "INVENTORY_RESULT",
+              dishId: state.selectedDish.id,
+              dishName: state.selectedDish.name,
+              available: inventoryCheck.available,
+              reasonCode: inventoryCheck.available ? undefined : inventoryCheck.outOfStock.join(", "),
+              timestamp: Date.now(),
+            });
+          }
 
           if (!inventoryCheck.available) {
             console.log(`[InventoryTool] Dish ${state.selectedDish.name} unavailable: ${inventoryCheck.outOfStock.join("; ")}`);
@@ -476,6 +545,10 @@ Respond ONLY with a JSON object:
             state.selectedDish = undefined;
             state.replanCount++;
             state.status = "REPLANNING";
+
+            if (runId) {
+              this.emitUIEvent({ runId, type: "REPLAN", reasonCode: "STOCKOUT", timestamp: Date.now() });
+            }
             break;
           }
 
@@ -497,6 +570,10 @@ Respond ONLY with a JSON object:
             break;
           }
 
+          if (runId) {
+            this.emitUIEvent({ runId, type: "GENERATE_DCT", timestamp: Date.now() });
+          }
+
           try {
             const dctResult = await this.dctTool.generate(
               state.selectedDish,
@@ -506,6 +583,10 @@ Respond ONLY with a JSON object:
             );
 
             state.dctTokenId = dctResult.tokenId;
+
+            if (runId) {
+              this.emitUIEvent({ runId, type: "DCT_GENERATED", dctTokenId: dctResult.tokenId, timestamp: Date.now() });
+            }
 
             steps.push({
               title: "🎟️ GB-DCT Commitment Generation",
@@ -521,6 +602,10 @@ Respond ONLY with a JSON object:
             state.selectedDish = undefined;
             state.replanCount++;
             state.status = "REPLANNING";
+
+            if (runId) {
+              this.emitUIEvent({ runId, type: "REPLAN", reasonCode: "DCT_ERROR", timestamp: Date.now() });
+            }
           }
           break;
         }
@@ -531,6 +616,10 @@ Respond ONLY with a JSON object:
             state.status = "FAILED";
             completed = true;
             break;
+          }
+
+          if (runId) {
+            this.emitUIEvent({ runId, type: "VALIDATE_DCT", dctTokenId: state.dctTokenId, timestamp: Date.now() });
           }
 
           const validation = await this.dctTool.validate(state.dctTokenId);
@@ -552,7 +641,15 @@ Respond ONLY with a JSON object:
             state.selectedDish = undefined;
             state.replanCount++;
             state.status = "REPLANNING";
+
+            if (runId) {
+              this.emitUIEvent({ runId, type: "REPLAN", reasonCode: "DRIFT_DETECTED", timestamp: Date.now() });
+            }
             break;
+          }
+
+          if (runId) {
+            this.emitUIEvent({ runId, type: "DCT_VALID", dctTokenId: state.dctTokenId, timestamp: Date.now() });
           }
 
           steps.push({
@@ -573,6 +670,10 @@ Respond ONLY with a JSON object:
             break;
           }
 
+          if (runId) {
+            this.emitUIEvent({ runId, type: "CREATE_ORDER", timestamp: Date.now() });
+          }
+
           try {
             const order = await this.orderTool.createOrder(
               state.selectedDish,
@@ -584,6 +685,32 @@ Respond ONLY with a JSON object:
             state.orderId = order._id?.toString();
             state.status = "COMPLETED";
             completed = true;
+
+            if (runId) {
+              this.emitUIEvent({
+                runId,
+                type: "ORDER_CREATED",
+                orderId: state.orderId,
+                dishId: state.selectedDish.id,
+                dishName: state.selectedDish.name,
+                price: state.selectedDish.estimatedCost,
+                imageUrl: state.selectedDish.imageUrl,
+                dctTokenId: state.dctTokenId,
+                timestamp: Date.now(),
+              });
+
+              this.emitUIEvent({
+                runId,
+                type: "AGENT_COMPLETED",
+                dishName: state.selectedDish.name,
+                price: state.selectedDish.estimatedCost,
+                orderId: state.orderId,
+                dctTokenId: state.dctTokenId,
+                imageUrl: state.selectedDish.imageUrl,
+                dietary: state.selectedDish.dietary,
+                timestamp: Date.now(),
+              });
+            }
 
             steps.push({
               title: "🛒 Order Execution",

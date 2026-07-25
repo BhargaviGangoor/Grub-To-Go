@@ -22,6 +22,7 @@
  */
 export interface ChatRequest {
   message: string;
+  runId?: string;
 }
 
 import { AgentStep } from "./agent.types";
@@ -30,6 +31,7 @@ import { AgentStep } from "./agent.types";
  * Shape of the success response from POST /api/chat.
  */
 export interface ChatResponse {
+  runId?: string;
   reply: string;
   agentSteps?: AgentStep[];
   dish?: any;

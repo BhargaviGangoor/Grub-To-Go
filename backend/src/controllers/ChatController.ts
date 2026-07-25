@@ -64,7 +64,7 @@ export class ChatController {
       // ── 1. Input Validation ──────────────────────────────────────────────
       // TypeScript gives us the type, but HTTP data is always "unknown" at runtime.
       // We validate manually to give clear error messages.
-      const { message } = req.body;
+      const { message, runId } = req.body;
 
       if (!message) {
         res.status(400).json({
@@ -99,7 +99,7 @@ export class ChatController {
       }
 
       // ── 2. Call Service & 3. Return Response ──────────────────────────────
-      const response: ChatResponse = await this.chatService.processMessage(message);
+      const response: ChatResponse = await this.chatService.processMessage(message, runId);
       res.status(200).json(response);
 
     } catch (error) {
