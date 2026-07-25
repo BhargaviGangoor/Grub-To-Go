@@ -33,10 +33,10 @@ export function OrderSuccessToast() {
       const customEvent = e as CustomEvent<DecisionToastData>;
       setToast(customEvent.detail);
 
-      // Auto dismiss after 8 seconds
+      // Auto dismiss after 4 seconds (as requested by user)
       const timer = setTimeout(() => {
         setToast((prev) => (prev?.id === customEvent.detail.id ? null : prev));
-      }, 8000);
+      }, 4000);
 
       return () => clearTimeout(timer);
     };
@@ -49,57 +49,67 @@ export function OrderSuccessToast() {
 
   return (
     <AnimatePresence>
+      {/* Dimmed backdrop to draw focus to center success message */}
       <motion.div
-        key={toast.id}
-        initial={{ opacity: 0, y: -60, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -40, scale: 0.95 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="fixed top-6 right-6 z-50 w-full max-w-md pointer-events-auto"
+        key="toast-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => setToast(null)}
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-auto"
       >
-        <div className="relative overflow-hidden rounded-2xl border-2 border-emerald-500/40 bg-stone-900/95 text-white p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+        <motion.div
+          key={toast.id}
+          initial={{ opacity: 0, scale: 0.85, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 10 }}
+          transition={{ type: "spring", stiffness: 350, damping: 25 }}
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-md overflow-hidden rounded-3xl border-2 border-emerald-500/50 bg-stone-900/95 text-white p-6 shadow-[0_25px_60px_rgba(0,0,0,0.7)] backdrop-blur-2xl"
+        >
           {/* Ambient Glow */}
-          <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-emerald-500/20 blur-2xl pointer-events-none" />
+          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-emerald-500/25 blur-3xl pointer-events-none" />
+          <div className="absolute -left-12 -bottom-12 h-40 w-40 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
 
           {/* Close Button */}
           <button
             onClick={() => setToast(null)}
-            className="absolute top-3.5 right-3.5 text-stone-400 hover:text-white p-1 rounded-full hover:bg-stone-800 transition"
+            className="absolute top-4 right-4 text-stone-400 hover:text-white p-1.5 rounded-full bg-stone-800/60 hover:bg-stone-800 transition cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
 
           {/* Header Badge */}
           <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-emerald-400 uppercase">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
             <Sparkles className="h-4 w-4 text-emerald-400" />
             <span>Autonomous Decision Confirmed</span>
           </div>
 
           {/* Body content */}
-          <div className="mt-3 flex items-start gap-4">
+          <div className="mt-4 flex items-start gap-4">
             {toast.imageUrl ? (
               <img
                 src={toast.imageUrl}
                 alt={toast.dishName}
-                className="h-16 w-16 rounded-xl object-cover border border-emerald-500/30 shadow-md shrink-0"
+                className="h-20 w-20 rounded-2xl object-cover border-2 border-emerald-500/40 shadow-lg shrink-0"
               />
             ) : (
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-emerald-950 border border-emerald-500/30 text-emerald-400">
-                <Utensils className="h-7 w-7" />
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-emerald-950 border-2 border-emerald-500/40 text-emerald-400">
+                <Utensils className="h-8 w-8" />
               </div>
             )}
 
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-extrabold text-white truncate">
+              <h3 className="text-xl font-black text-white leading-snug truncate">
                 {toast.dishName}
               </h3>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-emerald-400 font-extrabold text-base">
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <span className="text-emerald-400 font-black text-lg">
                   ₹{toast.price}
                 </span>
                 {toast.dietary && toast.dietary.length > 0 && (
-                  <span className="text-[10px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-700/50 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-700/50 px-2.5 py-0.5 rounded-full">
                     {toast.dietary.join(", ")}
                   </span>
                 )}
@@ -108,14 +118,14 @@ export function OrderSuccessToast() {
           </div>
 
           {/* Token & Order Metadata */}
-          <div className="mt-4 space-y-2 border-t border-stone-800 pt-3 text-xs font-mono">
+          <div className="mt-4 space-y-2 border-t border-stone-800/80 pt-3.5 text-xs font-mono">
             {toast.dctTokenId && (
               <div className="flex items-center justify-between text-stone-300">
                 <span className="flex items-center gap-1.5 text-emerald-400">
-                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <ShieldCheck className="h-4 w-4" />
                   <span>GB-DCT Token:</span>
                 </span>
-                <span className="font-bold text-emerald-300 bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-800/40">
+                <span className="font-bold text-emerald-300 bg-emerald-950/80 px-2.5 py-0.5 rounded-md border border-emerald-700/50">
                   {toast.dctTokenId}
                 </span>
               </div>
@@ -124,10 +134,10 @@ export function OrderSuccessToast() {
             {toast.orderId && (
               <div className="flex items-center justify-between text-stone-300">
                 <span className="flex items-center gap-1.5 text-amber-400">
-                  <Receipt className="h-3.5 w-3.5" />
+                  <Receipt className="h-4 w-4" />
                   <span>Order Ticket:</span>
                 </span>
-                <span className="font-bold text-amber-300 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
+                <span className="font-bold text-amber-300 bg-amber-950/60 px-2.5 py-0.5 rounded-md border border-amber-700/50">
                   #{toast.orderId.slice(-8)}
                 </span>
               </div>
@@ -135,11 +145,11 @@ export function OrderSuccessToast() {
           </div>
 
           {/* Success Banner Footer */}
-          <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-emerald-400 bg-emerald-950/60 p-2 rounded-xl border border-emerald-800/40">
-            <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <div className="mt-4 flex items-center gap-2 text-xs font-bold text-emerald-300 bg-emerald-950/80 p-2.5 rounded-xl border border-emerald-700/50 justify-center text-center">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
             <span>Simulated order created & persisted to MongoDB!</span>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
     </AnimatePresence>
   );
