@@ -1,4 +1,5 @@
 interface DishCardProps {
+  id?: string;
   title: string;
   ingredients: string[];
   cost: number;
@@ -9,6 +10,7 @@ interface DishCardProps {
 }
 
 export default function DishCard({
+  id,
   title,
   ingredients,
   cost,
@@ -29,7 +31,7 @@ export default function DishCard({
   };
 
   return (
-    <div data-dish-name={title} className="w-full mt-6 animate-fade-in border-4 border-transparent transition-all duration-500 rounded-3xl">
+    <div data-dish-id={id} data-dish-name={title} className="w-full mt-6 animate-fade-in border-4 border-transparent transition-all duration-500 rounded-3xl">
       <h2 className="text-xs font-bold text-brand/80 uppercase tracking-wider mb-3.5 flex items-center gap-2">
         <span className="w-2.5 h-2.5 rounded-full bg-brand-orange"></span>
         IV. Synthesized Recipe Details
