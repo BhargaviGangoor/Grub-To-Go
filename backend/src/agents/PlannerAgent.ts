@@ -3,31 +3,36 @@ import { MenuTool } from "../tools/MenuTool";
 import { InventoryTool } from "../tools/InventoryTool";
 import { DCTTool } from "../tools/DCTTool";
 import { OrderTool } from "../tools/OrderTool";
+import { AgentPolicyGate } from "./AgentPolicyGate";
 import {
   UserIntent,
-  OrderConstraints,
+  OrderAuthorization,
   MenuItemData,
   PlannerResult,
   AgentStep,
+  AgentState,
+  AgentAction,
+  AgentObservation,
 } from "../types/agent.types";
 
 /**
- * PlannerAgent
+ * PlannerAgent.ts
  *
- * Orchestrates the autonomous food-ordering pipeline.
- * Receives an LLMProvider via dependency injection — is NOT itself an LLMProvider.
+ * Autonomous Reasoning & Orchestration Layer.
  *
- * For ORDER_FOOD intent:
- *   extractIntent → findCandidates → checkInventory → generateDCT
- *   → validateDCT → createOrder → return natural-language reply
+ * Implements a bounded Reason → Act → Observe → Update State → Replan → Execute loop.
  *
- * For all other intents:
- *   Falls back to this.llm.chat() — preserving existing general chat behavior.
- *
- * Max retry attempts: 3 (bounded loop, no infinite retries).
+ * Key Architectural Guarantees:
+ *   1. Single Reasoning Agent: Uses multiple deterministic tools (MenuTool, InventoryTool, DCTTool, OrderTool).
+ *   2. Immutable Authorization Gate: User's original hard constraints (maxBudget, dietary, excludedIngredients)
+ *      are frozen at task start. Replanning NEVER relaxes hard constraints.
+ *   3. GB-DCT Commitment Gate: OrderTool can ONLY be invoked after explicit cryptographic GB-DCT state attestation.
+ *   4. Zero Hallucination: All dish facts, prices, and stock levels originate deterministically from MongoDB.
+ *   5. Loop Safety: Enforces MAX_STEPS = 10 and MAX_REPLANS = 3 bounds.
  */
 
-const MAX_ATTEMPTS = 3;
+const MAX_STEPS = 10;
+const MAX_REPLANS = 3;
 
 export class PlannerAgent {
   constructor(
@@ -40,14 +45,12 @@ export class PlannerAgent {
 
   // ─── Main Entry Point ────────────────────────────────────────────────────────
 
-  // ─── Main Entry Point ────────────────────────────────────────────────────────
-
   async process(userMessage: string): Promise<PlannerResult> {
     const steps: AgentStep[] = [];
 
     // 1. Extract intent from natural language
     const intent = await this.extractIntent(userMessage);
-    console.log(`[Planner] Intent: ${intent.intent}`);
+    console.log(`[PlannerAgent] Extracted Intent: ${intent.intent}`);
 
     steps.push({
       title: "🎯 Intent & Constraint Analysis",
@@ -55,109 +58,115 @@ export class PlannerAgent {
         intent.intent === "ORDER_FOOD"
           ? ` | Budget: ₹${intent.constraints.maxBudget ?? "Unlimited"}, Diet: [${
               intent.constraints.dietary?.join(", ") || "Any"
-            }], Spice: ${intent.constraints.spiceLevel || "Any"}`
-          : " | General conversation query"
+            }], Excluded: [${intent.constraints.excludedIngredients?.join(", ") || "None"}]`
+          : " | General conversational query"
       }`,
       status: "success",
     });
 
-    if (intent.intent === "ORDER_FOOD") {
-      console.log(`[Planner] Constraints: ${JSON.stringify(intent.constraints)}`);
-      return await this.executeOrder(intent, steps);
+    // Route non-ORDER_FOOD queries to LLM chat
+    if (intent.intent !== "ORDER_FOOD") {
+      console.log(`[PlannerAgent] Non-ordering intent detected (${intent.intent}). Routing to general chat.`);
+      const reply = await this.llm.chat(userMessage);
+
+      steps.push({
+        title: "💬 LLM Knowledge Response",
+        detail: "Answered user query using Groq LLM general food knowledge",
+        status: "info",
+      });
+
+      return {
+        success: true,
+        message: reply,
+        agentSteps: steps,
+      };
     }
 
-    // All non-ORDER_FOOD intents fall back to general LLM chat
-    console.log(`[Planner] Non-order intent detected. Routing to general chat.`);
-    const reply = await this.llm.chat(userMessage);
-
-    steps.push({
-      title: "💬 LLM Knowledge Response",
-      detail: "Answered user query using Groq LLM general food knowledge",
-      status: "info",
+    // 2. Initialize explicit Autonomous Agent State
+    const frozenAuthorization: OrderAuthorization = Object.freeze({
+      maxBudget: intent.constraints.maxBudget,
+      dietary: intent.constraints.dietary ? [...intent.constraints.dietary] : [],
+      excludedIngredients: intent.constraints.excludedIngredients
+        ? [...intent.constraints.excludedIngredients]
+        : [],
+      spiceLevel: intent.constraints.spiceLevel,
+      cuisine: intent.constraints.cuisine,
+      dishNameQuery: intent.constraints.dishNameQuery,
+      softPreferences: intent.constraints.softPreferences
+        ? [...intent.constraints.softPreferences]
+        : [],
     });
 
-    return {
-      success: true,
-      message: reply,
-      agentSteps: steps,
+    const state: AgentState = {
+      originalRequest: userMessage,
+      intent: intent.intent,
+      authorization: frozenAuthorization,
+      candidates: [],
+      attemptedDishIds: [],
+      observations: [],
+      replanCount: 0,
+      stepCount: 0,
+      status: "PLANNING",
     };
+
+    console.log(`[PlannerAgent] Initialized task state. Immutable Authorization:`, JSON.stringify(frozenAuthorization));
+
+    // 3. Execute Autonomous Reasoning Loop
+    return await this.runAutonomousLoop(state, steps);
   }
 
   // ─── Intent Extraction ───────────────────────────────────────────────────────
 
-  /**
-   * Uses the LLM to extract structured intent from the user's message.
-   * Validates and safely parses the JSON output.
-   * Falls back to GENERAL_CHAT if extraction fails or JSON is malformed.
-   */
   private async extractIntent(userMessage: string): Promise<UserIntent> {
-    const prompt = `You are an intent classification assistant for a food ordering app.
+    const prompt = `You are an intent classification assistant for an autonomous French Bistro food ordering app.
 
 Analyze the user's message and return a JSON object with this exact structure:
 {
-  "intent": "ORDER_FOOD" | "RECIPE_REQUEST" | "GENERAL_CHAT" | "UNKNOWN",
+  "intent": "ORDER_FOOD" | "RECIPE_REQUEST" | "GENERAL_CHAT" | "RECOMMENDATION" | "UNKNOWN",
   "constraints": {
     "maxBudget": <number in INR or null>,
-    "dietary": <array of dietary restrictions e.g. ["vegetarian"] or []>,
+    "dietary": <array of dietary restrictions e.g. ["Vegetarian", "Gluten-Free"] or []>,
+    "excludedIngredients": <array of ingredients user wants to avoid e.g. ["peanuts"] or []>,
     "spiceLevel": "Mild" | "Medium" | "Spicy" | null,
     "cuisine": <string e.g. "French" or null>,
-    "dishNameQuery": <string e.g. "croissant" or "ratatouille" or null>
+    "dishNameQuery": <string e.g. "croissant" or "ratatouille" or null>,
+    "softPreferences": <array of descriptive preferences e.g. ["warm", "sweet"] or []>
   }
 }
 
 Rules:
-- Use "ORDER_FOOD" when the user wants to order food, select a meal, find something to eat, or asks for dish recommendations.
-- Use "RECIPE_REQUEST" when they explicitly ask how to cook or make a dish at home.
-- Use "GENERAL_CHAT" for all non-menu food questions.
-- dietary should normalize: "veg" → "vegetarian", "vegan", "gluten free" → "Gluten-Free"
-- spiceLevel: "spicy" → "Spicy", "mild" → "Mild", "medium" → "Medium"
-- Return ONLY the JSON object. No markdown. No explanation.
+- Use "ORDER_FOOD" when the user asks to order, buy, get food, or find a meal under a budget/diet.
+- Use "RECIPE_REQUEST" when they explicitly ask how to cook a dish.
+- Use "GENERAL_CHAT" for general food questions.
+- Normalize dietary: "veg" → "Vegetarian", "vegan" → "Vegan", "gluten free" → "Gluten-Free".
+- Return ONLY valid JSON. No markdown fences.
 
 User message: "${userMessage.replace(/"/g, "'")}"`;
 
     try {
       const raw = await this.llm.chat(prompt);
-
-      // Strip possible markdown code fences
-      const cleaned = raw
-        .replace(/```json/gi, "")
-        .replace(/```/g, "")
-        .trim();
-
+      const cleaned = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
       const parsed = JSON.parse(cleaned);
 
-      // Validate required fields
-      if (
-        !parsed.intent ||
-        !["ORDER_FOOD", "RECIPE_REQUEST", "GENERAL_CHAT", "UNKNOWN"].includes(parsed.intent)
-      ) {
-        throw new Error("Invalid intent value");
+      if (!parsed.intent || !["ORDER_FOOD", "RECIPE_REQUEST", "GENERAL_CHAT", "RECOMMENDATION", "UNKNOWN"].includes(parsed.intent)) {
+        throw new Error("Invalid intent type returned");
       }
 
-      const constraints: OrderConstraints = {
-        maxBudget:
-          typeof parsed.constraints?.maxBudget === "number"
-            ? parsed.constraints.maxBudget
-            : undefined,
-        dietary: Array.isArray(parsed.constraints?.dietary)
-          ? parsed.constraints.dietary
-          : [],
-        spiceLevel: ["Mild", "Medium", "Spicy"].includes(parsed.constraints?.spiceLevel)
-          ? parsed.constraints.spiceLevel
-          : undefined,
-        cuisine:
-          typeof parsed.constraints?.cuisine === "string" && parsed.constraints.cuisine
-            ? parsed.constraints.cuisine
-            : undefined,
-        dishNameQuery:
-          typeof parsed.constraints?.dishNameQuery === "string" && parsed.constraints.dishNameQuery
-            ? parsed.constraints.dishNameQuery
-            : undefined,
+      return {
+        intent: parsed.intent,
+        constraints: {
+          maxBudget: typeof parsed.constraints?.maxBudget === "number" ? parsed.constraints.maxBudget : undefined,
+          dietary: Array.isArray(parsed.constraints?.dietary) ? parsed.constraints.dietary : [],
+          excludedIngredients: Array.isArray(parsed.constraints?.excludedIngredients) ? parsed.constraints.excludedIngredients : [],
+          spiceLevel: ["Mild", "Medium", "Spicy"].includes(parsed.constraints?.spiceLevel) ? parsed.constraints.spiceLevel : undefined,
+          cuisine: typeof parsed.constraints?.cuisine === "string" ? parsed.constraints.cuisine : undefined,
+          dishNameQuery: typeof parsed.constraints?.dishNameQuery === "string" ? parsed.constraints.dishNameQuery : undefined,
+          softPreferences: Array.isArray(parsed.constraints?.softPreferences) ? parsed.constraints.softPreferences : [],
+        },
+        rawMessage: userMessage,
       };
-
-      return { intent: parsed.intent, constraints, rawMessage: userMessage };
     } catch (err) {
-      console.warn("[Planner] Intent extraction failed, defaulting to GENERAL_CHAT:", err);
+      console.warn("[PlannerAgent] Intent extraction fallback to GENERAL_CHAT:", err);
       return {
         intent: "GENERAL_CHAT",
         constraints: {},
@@ -166,187 +175,326 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
     }
   }
 
-  // ─── Order Execution Pipeline ─────────────────────────────────────────────
+  // ─── Autonomous Bounded Loop ─────────────────────────────────────────────────
 
-  /**
-   * Full autonomous ordering pipeline.
-   * Attempts up to MAX_ATTEMPTS candidates before giving up.
-   */
-  private async executeOrder(
-    intent: UserIntent,
-    steps: AgentStep[]
-  ): Promise<PlannerResult> {
-    const { constraints } = intent;
+  private async runAutonomousLoop(state: AgentState, steps: AgentStep[]): Promise<PlannerResult> {
+    let completed = false;
+    const rejectedSummaries: string[] = [];
 
-    // Step 1: Find candidates from real MongoDB data
-    const candidates = await this.menuTool.findCandidates(constraints);
-    console.log(`[MenuTool] Found ${candidates.length} candidate(s)`);
+    while (!completed && state.stepCount < MAX_STEPS && state.replanCount < MAX_REPLANS) {
+      state.stepCount++;
+      const action = this.decideNextAction(state);
 
-    steps.push({
-      title: "🔍 Menu Catalog Search",
-      detail: `Queried MongoDB catalog: found ${candidates.length} candidate dish(es) matching constraints`,
-      status: candidates.length > 0 ? "success" : "warning",
-    });
+      console.log(`\n[PlannerAgent] Step ${state.stepCount} (Replan ${state.replanCount}/${MAX_REPLANS}) → Action: ${action.type}`);
 
-    if (candidates.length === 0) {
-      return {
-        success: false,
-        message: this.buildNoMatchMessage(constraints),
-        agentSteps: steps,
-      };
+      switch (action.type) {
+        case "SEARCH_MENU": {
+          state.status = "SEARCHING";
+          const candidates = await this.menuTool.findCandidates(state.authorization, state.attemptedDishIds);
+          state.candidates = candidates;
+
+          steps.push({
+            title: "🔍 Menu Catalog Search",
+            detail: `Queried MongoDB catalog: found ${candidates.length} candidate dish(es) matching authorization`,
+            status: candidates.length > 0 ? "success" : "warning",
+          });
+
+          this.recordObservation(state, "SEARCH_MENU", candidates.length > 0, `Found ${candidates.length} candidate(s)`, { candidatesCount: candidates.length });
+
+          if (candidates.length === 0) {
+            console.log("[PlannerAgent] No candidates found matching authorization.");
+            state.status = "FAILED";
+            completed = true;
+          }
+          break;
+        }
+
+        case "SELECT_DISH": {
+          state.status = "SELECTING";
+          // Pick top unattempted candidate (cheapest first)
+          const unattempted = state.candidates
+            .filter((c) => !state.attemptedDishIds.includes(c.id))
+            .sort((a, b) => a.estimatedCost - b.estimatedCost);
+
+          if (unattempted.length === 0) {
+            console.log("[PlannerAgent] All menu candidates exhausted.");
+            this.recordObservation(state, "SELECT_DISH", false, "All candidates exhausted");
+            state.status = "FAILED";
+            completed = true;
+            break;
+          }
+
+          const selected = unattempted[0];
+          console.log(`[PlannerAgent] Selected candidate: ${selected.name} (₹${selected.estimatedCost})`);
+
+          // 🛡️ Deterministic Policy Gate Verification (Immutable Authorization Gate)
+          const policyCheck = AgentPolicyGate.validate(selected, state.authorization);
+          if (!policyCheck.valid) {
+            console.log(`[AgentPolicyGate] 🛑 Rejected candidate ${selected.name}: ${policyCheck.violations.join("; ")}`);
+            state.attemptedDishIds.push(selected.id);
+            rejectedSummaries.push(`${selected.name} (${policyCheck.violations[0]})`);
+
+            steps.push({
+              title: "🛡️ Authorization Policy Gate",
+              detail: `Blocked "${selected.name}": ${policyCheck.violations.join("; ")}`,
+              status: "error",
+            });
+
+            this.recordObservation(state, "SELECT_DISH", false, policyCheck.violations.join("; "));
+            state.replanCount++;
+            state.status = "REPLANNING";
+            break;
+          }
+
+          state.selectedDish = selected;
+          this.recordObservation(state, "SELECT_DISH", true, `Selected ${selected.name} (₹${selected.estimatedCost})`, { dish: selected.name });
+          break;
+        }
+
+        case "CHECK_INVENTORY": {
+          state.status = "AUDITING_INVENTORY";
+          if (!state.selectedDish) {
+            state.status = "FAILED";
+            completed = true;
+            break;
+          }
+
+          const inventoryCheck = await this.inventoryTool.checkAvailability(state.selectedDish, state.authorization);
+
+          if (!inventoryCheck.available) {
+            console.log(`[InventoryTool] Dish ${state.selectedDish.name} unavailable: ${inventoryCheck.outOfStock.join("; ")}`);
+            state.attemptedDishIds.push(state.selectedDish.id);
+            rejectedSummaries.push(`${state.selectedDish.name} (Out of stock: ${inventoryCheck.outOfStock.join(", ")})`);
+
+            steps.push({
+              title: "📦 Live Inventory Audit",
+              detail: `"${state.selectedDish.name}": ✗ Unavailable (${inventoryCheck.outOfStock.join("; ")})`,
+              status: "warning",
+            });
+
+            this.recordObservation(state, "CHECK_INVENTORY", false, `Unavailable: ${inventoryCheck.outOfStock.join("; ")}`);
+            state.selectedDish = undefined;
+            state.replanCount++;
+            state.status = "REPLANNING";
+            break;
+          }
+
+          steps.push({
+            title: "📦 Live Inventory Audit",
+            detail: `"${state.selectedDish.name}": ✓ All ingredients in stock`,
+            status: "success",
+          });
+
+          this.recordObservation(state, "CHECK_INVENTORY", true, `Available: ${state.selectedDish.name}`);
+          break;
+        }
+
+        case "GENERATE_DCT": {
+          state.status = "AUTHORIZING_DCT";
+          if (!state.selectedDish) {
+            state.status = "FAILED";
+            completed = true;
+            break;
+          }
+
+          try {
+            const dctResult = await this.dctTool.generate(
+              state.selectedDish,
+              state.authorization,
+              state.replanCount,
+              state.previousTokenHash
+            );
+
+            state.dctTokenId = dctResult.tokenId;
+
+            steps.push({
+              title: "🎟️ GB-DCT Commitment Generation",
+              detail: `Generated dynamic commitment token: ${dctResult.tokenId} (lineage gen ${state.replanCount})`,
+              status: "success",
+            });
+
+            this.recordObservation(state, "GENERATE_DCT", true, `Generated token ${dctResult.tokenId}`);
+          } catch (err: any) {
+            console.error(`[DCTTool] Token generation failed:`, err);
+            state.attemptedDishIds.push(state.selectedDish.id);
+            rejectedSummaries.push(`${state.selectedDish.name} (DCT error)`);
+            state.selectedDish = undefined;
+            state.replanCount++;
+            state.status = "REPLANNING";
+          }
+          break;
+        }
+
+        case "VALIDATE_DCT": {
+          state.status = "VALIDATING_DCT";
+          if (!state.dctTokenId || !state.selectedDish) {
+            state.status = "FAILED";
+            completed = true;
+            break;
+          }
+
+          const validation = await this.dctTool.validate(state.dctTokenId);
+
+          if (!validation.success) {
+            console.log(`[DCTTool] GB-DCT Validation drift detected for ${state.dctTokenId}`);
+            state.attemptedDishIds.push(state.selectedDish.id);
+            state.previousTokenHash = state.dctTokenId;
+            rejectedSummaries.push(`${state.selectedDish.name} (Drift: ${validation.driftsDetected.join("; ")})`);
+
+            steps.push({
+              title: "🛡️ World State Attestation",
+              detail: `State drift detected on ${state.dctTokenId}: ${validation.driftsDetected.join("; ")}`,
+              status: "error",
+            });
+
+            this.recordObservation(state, "VALIDATE_DCT", false, `Drift: ${validation.driftsDetected.join("; ")}`);
+            state.dctTokenId = undefined;
+            state.selectedDish = undefined;
+            state.replanCount++;
+            state.status = "REPLANNING";
+            break;
+          }
+
+          steps.push({
+            title: "🛡️ World State Attestation",
+            detail: `Verified token ${state.dctTokenId} against live world state: 0 drift detected`,
+            status: "success",
+          });
+
+          this.recordObservation(state, "VALIDATE_DCT", true, `Valid: ${state.dctTokenId}`);
+          break;
+        }
+
+        case "CREATE_ORDER": {
+          state.status = "EXECUTING_ORDER";
+          if (!state.selectedDish || !state.dctTokenId) {
+            state.status = "FAILED";
+            completed = true;
+            break;
+          }
+
+          try {
+            const order = await this.orderTool.createOrder(
+              state.selectedDish,
+              state.dctTokenId,
+              state.authorization,
+              state.replanCount
+            );
+
+            state.orderId = order._id?.toString();
+            state.status = "COMPLETED";
+            completed = true;
+
+            steps.push({
+              title: "🛒 Order Execution",
+              detail: `Simulated order #${order._id} persisted to database`,
+              status: "success",
+            });
+
+            this.recordObservation(state, "CREATE_ORDER", true, `Order created: #${order._id}`);
+          } catch (err: any) {
+            console.error(`[OrderTool] Persistence error:`, err);
+            state.status = "FAILED";
+            completed = true;
+          }
+          break;
+        }
+
+        case "REPLAN": {
+          state.status = "REPLANNING";
+          steps.push({
+            title: "🔄 Autonomous Replanning",
+            detail: `Replan attempt ${state.replanCount}/${MAX_REPLANS}: searching next valid candidate`,
+            status: "info",
+          });
+          break;
+        }
+
+        case "FINISH": {
+          completed = true;
+          break;
+        }
+      }
     }
 
-    // Rank candidates: cheapest first among those satisfying constraints
-    const ranked = this.rankCandidates(candidates, constraints);
-
-    // Step 2: Attempt candidates with bounded retries
-    const rejectedNames: string[] = [];
-    let replanned = false;
-
-    for (let attempt = 0; attempt < Math.min(MAX_ATTEMPTS, ranked.length); attempt++) {
-      const candidate = ranked[attempt];
-
-      if (attempt > 0) {
-        replanned = true;
-        console.log(`[Planner] Replanning — attempt ${attempt + 1} with: ${candidate.name}`);
-        steps.push({
-          title: "🔄 Replanning Triggered",
-          detail: `Attempt ${attempt + 1}: selected next candidate "${candidate.name}" (₹${candidate.estimatedCost})`,
-          status: "info",
-        });
-      } else {
-        console.log(`[Planner] Selected candidate: ${candidate.name} (₹${candidate.estimatedCost})`);
-      }
-
-      // Step 3: Check live inventory
-      const inventoryCheck = await this.inventoryTool.checkAvailability(candidate, constraints);
-      if (!inventoryCheck.available) {
-        console.log(`[InventoryTool] ${candidate.name} unavailable: ${inventoryCheck.outOfStock.join(", ")}`);
-        rejectedNames.push(
-          `${candidate.name} (inventory/dietary issue: ${inventoryCheck.outOfStock.join(", ")})`
-        );
-        steps.push({
-          title: "📦 Live Inventory Audit",
-          detail: `${candidate.name}: ✗ Out of stock / dietary mismatch (${inventoryCheck.outOfStock.join(", ")})`,
-          status: "warning",
-        });
-        continue;
-      }
-
-      steps.push({
-        title: "📦 Live Inventory Audit",
-        detail: `${candidate.name}: ✓ All required ingredients in stock (${candidate.ingredients.join(", ")})`,
-        status: "success",
-      });
-
-      // Step 4: Generate GB-DCT token
-      let dctResult;
-      try {
-        dctResult = await this.dctTool.generate(candidate, constraints);
-        console.log(`[DCTTool] Token generated: ${dctResult.tokenId}`);
-        steps.push({
-          title: "🎟️ GB-DCT Token Generation",
-          detail: `Generated dynamic commitment lease token: ${dctResult.tokenId}`,
-          status: "success",
-        });
-      } catch (err) {
-        console.error(`[DCTTool] Token generation failed:`, err);
-        rejectedNames.push(`${candidate.name} (DCT generation error)`);
-        steps.push({
-          title: "🎟️ GB-DCT Token Generation",
-          detail: `Token generation failed for ${candidate.name}`,
-          status: "error",
-        });
-        continue;
-      }
-
-      // Step 5: Validate DCT against live world state
-      const validation = await this.dctTool.validate(dctResult.tokenId);
-      console.log(`[DCTTool] Validation outcome: ${validation.outcome}`);
-
-      if (!validation.success) {
-        console.log(`[DCTTool] Drift detected — replanning`);
-        rejectedNames.push(
-          `${candidate.name} (drift: ${validation.driftsDetected.slice(0, 2).join("; ")})`
-        );
-        steps.push({
-          title: "🛡️ World State Attestation",
-          detail: `State drift detected on ${dctResult.tokenId}: ${validation.driftsDetected.join("; ")}`,
-          status: "error",
-        });
-        continue;
-      }
-
-      steps.push({
-        title: "🛡️ World State Attestation",
-        detail: `Verified ${dctResult.tokenId} against live world state: 0 price/stock/dietary drift detected`,
-        status: "success",
-      });
-
-      // Step 6: Create simulated order in MongoDB
-      let order;
-      try {
-        order = await this.orderTool.createOrder(
-          candidate,
-          dctResult.tokenId,
-          constraints,
-          attempt
-        );
-        console.log(`[OrderTool] Order created: ${order._id}`);
-        steps.push({
-          title: "🛒 Order Execution",
-          detail: `Simulated order #${order._id} successfully created & saved to database`,
-          status: "success",
-        });
-      } catch (err) {
-        console.error(`[OrderTool] Order creation failed:`, err);
-        rejectedNames.push(`${candidate.name} (order persistence error)`);
-        steps.push({
-          title: "🛒 Order Execution",
-          detail: `Failed to save order to database`,
-          status: "error",
-        });
-        continue;
-      }
-
-      // Step 7: Return success message & complete payload
+    // 4. Return final structured result
+    if (state.status === "COMPLETED" && state.selectedDish && state.orderId && state.dctTokenId) {
       return {
         success: true,
-        dishName: candidate.name,
-        price: candidate.estimatedCost,
-        orderId: order._id?.toString(),
-        dctTokenId: dctResult.tokenId,
-        replanned,
-        rejectedCandidates: rejectedNames,
-        message: this.buildSuccessMessage(candidate, dctResult.tokenId, replanned, rejectedNames),
+        dishName: state.selectedDish.name,
+        price: state.selectedDish.estimatedCost,
+        orderId: state.orderId,
+        dctTokenId: state.dctTokenId,
+        replanned: state.replanCount > 0,
+        rejectedCandidates: rejectedSummaries,
+        message: this.buildSuccessMessage(state.selectedDish, state.dctTokenId, state.replanCount > 0, rejectedSummaries),
         agentSteps: steps,
-        dish: candidate,
+        dish: state.selectedDish,
       };
     }
 
-    // All candidates exhausted
     return {
       success: false,
-      rejectedCandidates: rejectedNames,
-      message: this.buildExhaustedMessage(rejectedNames, constraints),
+      rejectedCandidates: rejectedSummaries,
+      message: this.buildExhaustedMessage(rejectedSummaries, state.authorization),
       agentSteps: steps,
     };
   }
 
-  // ─── Candidate Ranking ────────────────────────────────────────────────────
+  // ─── Deterministic State-Based Decision Logic ────────────────────────────────
 
-  /**
-   * Simple deterministic ranking: sort by price ascending.
-   * Cheapest valid dish is selected first, giving the user the best value.
-   */
-  private rankCandidates(
-    candidates: MenuItemData[],
-    _constraints: OrderConstraints
-  ): MenuItemData[] {
-    return [...candidates].sort((a, b) => a.estimatedCost - b.estimatedCost);
+  private decideNextAction(state: AgentState): AgentAction {
+    if (state.candidates.length === 0 && state.status === "PLANNING") {
+      return { type: "SEARCH_MENU" };
+    }
+
+    if (state.status === "REPLANNING") {
+      // Re-search menu excluding attempted IDs
+      return { type: "SEARCH_MENU" };
+    }
+
+    if (!state.selectedDish) {
+      return { type: "SELECT_DISH", dishId: "" };
+    }
+
+    const lastObs = state.observations[state.observations.length - 1];
+
+    if (lastObs?.action === "SELECT_DISH" && lastObs.success) {
+      return { type: "CHECK_INVENTORY", dishId: state.selectedDish.id };
+    }
+
+    if (lastObs?.action === "CHECK_INVENTORY" && lastObs.success) {
+      return { type: "GENERATE_DCT", dishId: state.selectedDish.id };
+    }
+
+    if (lastObs?.action === "GENERATE_DCT" && lastObs.success && state.dctTokenId) {
+      return { type: "VALIDATE_DCT", tokenId: state.dctTokenId };
+    }
+
+    if (lastObs?.action === "VALIDATE_DCT" && lastObs.success && state.dctTokenId) {
+      return { type: "CREATE_ORDER", dishId: state.selectedDish.id, tokenId: state.dctTokenId };
+    }
+
+    return { type: "FINISH", reason: "Workflow state reached terminal condition" };
   }
 
-  // ─── Natural Language Response Builders ──────────────────────────────────
+  private recordObservation(
+    state: AgentState,
+    action: AgentAction["type"],
+    success: boolean,
+    message: string,
+    data?: any
+  ) {
+    state.observations.push({
+      action,
+      timestamp: new Date().toISOString(),
+      success,
+      message,
+      data,
+    });
+  }
+
+  // ─── Response Builders ───────────────────────────────────────────────────────
 
   private buildSuccessMessage(
     dish: MenuItemData,
@@ -358,39 +506,28 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
 
     if (replanned && rejected.length > 0) {
       const firstRejected = rejected[0].split(" (")[0];
-      msg += `My first choice (${firstRejected}) became unavailable during validation, so I replanned. `;
+      msg += `My initial choice (${firstRejected}) was unavailable, so I autonomously replanned. `;
     }
 
     msg += `I selected **${dish.name}** for ₹${dish.estimatedCost}. `;
-    msg += `It matches your ${dish.dietary.filter(d => !d.includes("Gluten")).join(", ")} and ${dish.spiceLevel.toLowerCase()} requirements. `;
-    msg += `Inventory was verified, the GB-DCT commitment token (${tokenId}) was validated against the live world state, `;
-    msg += `and your simulated order has been created. `;
-    msg += `Enjoy your meal! 🍽️`;
+    msg += `It satisfies your ${dish.dietary.join(", ") || "dietary"} requirements. `;
+    msg += `Inventory was verified, the GB-DCT token (${tokenId}) was attested against live world state, `;
+    msg += `and your simulated order has been created. Enjoy your meal! 🍽️`;
 
     return msg;
   }
 
-  private buildNoMatchMessage(constraints: OrderConstraints): string {
-    const parts: string[] = [];
-    if (constraints.dietary?.length) parts.push(constraints.dietary.join(", "));
-    if (constraints.spiceLevel) parts.push(constraints.spiceLevel.toLowerCase());
-    if (constraints.maxBudget) parts.push(`under ₹${constraints.maxBudget}`);
+  private buildExhaustedMessage(rejected: string[], auth: OrderAuthorization): string {
+    let msg = "I evaluated menu candidates but could not complete the order under your authorization. ";
 
-    return `I couldn't find any dishes matching your requirements${parts.length ? ` (${parts.join(", ")})` : ""}. Try adjusting your budget or dietary preferences, and I'll try again!`;
-  }
-
-  private buildExhaustedMessage(rejected: string[], constraints: OrderConstraints): string {
-    let msg = "I found some matching dishes but couldn't complete the order. ";
+    if (auth.maxBudget) msg += `(Budget: ₹${auth.maxBudget}) `;
+    if (auth.dietary?.length) msg += `(Dietary: ${auth.dietary.join(", ")}) `;
 
     if (rejected.length > 0) {
-      const reasons = rejected.map((r) => {
-        const match = r.match(/\((.+)\)/);
-        return match ? match[1] : r;
-      });
-      msg += `Issues encountered: ${reasons.slice(0, 2).join("; ")}. `;
+      msg += `Encountered issues: ${rejected.slice(0, 2).join("; ")}. `;
     }
 
-    msg += "This could be due to inventory changes or pricing drift. Please try again shortly.";
+    msg += "Please try adjusting your budget or preferences!";
     return msg;
   }
 }
