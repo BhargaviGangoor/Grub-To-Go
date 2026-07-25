@@ -248,9 +248,9 @@ Return ONLY JSON:
     }
 
     let mealType: MealType = "ANY";
-    if (msg.includes("dinner") || msg.includes("lunch")) mealType = "DINNER";
-    if (msg.includes("dessert")) mealType = "DESSERT";
-    if (msg.includes("breakfast") || msg.includes("pastry")) mealType = "BREAKFAST";
+    if (msg.includes("dinner") || msg.includes("lunch") || msg.includes("meal") || msg.includes("savory") || msg.includes("main")) mealType = "DINNER";
+    if (msg.includes("dessert") || msg.includes("sweet") || msg.includes("cake") || msg.includes("tart")) mealType = "DESSERT";
+    if (msg.includes("breakfast") || msg.includes("pastry") || msg.includes("morning") || msg.includes("croissant")) mealType = "BREAKFAST";
 
     const preferCheapest = msg.includes("cheapest");
 
@@ -308,14 +308,14 @@ Return ONLY JSON:
       // Rule B: Meal Type Alignment
       if (prefs.mealType === "DINNER" || prefs.mealType === "LUNCH") {
         const isSavoryMeal = ["Salade", "Quiche", "Croque", "Soupe", "Potage", "Ratatouille", "Assiette"].some(k => dish.name.includes(k));
-        if (isSavoryMeal) score += 50;
+        if (isSavoryMeal) score += 80;
         if (isBeverage) score -= 50;
       } else if (prefs.mealType === "DESSERT") {
         const isDessert = ["Tarte", "Crème", "Mousse", "Madeleines", "Éclair"].some(k => dish.name.includes(k));
-        if (isDessert) score += 60;
+        if (isDessert) score += 80;
       } else if (prefs.mealType === "BREAKFAST") {
         const isBreakfast = ["Croissant", "Pain", "Brioche", "Tartine", "Chausson"].some(k => dish.name.includes(k));
-        if (isBreakfast) score += 50;
+        if (isBreakfast) score += 80;
       }
 
       // Rule C: Category Alignment
@@ -334,15 +334,33 @@ Return ONLY JSON:
         }
       }
 
+      // Rule E: Direct Keyword / Dish Name Match
+      const userWords = userMessage.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+      const dishNameLower = dish.name.toLowerCase();
+      const dishDescLower = (dish.description + " " + dish.ingredients.join(" ")).toLowerCase();
+
+      for (const word of userWords) {
+        if (["order", "want", "please", "food", "something", "with", "have", "under", "below", "rupees", "budget", "dish", "best", "good", "like"].includes(word)) continue;
+        if (dishNameLower.includes(word)) {
+          score += 300; // Direct dish name match bonus
+        } else if (dishDescLower.includes(word)) {
+          score += 60;  // Ingredient or description keyword match
+        }
+      }
+
       return { dish, score };
     });
 
-    // Sort by deterministic score descending
+    // Sort by deterministic score descending, then prompt-hash tie breaker
     scored.sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
       // If user explicitly asked for cheapest, sort by price
       if (prefs.preferCheapest) return a.dish.estimatedCost - b.dish.estimatedCost;
-      return 0;
+
+      // Hash tie-breaker based on userMessage string + dish.id so different prompts produce different tied orderings
+      const hashA = (userMessage + a.dish.id).split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+      const hashB = (userMessage + b.dish.id).split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+      return (hashB % 100) - (hashA % 100);
     });
 
     // Filter out items with severe negative score if better semantic options exist
