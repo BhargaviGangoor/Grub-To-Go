@@ -2,26 +2,36 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, CheckCircle2, ShieldCheck, Utensils } from "lucide-react";
+import { Sparkles, Utensils } from "lucide-react";
 import { triggerDecisionToast } from "@/components/OrderSuccessToast";
 
-export interface AutomationStep {
-  title: string;
-  detail: string;
-  targetScreen?: string;   // Screen to navigate to (home, menu, dashboard, research, etc.)
-  xPercent: number;        // Screen X % (0 to 100)
-  yPercent: number;        // Screen Y % (0 to 100)
-  actionLabel: string;
+export interface AgentStepPayload {
+  stepIndex?: number;
+  action?: string;
+  thought?: string;
+  tool?: string;
+  result?: string;
+  title?: string;
+  detail?: string;
 }
 
 export interface AutomationPayload {
-  steps?: Partial<AutomationStep>[];
+  steps?: AgentStepPayload[];
   dishName?: string;
   price?: number;
   imageUrl?: string;
   dctTokenId?: string;
   orderId?: string;
   dietary?: string[];
+}
+
+export interface DisplayStep {
+  title: string;
+  detail: string;
+  targetScreen?: string;
+  xPercent: number;
+  yPercent: number;
+  actionLabel: string;
 }
 
 export function triggerAgentAutomation(payload?: AutomationPayload) {
@@ -42,84 +52,144 @@ export function AgentGhostOverlay({
   const [cursorPos, setCursorPos] = useState({ x: 500, y: 500 });
   const [clickRipple, setClickRipple] = useState<{ x: number; y: number; id: number } | null>(null);
   const [statusText, setStatusText] = useState("");
-  const [highlightDish, setHighlightDish] = useState<string | null>(null);
-  const [activeSteps, setActiveSteps] = useState<AutomationStep[]>([]);
+  const [activeSteps, setActiveSteps] = useState<DisplayStep[]>([]);
 
   useEffect(() => {
     const handleStart = (e: Event) => {
       const customEvent = e as CustomEvent<AutomationPayload>;
       const detail = customEvent.detail || {};
 
-      const dishName = detail.dishName || "Selected Menu Item";
+      const dishName = detail.dishName || "Selected Bistro Dish";
       const price = detail.price ? `₹${detail.price}` : "";
+      const rawAgentSteps = detail.steps || [];
 
-      // Construct dynamic interactive steps targeting dish & menu
-      const interactiveSteps: AutomationStep[] = [
-        {
-          title: "🎯 Intent & Constraint Analysis",
-          detail: `Parsed user request: ORDER_FOOD constraint rules`,
-          xPercent: 75,
-          yPercent: 80,
-          actionLabel: "Extracting goal & freezing authorization...",
-        },
-        {
-          title: `🔍 Menu Search & Selection: ${dishName}`,
-          detail: `Filtered catalog & selected top candidate: ${dishName} ${price}`,
-          targetScreen: "menu",
-          xPercent: 45,
-          yPercent: 45,
-          actionLabel: `Navigating to MENU & targeting candidate: ${dishName}...`,
-        },
-        {
-          title: `📦 Inventory & Dietary Audit`,
-          detail: `Audited pantry stock & verified rules for: ${dishName}`,
-          targetScreen: "menu",
-          xPercent: 48,
-          yPercent: 50,
-          actionLabel: `Verifying live stock & dietary rules for ${dishName}...`,
-        },
-        {
-          title: `🛡️ GB-DCT Token Signing`,
-          detail: detail.dctTokenId
-            ? `Generated commitment token: ${detail.dctTokenId}`
-            : "Attesting dynamic commitment token...",
-          targetScreen: "menu",
-          xPercent: 52,
-          yPercent: 52,
-          actionLabel: `Signing cryptographic GB-DCT token...`,
-        },
-        {
-          title: `🛒 Order Ticket Persistence`,
-          detail: detail.orderId
-            ? `Order #${detail.orderId.slice(-6)} created & persisted to MongoDB`
-            : "Persisting order to MongoDB...",
-          targetScreen: "menu",
-          xPercent: 50,
-          yPercent: 50,
-          actionLabel: `Finalizing simulated order execution...`,
-        },
-      ];
+      let displaySteps: DisplayStep[] = [];
 
-      setActiveSteps(interactiveSteps);
-      setHighlightDish(detail.dishName || null);
+      if (rawAgentSteps.length > 0) {
+        // Map actual PlannerAgent trajectory steps to screen actions!
+        displaySteps = rawAgentSteps.map((step, idx) => {
+          const actionName = step.action || step.tool || "REASONING";
+          const desc = step.thought || step.detail || step.result || "Processing step...";
+
+          if (actionName.includes("SEARCH_MENU") || actionName.includes("MENU")) {
+            return {
+              title: `🔍 Step ${idx + 1}: ${step.title || "SEARCH_MENU"}`,
+              detail: `Filtering catalog & ranking candidate: ${dishName} ${price}`,
+              targetScreen: "menu",
+              xPercent: 45,
+              yPercent: 40,
+              actionLabel: `Navigating to MENU catalog & highlighting ${dishName}...`,
+            };
+          }
+
+          if (actionName.includes("CHECK_INVENTORY") || actionName.includes("INVENTORY")) {
+            return {
+              title: `📦 Step ${idx + 1}: ${step.title || "CHECK_INVENTORY"}`,
+              detail: `Auditing stock & ingredient safety for ${dishName}`,
+              targetScreen: "menu",
+              xPercent: 48,
+              yPercent: 48,
+              actionLabel: `Auditing live Pantry stock for ${dishName}...`,
+            };
+          }
+
+          if (actionName.includes("GENERATE_DCT") || actionName.includes("VALIDATE_DCT")) {
+            return {
+              title: `🛡️ Step ${idx + 1}: ${step.title || "GB-DCT TOKEN"}`,
+              detail: detail.dctTokenId
+                ? `Signed commitment token: ${detail.dctTokenId}`
+                : "Attesting dynamic commitment token...",
+              targetScreen: "menu",
+              xPercent: 52,
+              yPercent: 52,
+              actionLabel: `Attesting GB-DCT cryptographic lease...`,
+            };
+          }
+
+          if (actionName.includes("CREATE_ORDER") || actionName.includes("ORDER")) {
+            return {
+              title: `🛒 Step ${idx + 1}: ${step.title || "CREATE_ORDER"}`,
+              detail: detail.orderId
+                ? `Persisted order #${detail.orderId.slice(-6)} to MongoDB`
+                : "Finalizing simulated order execution...",
+              targetScreen: "menu",
+              xPercent: 50,
+              yPercent: 50,
+              actionLabel: `Persisting order ticket to database...`,
+            };
+          }
+
+          return {
+            title: `🎯 Step ${idx + 1}: ${step.title || actionName}`,
+            detail: desc.slice(0, 70),
+            xPercent: 75,
+            yPercent: 75,
+            actionLabel: `Executing ${actionName}...`,
+          };
+        });
+      } else {
+        // Fallback step sequence if no agentSteps provided
+        displaySteps = [
+          {
+            title: "🎯 Step 1: Intent & Constraint Extraction",
+            detail: "Parsed user input: ORDER_FOOD",
+            xPercent: 75,
+            yPercent: 80,
+            actionLabel: "Analyzing natural language intent...",
+          },
+          {
+            title: `🔍 Step 2: Menu Selection (${dishName})`,
+            detail: `Selected candidate dish: ${dishName} ${price}`,
+            targetScreen: "menu",
+            xPercent: 45,
+            yPercent: 40,
+            actionLabel: `Navigating to MENU & targeting: ${dishName}...`,
+          },
+          {
+            title: `📦 Step 3: Live Inventory Audit`,
+            detail: `Auditing ingredients for ${dishName}`,
+            targetScreen: "menu",
+            xPercent: 48,
+            yPercent: 48,
+            actionLabel: `Verifying live stock for ${dishName}...`,
+          },
+          {
+            title: `🛡️ Step 4: GB-DCT Token Signing`,
+            detail: detail.dctTokenId ? `Token: ${detail.dctTokenId}` : "Attesting GB-DCT lease",
+            targetScreen: "menu",
+            xPercent: 52,
+            yPercent: 52,
+            actionLabel: `Signing cryptographic token...`,
+          },
+          {
+            title: `🛒 Step 5: Order Ticket Creation`,
+            detail: detail.orderId ? `Order #${detail.orderId.slice(-6)} saved` : "Order created",
+            targetScreen: "menu",
+            xPercent: 50,
+            yPercent: 50,
+            actionLabel: `Persisting order to MongoDB...`,
+          },
+        ];
+      }
+
+      setActiveSteps(displaySteps);
       setIsActive(true);
       setCurrentStep(0);
 
       // Start sequence
-      runStepSequence(interactiveSteps, 0, detail);
+      runStepSequence(displaySteps, 0, detail);
     };
 
     window.addEventListener("start-agent-automation", handleStart);
     return () => window.removeEventListener("start-agent-automation", handleStart);
   }, [onNavigateScreen]);
 
-  const runStepSequence = (steps: AutomationStep[], stepIndex: number, detail: AutomationPayload) => {
+  const runStepSequence = (steps: DisplayStep[], stepIndex: number, detail: AutomationPayload) => {
     if (stepIndex >= steps.length) {
-      // Completed sequence
+      // Completed sequence — trigger centered success toast!
       setTimeout(() => {
         setIsActive(false);
 
-        // Trigger beautiful success toast pop-up if order/dish detail is present!
         if (detail.dishName && detail.price) {
           triggerDecisionToast({
             dishName: detail.dishName,
@@ -130,7 +200,7 @@ export function AgentGhostOverlay({
             dietary: detail.dietary,
           });
         }
-      }, 600);
+      }, 500);
       return;
     }
 
@@ -138,7 +208,7 @@ export function AgentGhostOverlay({
     setCurrentStep(stepIndex);
     setStatusText(step.actionLabel);
 
-    // Navigate screen tab if specified
+    // Navigate tab if specified
     if (step.targetScreen && onNavigateScreen) {
       onNavigateScreen(step.targetScreen);
     }
@@ -150,22 +220,22 @@ export function AgentGhostOverlay({
     // Move cursor to target
     setCursorPos({ x: targetX, y: targetY });
 
-    // Trigger click & action after arrival animation delay
+    // Trigger click ripple after movement
     setTimeout(() => {
       setClickRipple({ x: targetX, y: targetY, id: Date.now() });
 
-      // Proceed to next step
+      // Proceed to next step after brief pause
       setTimeout(() => {
         runStepSequence(steps, stepIndex + 1, detail);
-      }, 1000);
-    }, 700);
+      }, 900);
+    }, 600);
   };
 
   if (!isActive) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-      {/* Dimmed backdrop overlay highlighting agent activity */}
+      {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.15 }}
@@ -173,7 +243,7 @@ export function AgentGhostOverlay({
         className="absolute inset-0 bg-emerald-950/40 backdrop-blur-[1px]"
       />
 
-      {/* Top Banner indicating Agent Mode */}
+      {/* Top Banner */}
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -181,7 +251,7 @@ export function AgentGhostOverlay({
       >
         <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
         <Sparkles className="w-4 h-4 text-emerald-400" />
-        <span className="font-bold text-emerald-300">PlannerAgent Active</span>
+        <span className="font-bold text-emerald-300">PlannerAgent Operating</span>
         <span className="text-stone-500">|</span>
         <span className="text-stone-200">{statusText}</span>
       </motion.div>
@@ -194,7 +264,7 @@ export function AgentGhostOverlay({
             initial={{ scale: 0.2, opacity: 0.9 }}
             animate={{ scale: 2.5, opacity: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             style={{ left: clickRipple.x - 24, top: clickRipple.y - 24 }}
             className="absolute w-12 h-12 rounded-full border-2 border-emerald-400 bg-emerald-500/20 shadow-[0_0_20px_rgba(52,211,153,0.8)]"
           />
