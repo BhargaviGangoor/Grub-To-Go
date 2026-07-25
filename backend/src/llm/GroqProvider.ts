@@ -32,11 +32,12 @@ export class GroqProvider implements LLMProvider {
   private client: Groq;
   private model: string;
 
-  constructor() {
+  constructor(apiKey?: string, model?: string) {
+    const key = apiKey || config.groqApiKey || process.env.GROQ_API_KEY;
     this.client = new Groq({
-      apiKey: config.groqApiKey,
+      apiKey: key,
     });
-    this.model = config.groqModel;
+    this.model = model || config.groqModel;
   }
 
   /**
