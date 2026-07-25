@@ -2,6 +2,7 @@ import { Router } from "express";
 import { ChatController } from "../controllers/ChatController";
 import { ChatService } from "../services/ChatService";
 import { GroqProvider } from "../llm/GroqProvider";
+import { OpenRouterProvider } from "../llm/OpenRouterProvider";
 import { GeminiProvider } from "../llm/GeminiProvider";
 import { HuggingFaceLLMProvider } from "../llm/HuggingFaceLLMProvider";
 import { FallbackLLMProvider } from "../llm/FallbackLLMProvider";
@@ -20,6 +21,7 @@ import { config } from "../config";
  * Assembles the multi-API failover chain:
  *   FallbackLLMProvider
  *     ├── Primary Groq API Key (GROQ_API_KEY)
+ *     ├── OpenRouter AI API Key (OPENROUTER_API_KEY)
  *     ├── Secondary Groq API Key (GROQ_API_KEY_SECONDARY / GROQ_API_KEY_FALLBACK)
  *     ├── Google Gemini API Key (GEMINI_API_KEY)
  *     └── Hugging Face API Key (HF_TOKEN / HUGGINGFACE_API_KEY)
@@ -44,18 +46,23 @@ if (config.groqApiKey) {
   providers.push(new GroqProvider(config.groqApiKey));
 }
 
-// 2. Secondary Groq Key (if configured in environment)
+// 2. OpenRouter API Key (High capacity, low latency failover)
+if (config.openrouterApiKey || process.env.OPENROUTER_API_KEY) {
+  providers.push(new OpenRouterProvider(config.openrouterApiKey || process.env.OPENROUTER_API_KEY));
+}
+
+// 3. Secondary Groq Key (if configured in environment)
 const secondaryGroqKey = process.env.GROQ_API_KEY_SECONDARY || process.env.GROQ_API_KEY_FALLBACK;
 if (secondaryGroqKey) {
   providers.push(new GroqProvider(secondaryGroqKey));
 }
 
-// 3. Google Gemini Key (if configured in environment)
+// 4. Google Gemini Key (if configured in environment)
 if (config.geminiApiKey || process.env.GEMINI_API_KEY) {
   providers.push(new GeminiProvider(config.geminiApiKey || process.env.GEMINI_API_KEY));
 }
 
-// 4. Hugging Face Text Generation LLM Provider (if configured in environment)
+// 5. Hugging Face Text Generation LLM Provider (if configured in environment)
 const hfKey = process.env.HF_TOKEN || process.env.HUGGINGFACE_API_KEY;
 if (hfKey) {
   providers.push(new HuggingFaceLLMProvider(hfKey));

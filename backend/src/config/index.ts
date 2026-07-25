@@ -26,6 +26,16 @@ export const config = {
   groqApiKey: process.env.GROQ_API_KEY || "",
 
   /**
+   * OpenRouter API key for fallback multi-provider LLM chat.
+   */
+  openrouterApiKey: process.env.OPENROUTER_API_KEY || "",
+
+  /**
+   * OpenRouter model identifier.
+   */
+  openrouterModel: process.env.OPENROUTER_MODEL || "meta-llama/llama-3.3-70b-instruct",
+
+  /**
    * Gemini API key — used by the existing dish generation service (unchanged).
    */
   geminiApiKey: process.env.GEMINI_API_KEY || "",
