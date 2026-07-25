@@ -1,56 +1,52 @@
 import { getPantry, getDietaryRules } from "../services/db";
-import { InventoryCheckResult, MenuItemData, OrderConstraints } from "../types/agent.types";
+import { InventoryCheckResult, MenuItemData, OrderAuthorization } from "../types/agent.types";
 
 /**
  * InventoryTool
  *
- * Checks whether a dish's required ingredients are currently in stock,
- * and whether the live dietary rules still permit the dish for the given
- * dietary constraints.
- *
- * Reuses existing getPantry() and getDietaryRules() from services/db.ts.
- * No duplication of state logic.
+ * Checks physical inventory stock levels (pantry) and verifies
+ * live dietary rules against the user's immutable OrderAuthorization.
  */
 export class InventoryTool {
   /**
-   * Check if all ingredients of a dish are available (qty > 0).
-   * Also cross-checks live dietary rules against requested constraints.
+   * Check if all ingredients of a dish are available in pantry (qty > 0)
+   * and live dietary rules permit the dish for the given authorization.
    */
   async checkAvailability(
     dish: MenuItemData,
-    constraints: OrderConstraints
+    auth: OrderAuthorization
   ): Promise<InventoryCheckResult> {
-    console.log(`[InventoryTool] Checking availability for: ${dish.name}`);
+    console.log(`[InventoryTool] Auditing live inventory & dietary state for: ${dish.name}`);
 
     const pantry = await getPantry();
     const dietaryRules = await getDietaryRules();
 
     const outOfStock: string[] = [];
 
-    // 1. Check inventory quantity
+    // 1. Check physical ingredient inventory stock
     for (const ingredient of dish.ingredients) {
       const qty = pantry[ingredient] ?? 0;
       if (qty <= 0) {
-        outOfStock.push(ingredient);
-        console.log(`[InventoryTool] Out of stock: ${ingredient} (qty: ${qty})`);
+        outOfStock.push(`${ingredient} (stock: ${qty})`);
+        console.log(`[InventoryTool] Stockout detected: ${ingredient} (qty: ${qty})`);
       }
     }
 
-    // 2. Check live dietary rules (world-state may have drifted since menu was seeded)
-    if (constraints.dietary && constraints.dietary.length > 0) {
+    // 2. Check live dietary rules drift against authorization
+    if (auth.dietary && auth.dietary.length > 0) {
       for (const ingredient of dish.ingredients) {
         const liveRules = dietaryRules[ingredient] ?? [];
         const liveNormalized = liveRules.map((r: string) =>
           r.toLowerCase().replace("-", " ")
         );
 
-        for (const req of constraints.dietary) {
+        for (const req of auth.dietary) {
           const reqNormalized = req.toLowerCase().replace("-", " ");
           if (!liveNormalized.includes(reqNormalized)) {
-            const violation = `${ingredient} (live rules no longer allow ${req})`;
+            const violation = `${ingredient} (live rules no longer permit ${req})`;
             if (!outOfStock.includes(violation)) {
               outOfStock.push(violation);
-              console.log(`[InventoryTool] Dietary drift: ${violation}`);
+              console.log(`[InventoryTool] Dietary drift detected: ${violation}`);
             }
           }
         }
@@ -58,7 +54,11 @@ export class InventoryTool {
     }
 
     const available = outOfStock.length === 0;
-    console.log(`[InventoryTool] ${dish.name}: ${available ? "✓ Available" : `✗ Unavailable (${outOfStock.join(", ")})`}`);
+    console.log(
+      `[InventoryTool] ${dish.name}: ${
+        available ? "✓ Available" : `✗ Unavailable (${outOfStock.join("; ")})`
+      }`
+    );
 
     return { available, outOfStock };
   }

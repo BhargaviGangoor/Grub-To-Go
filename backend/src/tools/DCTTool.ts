@@ -1,11 +1,12 @@
 import { DCTService } from "../services/DCTService";
-import { MenuItemData, OrderConstraints, DCTGenerateResult, DCTValidateResult } from "../types/agent.types";
+import { MenuItemData, OrderAuthorization, DCTGenerateResult, DCTValidateResult } from "../types/agent.types";
 
 /**
  * DCTTool
  *
- * Thin wrapper over DCTService for use by PlannerAgent.
- * Converts MenuItemData + OrderConstraints into the DCTService input shape.
+ * Wraps DCTService for use by PlannerAgent during the autonomous ordering pipeline.
+ * Binds dish decisions and immutable OrderAuthorization to cryptographic GB-DCT tokens,
+ * supporting replan lineage tracking (generation count & previous token hash).
  */
 export class DCTTool {
   private dctService: DCTService;
@@ -15,13 +16,17 @@ export class DCTTool {
   }
 
   /**
-   * Generate a GB-DCT token for the selected dish, binding it to current world state.
+   * Generate a GB-DCT commitment token for the selected dish, binding it to world state.
    */
   async generate(
     dish: MenuItemData,
-    constraints: OrderConstraints
+    auth: OrderAuthorization,
+    replanCount: number = 0,
+    previousTokenHash?: string
   ): Promise<DCTGenerateResult> {
-    console.log(`[DCTTool] Generating GB-DCT token for: ${dish.name}`);
+    console.log(
+      `[DCTTool] Generating GB-DCT commitment (generation: ${replanCount}) for: ${dish.name}`
+    );
 
     const result = await this.dctService.generateToken(
       {
@@ -34,37 +39,47 @@ export class DCTTool {
         cuisine: dish.cuisine,
         description: dish.description,
         imageUrl: dish.imageUrl,
+        replanGeneration: replanCount,
+        previousTokenHash: previousTokenHash || null,
       },
       {
-        budget: constraints.maxBudget ?? dish.estimatedCost,
-        dietary: constraints.dietary ?? [],
+        budget: auth.maxBudget ?? dish.estimatedCost,
+        dietary: auth.dietary ?? [],
+        excludedIngredients: auth.excludedIngredients ?? [],
       }
     );
 
     console.log(`[DCTTool] Token generated: ${result.token.id}`);
-    return { tokenId: result.token.id, tokenObj: result.token };
+
+    return {
+      tokenId: result.token.id,
+      tokenObj: result.token,
+      generationLineage: {
+        generation: replanCount,
+        previousTokenHash,
+      },
+    };
   }
 
   /**
-   * Validate/redeem a GB-DCT token against current live world state.
-   * Uses gb-dct mode (block on drift) — appropriate for autonomous ordering.
+   * Validate/redeem a GB-DCT token against live world state.
    */
   async validate(tokenId: string): Promise<DCTValidateResult> {
-    console.log(`[DCTTool] Validating token: ${tokenId}`);
+    console.log(`[DCTTool] Validating commitment token: ${tokenId}`);
 
     const result = await this.dctService.redeemToken(tokenId, "gb-dct");
     if (!result) {
       return {
         success: false,
         outcome: "blocked",
-        driftsDetected: ["Token not found"],
+        driftsDetected: ["Token not found in database"],
         logs: ["Token lookup failed"],
       };
     }
 
-    console.log(`[DCTTool] Validation outcome: ${result.outcome}`);
+    console.log(`[DCTTool] Validation outcome for ${tokenId}: ${result.outcome}`);
     if (result.driftsDetected.length > 0) {
-      console.log(`[DCTTool] Drifts: ${result.driftsDetected.join("; ")}`);
+      console.log(`[DCTTool] Drifts detected: ${result.driftsDetected.join("; ")}`);
     }
 
     return {

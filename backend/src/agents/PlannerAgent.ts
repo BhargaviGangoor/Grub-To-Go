@@ -290,7 +290,7 @@ User message: "${userMessage.replace(/"/g, "'")}"`;
           candidate,
           dctResult.tokenId,
           constraints,
-          replanned
+          attempt
         );
         console.log(`[OrderTool] Order created: ${order._id}`);
         steps.push({

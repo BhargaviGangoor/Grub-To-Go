@@ -1,63 +1,83 @@
 import { MenuItemModel } from "../models/MenuItem";
-import { MenuItemData, OrderConstraints } from "../types/agent.types";
+import { MenuItemData, OrderAuthorization } from "../types/agent.types";
 
 /**
  * MenuTool
  *
- * Queries REAL dish data from the MongoDB MenuItem collection.
- * The LLM never invents dishes — this is the single source of truth.
+ * Deterministic tool for querying dish data from the MongoDB MenuItem collection.
+ * The LLM never invents dishes — MongoDB is the single source of truth.
  *
- * Filtering is deterministic:
+ * Filtering rules:
  *  1. Budget: estimatedCost <= maxBudget
  *  2. Dietary: dish.dietary must include ALL requested dietary tags
- *  3. Spice level: exact match if specified
- *  4. Cuisine: case-insensitive match if specified ("Any" matches all)
+ *  3. Excluded ingredients: dish.ingredients must NOT contain any excluded ingredient
+ *  4. Spice level: exact match if specified (non-Medium)
+ *  5. Cuisine: case-insensitive match if specified
+ *  6. Attempted dishes: excludes any dish ID in attemptedDishIds (for replanning)
  */
 export class MenuTool {
   /**
-   * Find menu candidates matching the given constraints.
-   * Returns all matching dishes — caller (PlannerAgent) handles ranking.
+   * Find candidate dishes matching the user's immutable authorization.
    */
-  async findCandidates(constraints: OrderConstraints): Promise<MenuItemData[]> {
-    console.log("[MenuTool] Searching menu catalog with constraints:", JSON.stringify(constraints));
+  async findCandidates(
+    auth: OrderAuthorization,
+    attemptedDishIds: string[] = []
+  ): Promise<MenuItemData[]> {
+    console.log("[MenuTool] Searching catalog with authorization:", JSON.stringify(auth));
+    if (attemptedDishIds.length > 0) {
+      console.log(`[MenuTool] Excluding attempted dish IDs: [${attemptedDishIds.join(", ")}]`);
+    }
 
-    // Start with all menu items
+    // Query all items from MongoDB
     const allItems = await MenuItemModel.find().lean();
 
     const candidates = allItems.filter((item) => {
+      // 0. Exclude previously attempted dishes
+      if (attemptedDishIds.includes(item.id)) return false;
+
       // 1. Budget filter
-      if (constraints.maxBudget !== undefined) {
-        if (item.estimatedCost > constraints.maxBudget) return false;
+      if (auth.maxBudget !== undefined && auth.maxBudget !== null) {
+        if (item.estimatedCost > auth.maxBudget) return false;
       }
 
       // 2. Dietary filter — all requested tags must be present in dish dietary[]
-      if (constraints.dietary && constraints.dietary.length > 0) {
+      if (auth.dietary && auth.dietary.length > 0) {
         const dishDietaryNormalized = item.dietary.map((d: string) =>
           d.toLowerCase().replace("-", " ")
         );
-        const allSatisfied = constraints.dietary.every((req) => {
+        const allSatisfied = auth.dietary.every((req) => {
           const reqNormalized = req.toLowerCase().replace("-", " ");
           return dishDietaryNormalized.includes(reqNormalized);
         });
         if (!allSatisfied) return false;
       }
 
-      // 3. Spice level filter (exact match if specified)
-      if (constraints.spiceLevel && constraints.spiceLevel !== "Medium") {
-        if (item.spiceLevel !== constraints.spiceLevel) return false;
+      // 3. Excluded ingredients filter
+      if (auth.excludedIngredients && auth.excludedIngredients.length > 0) {
+        const itemIngredientsLower = item.ingredients.map((ing: string) => ing.toLowerCase());
+        for (const excluded of auth.excludedIngredients) {
+          const excludedLower = excluded.toLowerCase();
+          if (itemIngredientsLower.some((ing) => ing.includes(excludedLower) || excludedLower.includes(ing))) {
+            return false;
+          }
+        }
       }
 
-      // 4. Cuisine filter (skip if "Any")
-      if (constraints.cuisine && constraints.cuisine.toLowerCase() !== "any") {
-        if (item.cuisine.toLowerCase() !== constraints.cuisine.toLowerCase()) {
-          // Also allow "Any" cuisine dishes to match all cuisine requests
+      // 4. Spice level filter
+      if (auth.spiceLevel && auth.spiceLevel !== "Medium") {
+        if (item.spiceLevel !== auth.spiceLevel) return false;
+      }
+
+      // 5. Cuisine filter
+      if (auth.cuisine && auth.cuisine.toLowerCase() !== "any") {
+        if (item.cuisine.toLowerCase() !== auth.cuisine.toLowerCase()) {
           if (item.cuisine !== "Any") return false;
         }
       }
 
-      // 5. Dish name keyword query filter
-      if (constraints.dishNameQuery) {
-        const query = constraints.dishNameQuery.toLowerCase().trim();
+      // 6. Dish name keyword query filter
+      if (auth.dishNameQuery) {
+        const query = auth.dishNameQuery.toLowerCase().trim();
         const itemName = item.name.toLowerCase();
         const matches = itemName.includes(query) || query.includes(itemName);
         if (!matches) return false;
@@ -66,9 +86,8 @@ export class MenuTool {
       return true;
     });
 
-    console.log(`[MenuTool] Found ${candidates.length} matching candidate(s)`);
+    console.log(`[MenuTool] Found ${candidates.length} candidate(s) matching authorization`);
 
-    // Return mapped to MenuItemData shape
     return candidates.map((item) => ({
       id: item.id,
       name: item.name,

@@ -1,26 +1,25 @@
 import { OrderModel, OrderDocument } from "../models/Order";
-import { MenuItemData, OrderConstraints } from "../types/agent.types";
+import { MenuItemData, OrderAuthorization } from "../types/agent.types";
 
 /**
  * OrderTool
  *
  * Creates and persists a simulated food order to MongoDB.
- * Only called AFTER DCT validation succeeds — never claims success otherwise.
+ * Only called AFTER explicit GB-DCT validation succeeds — never claims success otherwise.
  */
 export class OrderTool {
   /**
    * Persist a simulated order to MongoDB.
-   * Returns the created order document.
-   *
-   * Never creates an order unless MongoDB write completes successfully.
    */
   async createOrder(
     dish: MenuItemData,
     dctTokenId: string,
-    constraints: OrderConstraints,
-    replanned: boolean = false
+    auth: OrderAuthorization,
+    replanCount: number = 0
   ): Promise<OrderDocument> {
-    console.log(`[OrderTool] Creating order for: ${dish.name} (₹${dish.estimatedCost})`);
+    console.log(
+      `[OrderTool] Creating order for: ${dish.name} (₹${dish.estimatedCost}) with token ${dctTokenId}`
+    );
 
     const order = await OrderModel.create({
       dishId: dish.id,
@@ -30,16 +29,18 @@ export class OrderTool {
       dctTokenId,
       agentGenerated: true,
       constraints: {
-        maxBudget: constraints.maxBudget,
-        dietary: constraints.dietary ?? [],
-        spiceLevel: constraints.spiceLevel,
-        cuisine: constraints.cuisine,
+        maxBudget: auth.maxBudget,
+        dietary: auth.dietary ?? [],
+        excludedIngredients: auth.excludedIngredients ?? [],
+        spiceLevel: auth.spiceLevel,
+        cuisine: auth.cuisine,
       },
-      replanned,
+      replanned: replanCount > 0,
+      replanCount,
       createdAt: new Date(),
     });
 
-    console.log(`[OrderTool] Order created: ${order._id} for ${dish.name}`);
+    console.log(`[OrderTool] Order successfully persisted to MongoDB: ${order._id}`);
     return order;
   }
 }
