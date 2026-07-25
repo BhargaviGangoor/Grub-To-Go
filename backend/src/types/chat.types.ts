@@ -35,6 +35,7 @@ export interface ChatResponse {
   dish?: any;
   dctTokenId?: string;
   orderId?: string;
+  orderTicket?: any;
 }
 
 /**
