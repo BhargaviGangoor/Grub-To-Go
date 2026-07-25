@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Utensils, CheckCircle2, ShieldCheck, Search, PackageCheck } from "lucide-react";
+import { Sparkles, Utensils } from "lucide-react";
 import { triggerDecisionToast } from "@/components/OrderSuccessToast";
 
 export interface AgentStepPayload {
@@ -29,8 +29,9 @@ export interface DisplayStep {
   title: string;
   detail: string;
   targetScreen?: string;
-  xPercent: number;
-  yPercent: number;
+  targetQuery?: string;    // DOM query selector e.g. [data-dish-name="Ratatouille"]
+  fallbackX: number;
+  fallbackY: number;
   actionLabel: string;
 }
 
@@ -61,133 +62,66 @@ export function AgentGhostOverlay({
 
       const dishName = detail.dishName || "Selected Bistro Dish";
       const price = detail.price ? `₹${detail.price}` : "";
-      const rawAgentSteps = detail.steps || [];
 
-      // ── Build DISTINCT, HIGHLY VISIBLE screen trajectory positions ──
-      const stepsToRun: DisplayStep[] = [];
-
-      if (rawAgentSteps.length > 0) {
-        rawAgentSteps.forEach((step, idx) => {
-          const title = (step.title || "").toUpperCase();
-          const detailStr = step.detail || step.thought || "Processing step...";
-
-          if (title.includes("INTENT") || title.includes("REASON") || idx === 0) {
-            stepsToRun.push({
-              title: `🎯 Step ${idx + 1}: ${step.title || "Intent & Constraints"}`,
-              detail: `Freezing hard authorization gates (Budget, Dietary)`,
-              targetScreen: "assistant",
-              xPercent: 78,
-              yPercent: 82,
-              actionLabel: "Analyzing natural language intent & freezing rules...",
-            });
-          } else if (title.includes("MENU") || title.includes("SEARCH") || title.includes("CATALOG")) {
-            stepsToRun.push({
-              title: `🔍 Step ${idx + 1}: ${step.title || "Menu Search"}`,
-              detail: `Filtering 28-dish bistro catalog for ${dishName}`,
-              targetScreen: "menu",
-              xPercent: 46,
-              yPercent: 6, // Navigates to Header MENU tab!
-              actionLabel: "Navigating to MENU catalog & searching items...",
-            });
-          } else if (title.includes("SELECT") || title.includes("POLICY") || title.includes("GATE")) {
-            stepsToRun.push({
-              title: `🍽️ Step ${idx + 1}: ${step.title || "Candidate Selection"}`,
-              detail: `Targeting top candidate: ${dishName} (${price})`,
-              targetScreen: "menu",
-              xPercent: 32,
-              yPercent: 42, // Moves directly over Dish Card!
-              actionLabel: `Selecting candidate dish: ${dishName}...`,
-            });
-          } else if (title.includes("INVENTORY") || title.includes("STOCK") || title.includes("AUDIT")) {
-            stepsToRun.push({
-              title: `📦 Step ${idx + 1}: ${step.title || "Inventory Audit"}`,
-              detail: `Auditing pantry stock & ingredient rules for ${dishName}`,
-              targetScreen: "menu",
-              xPercent: 65,
-              yPercent: 46, // Moves to Ingredients & Pantry Stock badge!
-              actionLabel: `Verifying pantry stock for ${dishName}...`,
-            });
-          } else if (title.includes("DCT") || title.includes("COMMITMENT") || title.includes("TOKEN")) {
-            stepsToRun.push({
-              title: `🛡️ Step ${idx + 1}: ${step.title || "GB-DCT Signing"}`,
-              detail: detail.dctTokenId ? `Token Hash: ${detail.dctTokenId}` : "Attesting cryptographic lease",
-              targetScreen: "menu",
-              xPercent: 48,
-              yPercent: 62, // Moves to GB-DCT Security Seal badge!
-              actionLabel: "Signing dynamic GB-DCT commitment lease...",
-            });
-          } else if (title.includes("ORDER") || title.includes("EXECUTION") || title.includes("PERSIST")) {
-            stepsToRun.push({
-              title: `🛒 Step ${idx + 1}: ${step.title || "Order Ticket"}`,
-              detail: detail.orderId ? `Persisted Order #${detail.orderId.slice(-6)}` : "Finalizing order execution",
-              targetScreen: "menu",
-              xPercent: 50,
-              yPercent: 50, // Center Screen!
-              actionLabel: "Persisting order ticket to database...",
-            });
-          }
-        });
-      }
-
-      // If no steps matched, fallback to 5 distinct trajectory positions across viewport
-      if (stepsToRun.length === 0) {
-        stepsToRun.push(
-          {
-            title: "🎯 Step 1: Intent & Constraint Extraction",
-            detail: "Parsed user input: ORDER_FOOD",
-            targetScreen: "assistant",
-            xPercent: 78,
-            yPercent: 82,
-            actionLabel: "Analyzing natural language intent...",
-          },
-          {
-            title: "🔍 Step 2: Menu Catalog Search",
-            detail: `Filtering catalog for top match: ${dishName}`,
-            targetScreen: "menu",
-            xPercent: 46,
-            yPercent: 6,
-            actionLabel: "Navigating to MENU catalog...",
-          },
-          {
-            title: `🍽️ Step 3: Dish Selection (${dishName})`,
-            detail: `Targeting candidate: ${dishName} ${price}`,
-            targetScreen: "menu",
-            xPercent: 32,
-            yPercent: 42,
-            actionLabel: `Targeting dish: ${dishName}...`,
-          },
-          {
-            title: "📦 Step 4: Live Inventory Audit",
-            detail: `Verifying pantry ingredients for ${dishName}`,
-            targetScreen: "menu",
-            xPercent: 65,
-            yPercent: 46,
-            actionLabel: "Auditing live stock & ingredients...",
-          },
-          {
-            title: "🛡️ Step 5: GB-DCT Token Signing",
-            detail: detail.dctTokenId ? `Token: ${detail.dctTokenId}` : "Attesting GB-DCT lease",
-            targetScreen: "menu",
-            xPercent: 48,
-            yPercent: 62,
-            actionLabel: "Signing cryptographic commitment...",
-          },
-          {
-            title: "🛒 Step 6: Order Ticket Persistence",
-            detail: detail.orderId ? `Saved Order #${detail.orderId.slice(-6)}` : "Order created",
-            targetScreen: "menu",
-            xPercent: 50,
-            yPercent: 50,
-            actionLabel: "Persisting order to MongoDB...",
-          }
-        );
-      }
+      // Construct dynamic interactive steps targeting real DOM elements
+      const stepsToRun: DisplayStep[] = [
+        {
+          title: "🎯 Step 1: Intent & Constraint Extraction",
+          detail: "Parsed user input: ORDER_FOOD (Budget & Dietary constraints frozen)",
+          targetScreen: "assistant",
+          fallbackX: 78,
+          fallbackY: 80,
+          actionLabel: "Analyzing natural language intent...",
+        },
+        {
+          title: `🔍 Step 2: Menu Catalog Search`,
+          detail: `Searching 28-dish catalog for top match: ${dishName}`,
+          targetScreen: "menu",
+          fallbackX: 46,
+          fallbackY: 6,
+          actionLabel: "Navigating to MENU catalog...",
+        },
+        {
+          title: `🍽️ Step 3: Target & Select Dish (${dishName})`,
+          detail: `Targeted candidate card: ${dishName} (${price})`,
+          targetScreen: "menu",
+          targetQuery: `[data-dish-name="${dishName}"]`,
+          fallbackX: 35,
+          fallbackY: 45,
+          actionLabel: `Selecting dish: ${dishName}...`,
+        },
+        {
+          title: `📦 Step 4: Live Inventory & Pantry Audit`,
+          detail: `Verifying pantry stock & dietary rules for ${dishName}`,
+          targetScreen: "menu",
+          targetQuery: `[data-dish-name="${dishName}"]`,
+          fallbackX: 62,
+          fallbackY: 48,
+          actionLabel: `Auditing stock for ${dishName}...`,
+        },
+        {
+          title: `🛡️ Step 5: GB-DCT Token Attestation`,
+          detail: detail.dctTokenId ? `Generated Token Hash: ${detail.dctTokenId}` : "Attesting GB-DCT token lease",
+          targetScreen: "research",
+          fallbackX: 50,
+          fallbackY: 55,
+          actionLabel: "Navigating to RESEARCH & signing GB-DCT token...",
+        },
+        {
+          title: `🛒 Step 6: Order Execution & Confirmation`,
+          detail: detail.orderId ? `Persisted Order #${detail.orderId.slice(-6)} to MongoDB` : "Order created",
+          targetScreen: "menu",
+          fallbackX: 50,
+          fallbackY: 50,
+          actionLabel: "Persisting order ticket to database...",
+        },
+      ];
 
       setActiveSteps(stepsToRun);
       setIsActive(true);
       setCurrentStep(0);
 
-      // Start movement sequence
+      // Execute sequence
       runStepSequence(stepsToRun, 0, detail);
     };
 
@@ -224,28 +158,46 @@ export function AgentGhostOverlay({
       onNavigateScreen(step.targetScreen);
     }
 
-    // 2. Calculate dynamic screen pixel position
-    const targetX = (window.innerWidth * step.xPercent) / 100;
-    const targetY = (window.innerHeight * step.yPercent) / 100;
-
-    // 3. Move cursor to target position
-    setCursorPos({ x: targetX, y: targetY });
-
-    // 4. Trigger Click & Pause for smooth visibility
+    // 2. Query actual DOM element or fallback to percentage position
     setTimeout(() => {
-      setClickRipple({ x: targetX, y: targetY, id: Date.now() });
+      let targetX = (window.innerWidth * step.fallbackX) / 100;
+      let targetY = (window.innerHeight * step.fallbackY) / 100;
 
+      if (step.targetQuery) {
+        const el = document.querySelector(step.targetQuery);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          const rect = el.getBoundingClientRect();
+          targetX = rect.left + rect.width / 2;
+          targetY = rect.top + rect.height / 2;
+
+          // Highlight target DOM card with glowing ring
+          el.classList.add("ring-4", "ring-emerald-400", "shadow-[0_0_30px_rgba(16,185,129,0.8)]");
+          setTimeout(() => {
+            el.classList.remove("ring-4", "ring-emerald-400", "shadow-[0_0_30px_rgba(16,185,129,0.8)]");
+          }, 2000);
+        }
+      }
+
+      // 3. Move cursor to calculated pixel coordinates
+      setCursorPos({ x: targetX, y: targetY });
+
+      // 4. Trigger Click & Pause for high visibility
       setTimeout(() => {
-        runStepSequence(steps, stepIndex + 1, detail);
-      }, 1200); // 1.2s pause per step for high visibility!
-    }, 700);
+        setClickRipple({ x: targetX, y: targetY, id: Date.now() });
+
+        setTimeout(() => {
+          runStepSequence(steps, stepIndex + 1, detail);
+        }, 1200);
+      }, 700);
+    }, 300);
   };
 
   if (!isActive) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-      {/* Dimmed backdrop overlay highlighting agent activity */}
+      {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.2 }}
@@ -253,7 +205,7 @@ export function AgentGhostOverlay({
         className="absolute inset-0 bg-emerald-950/40 backdrop-blur-[1.5px]"
       />
 
-      {/* Top Banner indicating Agent Operations */}
+      {/* Top Banner */}
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -261,12 +213,12 @@ export function AgentGhostOverlay({
       >
         <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
         <Sparkles className="w-4 h-4 text-emerald-400" />
-        <span className="font-extrabold text-emerald-300">PlannerAgent Autonomous Loop Active</span>
+        <span className="font-extrabold text-emerald-300">PlannerAgent Active</span>
         <span className="text-stone-500">|</span>
         <span className="text-stone-200 font-semibold">{statusText}</span>
       </motion.div>
 
-      {/* Click Ripple Effect on Arrival */}
+      {/* Click Ripple Effect */}
       <AnimatePresence>
         {clickRipple && (
           <motion.div
@@ -274,19 +226,19 @@ export function AgentGhostOverlay({
             initial={{ scale: 0.2, opacity: 0.95 }}
             animate={{ scale: 3, opacity: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             style={{ left: clickRipple.x - 24, top: clickRipple.y - 24 }}
             className="absolute w-12 h-12 rounded-full border-2 border-emerald-400 bg-emerald-400/30 shadow-[0_0_30px_rgba(52,211,153,0.9)] z-40"
           />
         )}
       </AnimatePresence>
 
-      {/* Moving Agent Ghost Cursor Pointer across Viewport */}
+      {/* Moving Agent Ghost Cursor Pointer */}
       <motion.div
         animate={{ x: cursorPos.x, y: cursorPos.y }}
         transition={{
           type: "spring",
-          stiffness: 90,   // Smooth physical movement across screen
+          stiffness: 90,
           damping: 15,
           mass: 0.9,
         }}
