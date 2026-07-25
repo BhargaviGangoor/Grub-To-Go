@@ -10,8 +10,9 @@ export function useAgentEventStream(runId: string | null) {
   useEffect(() => {
     if (!runId) return;
 
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
     const eventSource = new EventSource(
-      `http://localhost:3001/api/agent/runs/${runId}/events`
+      `${backendUrl}/api/agent/runs/${runId}/events`
     );
 
     eventSource.onmessage = (event) => {

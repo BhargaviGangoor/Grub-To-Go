@@ -62,17 +62,25 @@ export function AgentGhostOverlay({
   }, []);
 
   useEffect(() => {
-    if (!isActive || events.length === 0 || isProcessingRef.current) return;
+    if (!isActive || events.length === 0) return;
 
-    if (processedEventIndexRef.current < events.length) {
-      const nextEvent = events[processedEventIndexRef.current];
-      processedEventIndexRef.current += 1;
-      processLiveEvent(nextEvent);
-    }
+    const drainQueue = async () => {
+      if (isProcessingRef.current) return;
+      isProcessingRef.current = true;
+
+      while (processedEventIndexRef.current < events.length) {
+        const nextEvent = events[processedEventIndexRef.current];
+        processedEventIndexRef.current += 1;
+        await processLiveEvent(nextEvent);
+      }
+
+      isProcessingRef.current = false;
+    };
+
+    drainQueue();
   }, [events, isActive]);
 
   const processLiveEvent = async (event: AgentUIEvent) => {
-    isProcessingRef.current = true;
     setStepCounter((prev) => prev + 1);
 
     switch (event.type) {
@@ -224,8 +232,6 @@ export function AgentGhostOverlay({
         break;
       }
     }
-
-    isProcessingRef.current = false;
   };
 
   const highlightAndTargetElement = async (selector: string, fallbackX: number, fallbackY: number) => {
