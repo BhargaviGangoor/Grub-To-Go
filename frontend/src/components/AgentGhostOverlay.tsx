@@ -9,6 +9,7 @@ import { useAgentEventStream } from "@/hooks/useAgentEventStream";
 
 export interface AutomationPayload {
   runId?: string;
+  steps?: any[];
   dishName?: string;
   price?: number;
   imageUrl?: string;
