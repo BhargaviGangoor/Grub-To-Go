@@ -19,6 +19,7 @@ import DietaryFilters from "@/components/DietaryFilters";
 import DishCard from "@/components/DishCard";
 import AppBackdrop from "@/components/AppBackdrop";
 import { AgentGhostOverlay } from "@/components/AgentGhostOverlay";
+import { OrderSuccessToast } from "@/components/OrderSuccessToast";
 
 type Screen =
   | "home"
@@ -1052,6 +1053,7 @@ export default function FrontendShell() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f4f1ea] text-[#1d3a2b]">
+      <OrderSuccessToast />
       <AgentGhostOverlay onNavigateScreen={handleNavigate} />
       <AppBackdrop screen={screen} />
       <div className="relative z-10">
