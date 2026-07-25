@@ -94,9 +94,6 @@ export function useChat(): UseChatReturn {
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
-    // Trigger visual agent screen automation cursor movement
-    triggerAgentAutomation();
-
     try {
       // 2. Call the backend
       const res = await sendChatMessage(content.trim());
@@ -115,6 +112,17 @@ export function useChat(): UseChatReturn {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
+      // 4. Trigger Interactive Ghost Automation & Floating Success Pop-up Toast!
+      if (res.dish) {
+        triggerAgentAutomation({
+          dishName: res.dish.name,
+          price: res.dish.estimatedCost,
+          imageUrl: res.dish.imageUrl,
+          dctTokenId: res.dctTokenId,
+          orderId: res.orderId,
+          dietary: res.dish.dietary,
+        });
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Something went wrong. Please try again.";
