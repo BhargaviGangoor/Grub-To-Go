@@ -42,11 +42,18 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       timestamp: new Date(),
     };
 
+    const runId = `run_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
+    // Trigger live SSE stream listener on AgentGhostOverlay
+    triggerAgentAutomation({
+      runId,
+    });
+
     try {
-      const res = await sendChatMessage(userMsgText);
+      const res = await sendChatMessage(userMsgText, runId);
 
       const assistantMessage: Message = {
         id: generateId(),
@@ -60,18 +67,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-
-      if (res.dish) {
-        triggerAgentAutomation({
-          steps: res.agentSteps,
-          dishName: res.dish.name,
-          price: res.dish.estimatedCost,
-          imageUrl: res.dish.imageUrl,
-          dctTokenId: res.dctTokenId,
-          orderId: res.orderId,
-          dietary: res.dish.dietary,
-        });
-      }
     } catch (err) {
       const errorBubble: Message = {
         id: generateId(),

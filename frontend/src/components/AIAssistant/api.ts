@@ -29,6 +29,7 @@ const BACKEND_URL =
 import { AgentStep } from "./types";
 
 export interface ChatApiResponse {
+  runId?: string;
   reply: string;
   agentSteps?: AgentStep[];
   dish?: any;
@@ -39,13 +40,16 @@ export interface ChatApiResponse {
 /**
  * Send a message to the AI assistant and receive structured response.
  */
-export async function sendChatMessage(message: string): Promise<ChatApiResponse> {
+export async function sendChatMessage(
+  message: string,
+  runId?: string
+): Promise<ChatApiResponse> {
   const response = await fetch(`${BACKEND_URL}/api/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message, runId }),
   });
 
   if (!response.ok) {
@@ -66,6 +70,7 @@ export async function sendChatMessage(message: string): Promise<ChatApiResponse>
   }
 
   return {
+    runId: data.runId,
     reply: data.reply,
     agentSteps: data.agentSteps,
     dish: data.dish,

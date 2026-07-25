@@ -1,38 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Utensils } from "lucide-react";
 import { triggerDecisionToast } from "@/components/OrderSuccessToast";
-
-export interface AgentStepPayload {
-  stepIndex?: number;
-  action?: string;
-  thought?: string;
-  tool?: string;
-  result?: string;
-  title?: string;
-  detail?: string;
-}
+import { AgentUIEvent } from "@/types/AgentUIEvent";
+import { useAgentEventStream } from "@/hooks/useAgentEventStream";
 
 export interface AutomationPayload {
-  steps?: AgentStepPayload[];
+  runId?: string;
   dishName?: string;
   price?: number;
   imageUrl?: string;
   dctTokenId?: string;
   orderId?: string;
   dietary?: string[];
-}
-
-export interface DisplayStep {
-  title: string;
-  detail: string;
-  targetScreen?: string;
-  targetQuery?: string;    // DOM query selector e.g. [data-dish-name="Ratatouille"]
-  fallbackX: number;
-  fallbackY: number;
-  actionLabel: string;
 }
 
 export function triggerAgentAutomation(payload?: AutomationPayload) {
@@ -48,150 +30,241 @@ export function AgentGhostOverlay({
 }: {
   onNavigateScreen?: (screen: string) => void;
 }) {
+  const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
   const [cursorPos, setCursorPos] = useState({ x: 800, y: 700 });
   const [clickRipple, setClickRipple] = useState<{ x: number; y: number; id: number } | null>(null);
   const [statusText, setStatusText] = useState("");
-  const [activeSteps, setActiveSteps] = useState<DisplayStep[]>([]);
+  const [currentStepTitle, setCurrentStepTitle] = useState("");
+  const [currentStepDetail, setCurrentStepDetail] = useState("");
+  const [stepCounter, setStepCounter] = useState(1);
+
+  const { events } = useAgentEventStream(activeRunId);
+  const processedEventIndexRef = useRef(0);
+  const isProcessingRef = useRef(false);
 
   useEffect(() => {
     const handleStart = (e: Event) => {
       const customEvent = e as CustomEvent<AutomationPayload>;
       const detail = customEvent.detail || {};
-
-      const dishName = detail.dishName || "Selected Bistro Dish";
-      const price = detail.price ? `₹${detail.price}` : "";
-
-      // Construct dynamic interactive steps targeting real DOM elements
-      const stepsToRun: DisplayStep[] = [
-        {
-          title: "🎯 Step 1: Intent & Constraint Extraction",
-          detail: "Parsed user input: ORDER_FOOD (Budget & Dietary constraints frozen)",
-          targetScreen: "assistant",
-          fallbackX: 78,
-          fallbackY: 80,
-          actionLabel: "Analyzing natural language intent...",
-        },
-        {
-          title: `🔍 Step 2: Menu Catalog Search`,
-          detail: `Searching 28-dish catalog for top match: ${dishName}`,
-          targetScreen: "menu",
-          fallbackX: 46,
-          fallbackY: 6,
-          actionLabel: "Navigating to MENU catalog...",
-        },
-        {
-          title: `🍽️ Step 3: Target & Select Dish (${dishName})`,
-          detail: `Targeted candidate card: ${dishName} (${price})`,
-          targetScreen: "menu",
-          targetQuery: `[data-dish-name="${dishName}"]`,
-          fallbackX: 35,
-          fallbackY: 45,
-          actionLabel: `Selecting dish: ${dishName}...`,
-        },
-        {
-          title: `📦 Step 4: Live Inventory & Pantry Audit`,
-          detail: `Verifying pantry stock & dietary rules for ${dishName}`,
-          targetScreen: "menu",
-          targetQuery: `[data-dish-name="${dishName}"]`,
-          fallbackX: 62,
-          fallbackY: 48,
-          actionLabel: `Auditing stock for ${dishName}...`,
-        },
-        {
-          title: `🛡️ Step 5: GB-DCT Token Attestation`,
-          detail: detail.dctTokenId ? `Generated Token Hash: ${detail.dctTokenId}` : "Attesting GB-DCT token lease",
-          targetScreen: "research",
-          fallbackX: 50,
-          fallbackY: 55,
-          actionLabel: "Navigating to RESEARCH & signing GB-DCT token...",
-        },
-        {
-          title: `🛒 Step 6: Order Execution & Confirmation`,
-          detail: detail.orderId ? `Persisted Order #${detail.orderId.slice(-6)} to MongoDB` : "Order created",
-          targetScreen: "menu",
-          fallbackX: 50,
-          fallbackY: 50,
-          actionLabel: "Persisting order ticket to database...",
-        },
-      ];
-
-      setActiveSteps(stepsToRun);
-      setIsActive(true);
-      setCurrentStep(0);
-
-      // Execute sequence
-      runStepSequence(stepsToRun, 0, detail);
+      if (detail.runId) {
+        setActiveRunId(detail.runId);
+        setIsActive(true);
+        processedEventIndexRef.current = 0;
+        setStepCounter(1);
+        setStatusText("Connecting to live agent stream...");
+      }
     };
 
     window.addEventListener("start-agent-automation", handleStart);
     return () => window.removeEventListener("start-agent-automation", handleStart);
-  }, [onNavigateScreen]);
+  }, []);
 
-  const runStepSequence = (steps: DisplayStep[], stepIndex: number, detail: AutomationPayload) => {
-    if (stepIndex >= steps.length) {
-      // Completed sequence — trigger centered success toast!
-      setTimeout(() => {
-        setIsActive(false);
+  useEffect(() => {
+    if (!isActive || events.length === 0 || isProcessingRef.current) return;
 
-        if (detail.dishName && detail.price) {
-          triggerDecisionToast({
-            dishName: detail.dishName,
-            price: detail.price,
-            imageUrl: detail.imageUrl,
-            dctTokenId: detail.dctTokenId,
-            orderId: detail.orderId,
-            dietary: detail.dietary,
-          });
-        }
-      }, 400);
-      return;
+    if (processedEventIndexRef.current < events.length) {
+      const nextEvent = events[processedEventIndexRef.current];
+      processedEventIndexRef.current += 1;
+      processLiveEvent(nextEvent);
     }
+  }, [events, isActive]);
 
-    const step = steps[stepIndex];
-    setCurrentStep(stepIndex);
-    setStatusText(step.actionLabel);
+  const processLiveEvent = async (event: AgentUIEvent) => {
+    isProcessingRef.current = true;
+    setStepCounter((prev) => prev + 1);
 
-    // 1. Switch Screen Tab if required by step
-    if (step.targetScreen && onNavigateScreen) {
-      onNavigateScreen(step.targetScreen);
-    }
-
-    // 2. Query actual DOM element or fallback to percentage position
-    setTimeout(() => {
-      let targetX = (window.innerWidth * step.fallbackX) / 100;
-      let targetY = (window.innerHeight * step.fallbackY) / 100;
-
-      if (step.targetQuery) {
-        const el = document.querySelector(step.targetQuery);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-          const rect = el.getBoundingClientRect();
-          targetX = rect.left + rect.width / 2;
-          targetY = rect.top + rect.height / 2;
-
-          // Highlight target DOM card with glowing ring
-          el.classList.add("ring-4", "ring-emerald-400", "shadow-[0_0_30px_rgba(16,185,129,0.8)]");
-          setTimeout(() => {
-            el.classList.remove("ring-4", "ring-emerald-400", "shadow-[0_0_30px_rgba(16,185,129,0.8)]");
-          }, 2000);
-        }
+    switch (event.type) {
+      case "AGENT_STARTED": {
+        setStatusText("PlannerAgent initialized");
+        setCurrentStepTitle("🎯 Step 1: Goal Analysis");
+        setCurrentStepDetail(`Analyzing user goal: "${event.goal || 'Order Request'}"`);
+        if (onNavigateScreen) onNavigateScreen("assistant");
+        await moveAndClick(window.innerWidth * 0.75, window.innerHeight * 0.8, 600);
+        break;
       }
 
-      // 3. Move cursor to calculated pixel coordinates
-      setCursorPos({ x: targetX, y: targetY });
+      case "SEARCH_MENU": {
+        setStatusText("Navigating catalog...");
+        setCurrentStepTitle("🔍 Step 2: Menu Search");
+        setCurrentStepDetail("Searching 28-dish authentic Parisian menu catalog");
+        if (onNavigateScreen) onNavigateScreen("menu");
+        await moveAndClick(window.innerWidth * 0.45, window.innerHeight * 0.2, 700);
+        break;
+      }
 
-      // 4. Trigger Click & Pause for high visibility
-      setTimeout(() => {
-        setClickRipple({ x: targetX, y: targetY, id: Date.now() });
+      case "MENU_RESULTS": {
+        setStatusText(`Found ${event.count} candidates`);
+        setCurrentStepTitle("📊 Candidate Pool");
+        setCurrentStepDetail(`Identified ${event.count} semantically eligible candidates`);
+        await delay(500);
+        break;
+      }
 
-        setTimeout(() => {
-          runStepSequence(steps, stepIndex + 1, detail);
-        }, 1200);
-      }, 700);
-    }, 300);
+      case "SELECT_DISH": {
+        const dishName = event.dishName || "Selected Dish";
+        setStatusText(`Targeting ${dishName}...`);
+        setCurrentStepTitle(`🍽️ Target Candidate: ${dishName}`);
+        setCurrentStepDetail(`Selected candidate: ${dishName} (${event.price ? `₹${event.price}` : ''})`);
+        if (onNavigateScreen) onNavigateScreen("menu");
+
+        const selector = event.dishId ? `[data-dish-id="${event.dishId}"]` : `[data-dish-name="${dishName}"]`;
+        await highlightAndTargetElement(selector, window.innerWidth * 0.35, window.innerHeight * 0.45);
+        break;
+      }
+
+      case "CHECK_INVENTORY": {
+        const dishName = event.dishName || "Dish";
+        setStatusText(`Auditing pantry for ${dishName}...`);
+        setCurrentStepTitle("📦 Live Pantry Audit");
+        setCurrentStepDetail(`Verifying pantry stock & dietary rules for ${dishName}`);
+        await delay(600);
+        break;
+      }
+
+      case "INVENTORY_RESULT": {
+        const dishName = event.dishName || "Dish";
+        if (event.available) {
+          setStatusText(`Stock verified for ${dishName}`);
+          setCurrentStepTitle("✓ Stock Confirmed");
+          setCurrentStepDetail(`All ingredients for ${dishName} available in kitchen`);
+        } else {
+          setStatusText(`Unavailable: ${event.reasonCode || 'Out of stock'}`);
+          setCurrentStepTitle("✗ Stockout Detected");
+          setCurrentStepDetail(`${dishName} unavailable (${event.reasonCode}). Triggering replan...`);
+        }
+        await delay(600);
+        break;
+      }
+
+      case "REPLAN": {
+        setStatusText("Replanning...");
+        setCurrentStepTitle("↻ Autonomous Replanning");
+        setCurrentStepDetail(`Candidate rejected (${event.reasonCode || 'Drift'}). Selecting alternative candidate...`);
+        await delay(800);
+        break;
+      }
+
+      case "GENERATE_DCT": {
+        setStatusText("Attesting GB-DCT lease...");
+        setCurrentStepTitle("🎟️ GB-DCT Generation");
+        setCurrentStepDetail("Navigating to RESEARCH & generating state-bound commitment token");
+        if (onNavigateScreen) onNavigateScreen("research");
+        await moveAndClick(window.innerWidth * 0.5, window.innerHeight * 0.55, 700);
+        break;
+      }
+
+      case "DCT_GENERATED": {
+        setStatusText(`Token Hash: ${event.dctTokenId}`);
+        setCurrentStepTitle("✓ GB-DCT Generated");
+        setCurrentStepDetail(`Cryptographic token issued: ${event.dctTokenId}`);
+        await delay(600);
+        break;
+      }
+
+      case "VALIDATE_DCT": {
+        setStatusText("Attesting world state...");
+        setCurrentStepTitle("🛡️ World State Attestation");
+        setCurrentStepDetail(`Validating token ${event.dctTokenId} against zero-drift policy`);
+        await delay(600);
+        break;
+      }
+
+      case "DCT_VALID": {
+        setStatusText("State Attest: 0 Drift");
+        setCurrentStepTitle("✓ State Validated");
+        setCurrentStepDetail("State verified: 0 price, stock, or dietary drift detected");
+        await delay(600);
+        break;
+      }
+
+      case "CREATE_ORDER": {
+        setStatusText("Persisting order ticket...");
+        setCurrentStepTitle("🛒 Order Execution");
+        setCurrentStepDetail("Creating order ticket in database");
+        await delay(600);
+        break;
+      }
+
+      case "ORDER_CREATED": {
+        setStatusText(`Order #${event.orderId?.slice(-6) || ''} Confirmed`);
+        setCurrentStepTitle("🎉 Order Confirmed");
+        setCurrentStepDetail(`Persisted order #${event.orderId} to MongoDB`);
+        await delay(700);
+        break;
+      }
+
+      case "AGENT_COMPLETED": {
+        setStatusText("Goal Accomplished!");
+        setCurrentStepTitle("🎉 Order Complete");
+        setCurrentStepDetail(`Autonomous pipeline succeeded for ${event.dishName}`);
+        await delay(800);
+
+        setIsActive(false);
+        if (event.dishName && event.price) {
+          triggerDecisionToast({
+            dishName: event.dishName,
+            price: event.price,
+            imageUrl: event.imageUrl,
+            dctTokenId: event.dctTokenId,
+            orderId: event.orderId,
+            dietary: event.dietary,
+          });
+        }
+        break;
+      }
+
+      case "AGENT_FAILED": {
+        setStatusText(`Agent Failed: ${event.reasonCode || 'Exhausted'}`);
+        setCurrentStepTitle("🛑 Execution Stopped");
+        setCurrentStepDetail(`No authorized candidate could fulfill constraints (${event.reasonCode})`);
+        await delay(2000);
+        setIsActive(false);
+        break;
+      }
+    }
+
+    isProcessingRef.current = false;
   };
+
+  const highlightAndTargetElement = async (selector: string, fallbackX: number, fallbackY: number) => {
+    let targetX = fallbackX;
+    let targetY = fallbackY;
+
+    let el = document.querySelector(selector);
+    if (!el) {
+      // Poll briefly for element rendering after tab navigation
+      for (let i = 0; i < 5; i++) {
+        await delay(150);
+        el = document.querySelector(selector);
+        if (el) break;
+      }
+    }
+
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      await delay(200);
+      const rect = el.getBoundingClientRect();
+      targetX = rect.left + rect.width / 2;
+      targetY = rect.top + rect.height / 2;
+
+      el.classList.add("ring-4", "ring-emerald-400", "shadow-[0_0_30px_rgba(16,185,129,0.8)]");
+      setTimeout(() => {
+        el?.classList.remove("ring-4", "ring-emerald-400", "shadow-[0_0_30px_rgba(16,185,129,0.8)]");
+      }, 2000);
+    }
+
+    await moveAndClick(targetX, targetY, 700);
+  };
+
+  const moveAndClick = async (x: number, y: number, pauseMs: number) => {
+    setCursorPos({ x, y });
+    await delay(350);
+    setClickRipple({ x, y, id: Date.now() });
+    await delay(pauseMs);
+  };
+
+  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
   if (!isActive) return null;
 
@@ -213,7 +286,7 @@ export function AgentGhostOverlay({
       >
         <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
         <Sparkles className="w-4 h-4 text-emerald-400" />
-        <span className="font-extrabold text-emerald-300">PlannerAgent Active</span>
+        <span className="font-extrabold text-emerald-300">Live PlannerAgent</span>
         <span className="text-stone-500">|</span>
         <span className="text-stone-200 font-semibold">{statusText}</span>
       </motion.div>
@@ -272,14 +345,14 @@ export function AgentGhostOverlay({
           <div className="flex items-center justify-between gap-2 border-b border-emerald-800/60 pb-1.5 font-bold text-emerald-400 text-[11px] uppercase tracking-wider">
             <span className="flex items-center gap-1">
               <Utensils className="w-3.5 h-3.5 text-emerald-400" />
-              Autonomous Action Step {currentStep + 1} of {activeSteps.length}
+              Live Autonomous Action #{stepCounter}
             </span>
           </div>
           <div className="font-black text-stone-100 text-sm mt-1.5">
-            {activeSteps[currentStep]?.title}
+            {currentStepTitle}
           </div>
           <div className="text-[11px] text-stone-300 font-mono mt-1 leading-snug">
-            {activeSteps[currentStep]?.detail}
+            {currentStepDetail}
           </div>
         </motion.div>
       </motion.div>
