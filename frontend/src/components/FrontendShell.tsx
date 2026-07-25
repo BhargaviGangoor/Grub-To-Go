@@ -20,6 +20,10 @@ import DishCard from "@/components/DishCard";
 import AppBackdrop from "@/components/AppBackdrop";
 import { AgentGhostOverlay } from "@/components/AgentGhostOverlay";
 import { OrderSuccessToast } from "@/components/OrderSuccessToast";
+import { ReplanningCardSwap } from "@/components/ReplanningCardSwap";
+import { DynamicIslandAI } from "@/components/DynamicIslandAI";
+import { CommandPaletteSpotlight } from "@/components/CommandPaletteSpotlight";
+import { AICanvasGraph } from "@/components/AICanvasGraph";
 
 type Screen =
   | "home"
@@ -1054,6 +1058,10 @@ export default function FrontendShell() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f4f1ea] text-[#1d3a2b]">
       <OrderSuccessToast />
+      <ReplanningCardSwap />
+      <DynamicIslandAI />
+      <CommandPaletteSpotlight />
+      <AICanvasGraph />
       <AgentGhostOverlay onNavigateScreen={handleNavigate} />
       <AppBackdrop screen={screen} />
       <div className="relative z-10">
