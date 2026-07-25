@@ -24,6 +24,7 @@ import { ReplanningCardSwap } from "@/components/ReplanningCardSwap";
 import { DynamicIslandAI } from "@/components/DynamicIslandAI";
 import { CommandPaletteSpotlight } from "@/components/CommandPaletteSpotlight";
 import { AICanvasGraph } from "@/components/AICanvasGraph";
+import { ChatProvider, useSharedChat } from "@/context/ChatContext";
 
 type Screen =
   | "home"
@@ -481,65 +482,16 @@ function AssistantWorkspace({
   const [budget, setBudget] = useState(300);
   const [dietary, setDietary] = useState<string[]>([]);
   const [referenceImages, setReferenceImages] = useState<File[]>([]);
-  const [messages, setMessages] = useState<
-    Array<{ role: "user" | "assistant"; text: string }>
-  >([
-    {
-      role: "assistant",
-      text: "Tell me what you want to eat, and I’ll narrow the menu down to a concrete recommendation.",
-    },
-  ]);
+  const { messages, isLoading, sendMessage } = useSharedChat();
   const [recommendation, setRecommendation] = useState<MenuItem>(
     menuCatalog[0],
   );
 
-  const buildRecommendation = (text: string) => {
-    const lower = text.toLowerCase();
-
-    const pick = menuCatalog.find((item) => {
-      const matchesBudget = item.cost <= budget;
-      const matchesSpicy = lower.includes("spicy")
-        ? item.tags.includes("spicy")
-        : true;
-      const matchesVegan =
-        lower.includes("vegan") || dietary.includes("Vegan")
-          ? item.tags.includes("vegan")
-          : true;
-      const matchesVegetarian =
-        lower.includes("vegetarian") || dietary.includes("Vegetarian")
-          ? item.tags.includes("vegetarian")
-          : true;
-      return matchesBudget && matchesSpicy && matchesVegan && matchesVegetarian;
-    });
-
-    const selected =
-      pick || menuCatalog.find((item) => item.cost <= budget) || menuCatalog[0];
-    const imageNote =
-      referenceImages.length > 0
-        ? ` I also considered ${referenceImages.length} reference image(s).`
-        : "";
-    const dietaryNote =
-      dietary.length > 0
-        ? ` Dietary filters applied: ${dietary.join(", ")}.`
-        : "";
-
-    return {
-      dish: selected,
-      reply: `I’d recommend ${selected.title} at ₹${selected.cost}. It fits your current budget and should land in about ${selected.prepTime}.${dietaryNote}${imageNote}`,
-    };
-  };
-
   const handleSubmit = (text: string) => {
     const userText = text.trim();
-    if (!userText) return;
+    if (!userText || isLoading) return;
 
-    const { dish, reply } = buildRecommendation(userText);
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", text: userText },
-      { role: "assistant", text: reply },
-    ]);
-    setRecommendation(dish);
+    sendMessage(userText);
     setPrompt("");
   };
 
@@ -566,12 +518,12 @@ function AssistantWorkspace({
             </button>
           </div>
 
-          <div className="mt-5 space-y-3 rounded-2xl bg-[#fffdf9] p-4">
-            {messages.map((message, index) => (
+          <div className="mt-5 space-y-3 rounded-2xl bg-[#fffdf9] p-4 max-h-[450px] overflow-y-auto">
+            {messages.map((message) => (
               <ChatBubble
-                key={`${message.role}-${index}`}
+                key={message.id}
                 role={message.role}
-                text={message.text}
+                text={message.content}
               />
             ))}
           </div>
@@ -1056,30 +1008,32 @@ export default function FrontendShell() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#f4f1ea] text-[#1d3a2b]">
-      <OrderSuccessToast />
-      <ReplanningCardSwap />
-      <DynamicIslandAI />
-      <CommandPaletteSpotlight />
-      <AICanvasGraph />
-      <AgentGhostOverlay onNavigateScreen={handleNavigate} />
-      <AppBackdrop screen={screen} />
-      <div className="relative z-10">
-        <AppHeader
-          screen={screen}
-          authMode={authMode}
-          onNavigate={handleNavigate}
-        />
-        <motion.div
-          key={screen}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-        >
-          {renderScreen()}
-        </motion.div>
+    <ChatProvider>
+      <div className="relative min-h-screen overflow-hidden bg-[#f4f1ea] text-[#1d3a2b]">
+        <OrderSuccessToast />
+        <ReplanningCardSwap />
+        <DynamicIslandAI />
+        <CommandPaletteSpotlight />
+        <AICanvasGraph />
+        <AgentGhostOverlay onNavigateScreen={handleNavigate} />
+        <AppBackdrop screen={screen} />
+        <div className="relative z-10">
+          <AppHeader
+            screen={screen}
+            authMode={authMode}
+            onNavigate={handleNavigate}
+          />
+          <motion.div
+            key={screen}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            {renderScreen()}
+          </motion.div>
+        </div>
       </div>
-    </div>
+    </ChatProvider>
   );
 }

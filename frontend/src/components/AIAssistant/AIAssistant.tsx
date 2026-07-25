@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FloatingButton } from "./FloatingButton";
 import { ChatWindow } from "./ChatWindow";
 import { useChat } from "./useChat";
+import { useSharedChat } from "@/context/ChatContext";
 
 /**
  * AIAssistant.tsx
@@ -48,7 +49,7 @@ import { useChat } from "./useChat";
  */
 export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
-  const { messages, isLoading, sendMessage } = useChat();
+  const { messages, isLoading, sendMessage } = useSharedChat();
 
   const toggleOpen = useCallback(() => setIsOpen((prev) => !prev), []);
   const close = useCallback(() => setIsOpen(false), []);
