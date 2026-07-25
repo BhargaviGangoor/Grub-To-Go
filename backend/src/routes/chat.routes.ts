@@ -3,6 +3,7 @@ import { ChatController } from "../controllers/ChatController";
 import { ChatService } from "../services/ChatService";
 import { GroqProvider } from "../llm/GroqProvider";
 import { GeminiProvider } from "../llm/GeminiProvider";
+import { HuggingFaceLLMProvider } from "../llm/HuggingFaceLLMProvider";
 import { FallbackLLMProvider } from "../llm/FallbackLLMProvider";
 import { LLMProvider } from "../llm/LLMProvider.interface";
 import { PlannerAgent } from "../agents/PlannerAgent";
@@ -19,8 +20,9 @@ import { config } from "../config";
  * Assembles the multi-API failover chain:
  *   FallbackLLMProvider
  *     ├── Primary Groq API Key (GROQ_API_KEY)
- *     ├── Secondary Groq API Key (GROQ_API_KEY_2 / GROQ_API_KEY_FALLBACK)
- *     └── Google Gemini API Key (GEMINI_API_KEY)
+ *     ├── Secondary Groq API Key (GROQ_API_KEY_SECONDARY / GROQ_API_KEY_FALLBACK)
+ *     ├── Google Gemini API Key (GEMINI_API_KEY)
+ *     └── Hugging Face API Key (HF_TOKEN / HUGGINGFACE_API_KEY)
  *       ↓
  *   PlannerAgent ← MenuTool, InventoryTool, DCTTool, OrderTool
  *       ↓
@@ -51,6 +53,12 @@ if (secondaryGroqKey) {
 // 3. Google Gemini Key (if configured in environment)
 if (config.geminiApiKey || process.env.GEMINI_API_KEY) {
   providers.push(new GeminiProvider(config.geminiApiKey || process.env.GEMINI_API_KEY));
+}
+
+// 4. Hugging Face Text Generation LLM Provider (if configured in environment)
+const hfKey = process.env.HF_TOKEN || process.env.HUGGINGFACE_API_KEY;
+if (hfKey) {
+  providers.push(new HuggingFaceLLMProvider(hfKey));
 }
 
 // Fallback to primary Groq if no array populated

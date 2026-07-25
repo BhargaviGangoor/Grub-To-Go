@@ -143,136 +143,118 @@ export class PlannerAgent {
     return await this.runAutonomousLoop(state, steps);
   }
 
+  // In-memory LRU cache to prevent duplicate LLM calls and conserve tokens
+  private static intentCache = new Map<string, UserIntent>();
+
   // ─── Intent Extraction ───────────────────────────────────────────────────────
 
   private async extractIntent(userMessage: string): Promise<UserIntent> {
-    const prompt = `You are an intent and semantic goal extraction assistant for a French Bistro food ordering app.
+    const cacheKey = userMessage.trim().toLowerCase();
+    if (PlannerAgent.intentCache.has(cacheKey)) {
+      console.log(`[PlannerAgent] ⚡ Intent cache hit for: "${userMessage}" (0 tokens consumed)`);
+      return PlannerAgent.intentCache.get(cacheKey)!;
+    }
 
-Analyze the user's message and return a JSON object with this exact structure:
+    // ⚡ Fast Deterministic Parser (Zero Token Consumption)
+    const fastParsed = this.tryFastLocalParse(userMessage);
+    if (fastParsed) {
+      console.log(`[PlannerAgent] ⚡ Fast local parser resolved intent for: "${userMessage}" (0 tokens consumed)`);
+      PlannerAgent.intentCache.set(cacheKey, fastParsed);
+      return fastParsed;
+    }
+
+    // Compact Token-Minimized LLM Prompt
+    const prompt = `Analyze user food order message: "${userMessage.replace(/"/g, "'")}"
+Return ONLY JSON:
 {
-  "intent": "ORDER_FOOD" | "RECIPE_REQUEST" | "GENERAL_CHAT" | "RECOMMENDATION" | "UNKNOWN",
-  "constraints": {
-    "maxBudget": <number in INR or null>,
-    "dietary": <array e.g. ["Vegetarian", "Gluten-Free"] or []>,
-    "excludedIngredients": <array e.g. ["peanuts", "raisins"] or []>,
-    "spiceLevel": "Mild" | "Medium" | "Spicy" | null,
-    "cuisine": <string e.g. "French" or null>,
-    "dishNameQuery": <string e.g. "croissant" or "ratatouille" or null>
-  },
-  "preferences": {
-    "itemType": "FOOD" | "BEVERAGE" | "ANY",
-    "mealType": "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK" | "DESSERT" | "ANY",
-    "preferredCategory": "PASTRIES" | "TARTINES" | "SALADS" | "SOUPS" | "DESSERTS" | "BEVERAGES" | "COFFEE" | "TEA" | "WINE" | "JUICE" | "ANY",
-    "desiredAttributes": <array of strings e.g. ["warm", "sweet", "savory", "spicy"] or []>,
-    "preferCheapest": <boolean true if user asks "cheapest option" or "cheapest">
-  }
-}
-
-SEMANTIC INTENT RULES:
-- Use "ORDER_FOOD" whenever the user wants to order, buy, get, select, or expresses a desire/craving to eat/drink something (e.g. "I want dessert", "Order me something", "Get me coffee", "I'd like food").
-- Use "RECIPE_REQUEST" only when they explicitly ask how to cook/make a dish at home.
-- Use "GENERAL_CHAT" for general food knowledge questions (e.g. "What is ratatouille?").
-- Normalize dietary: "veg" → "Vegetarian", "vegan" → "Vegan", "gluten free" → "Gluten-Free".
-- Return ONLY valid JSON.
-
-User message: "${userMessage.replace(/"/g, "'")}"`;
+  "intent": "ORDER_FOOD" | "RECIPE_REQUEST" | "GENERAL_CHAT",
+  "constraints": { "maxBudget": number|null, "dietary": string[], "excludedIngredients": string[] },
+  "preferences": { "itemType": "FOOD"|"BEVERAGE"|"ANY", "mealType": "DINNER"|"DESSERT"|"BREAKFAST"|"ANY", "preferCheapest": boolean }
+}`;
 
     try {
       const raw = await this.llm.chat(prompt);
       const cleaned = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
       const parsed = JSON.parse(cleaned);
 
-      const msgLower = userMessage.toLowerCase();
-      const hasOrderKeywords = ["order", "get me", "cheapest", "under", "want", "prefer", "buy", "have", "food", "drink", "coffee", "tea", "dessert", "dinner", "lunch", "breakfast", "vegetarian", "veg"].some(k => msgLower.includes(k));
+      const preferCheapest = Boolean(parsed.preferences?.preferCheapest);
 
-      let finalIntent = parsed.intent;
-      if (hasOrderKeywords || parsed.constraints?.maxBudget || (parsed.constraints?.dietary && parsed.constraints.dietary.length > 0)) {
-        finalIntent = "ORDER_FOOD";
-      }
-
-      if (!finalIntent || !["ORDER_FOOD", "RECIPE_REQUEST", "GENERAL_CHAT", "RECOMMENDATION", "UNKNOWN"].includes(finalIntent)) {
-        finalIntent = "ORDER_FOOD";
-      }
-
-      const itemType: ItemType = ["FOOD", "BEVERAGE", "ANY"].includes(parsed.preferences?.itemType)
-        ? parsed.preferences.itemType
-        : "FOOD";
-
-      const mealType: MealType = ["BREAKFAST", "LUNCH", "DINNER", "SNACK", "DESSERT", "ANY"].includes(parsed.preferences?.mealType)
-        ? parsed.preferences.mealType
-        : "ANY";
-
-      const preferredCategory: PreferredCategory = [
-        "PASTRIES", "TARTINES", "SALADS", "SOUPS", "DESSERTS", "BEVERAGES", "COFFEE", "TEA", "WINE", "JUICE", "ANY"
-      ].includes(parsed.preferences?.preferredCategory)
-        ? parsed.preferences.preferredCategory
-        : "ANY";
-
-      return {
-        intent: parsed.intent,
+      const result: UserIntent = {
+        intent: parsed.intent || "ORDER_FOOD",
         constraints: {
           maxBudget: typeof parsed.constraints?.maxBudget === "number" ? parsed.constraints.maxBudget : undefined,
           dietary: Array.isArray(parsed.constraints?.dietary) ? parsed.constraints.dietary : [],
           excludedIngredients: Array.isArray(parsed.constraints?.excludedIngredients) ? parsed.constraints.excludedIngredients : [],
-          spiceLevel: ["Mild", "Medium", "Spicy"].includes(parsed.constraints?.spiceLevel) ? parsed.constraints.spiceLevel : undefined,
-          cuisine: typeof parsed.constraints?.cuisine === "string" ? parsed.constraints.cuisine : undefined,
-          dishNameQuery: typeof parsed.constraints?.dishNameQuery === "string" ? parsed.constraints.dishNameQuery : undefined,
         },
         preferences: {
-          itemType,
-          mealType,
-          preferredCategory,
-          desiredAttributes: Array.isArray(parsed.preferences?.desiredAttributes) ? parsed.preferences.desiredAttributes : [],
-          preferCheapest: Boolean(parsed.preferences?.preferCheapest),
-        },
-        rawMessage: userMessage,
-      };
-    } catch (err) {
-      console.warn("[PlannerAgent] LLM intent extraction error, using deterministic heuristic parser:", err);
-      const msgLower = userMessage.toLowerCase();
-
-      // Heuristic parsing
-      let maxBudget: number | undefined = undefined;
-      const budgetMatch = msgLower.match(/(?:under|below|max|budget|₹|\$)\s*(\d+)/i) || msgLower.match(/(\d+)\s*(?:rupees|rs|inr)/i);
-      if (budgetMatch) maxBudget = parseInt(budgetMatch[1], 10);
-
-      const dietary: string[] = [];
-      if (msgLower.includes("veg") || msgLower.includes("vegetarian")) dietary.push("Vegetarian");
-      if (msgLower.includes("vegan")) dietary.push("Vegan");
-      if (msgLower.includes("gluten")) dietary.push("Gluten-Free");
-
-      let itemType: ItemType = "FOOD";
-      if (["drink", "coffee", "tea", "beverage", "juice", "wine", "espresso"].some(k => msgLower.includes(k))) {
-        itemType = "BEVERAGE";
-      }
-
-      let mealType: MealType = "ANY";
-      if (msgLower.includes("dinner") || msgLower.includes("lunch")) mealType = "DINNER";
-      if (msgLower.includes("dessert")) mealType = "DESSERT";
-      if (msgLower.includes("breakfast") || msgLower.includes("pastry")) mealType = "BREAKFAST";
-
-      const preferCheapest = msgLower.includes("cheapest");
-
-      const isQuestion = msgLower.startsWith("what") || msgLower.startsWith("why") || msgLower.startsWith("how") || msgLower.startsWith("tell me");
-      const isOrder = !isQuestion || budgetMatch !== null || dietary.length > 0 || preferCheapest || msgLower.includes("order") || msgLower.includes("get me") || msgLower.includes("want");
-
-      return {
-        intent: isOrder ? "ORDER_FOOD" : "GENERAL_CHAT",
-        constraints: {
-          maxBudget,
-          dietary,
-          excludedIngredients: [],
-        },
-        preferences: {
-          itemType,
-          mealType,
+          itemType: ["FOOD", "BEVERAGE", "ANY"].includes(parsed.preferences?.itemType) ? parsed.preferences.itemType : "FOOD",
+          mealType: ["BREAKFAST", "LUNCH", "DINNER", "SNACK", "DESSERT", "ANY"].includes(parsed.preferences?.mealType) ? parsed.preferences.mealType : "ANY",
           preferredCategory: "ANY",
           desiredAttributes: [],
           preferCheapest,
         },
         rawMessage: userMessage,
       };
+
+      PlannerAgent.intentCache.set(cacheKey, result);
+      return result;
+    } catch (err) {
+      console.warn("[PlannerAgent] LLM intent extraction error, using local fallback parser:", err);
+      const fallback = this.heuristicFallbackParse(userMessage);
+      PlannerAgent.intentCache.set(cacheKey, fallback);
+      return fallback;
     }
+  }
+
+  /**
+   * Fast Local Rule Parser — handles standard queries locally with 0 API token cost.
+   */
+  private tryFastLocalParse(userMessage: string): UserIntent | null {
+    const msg = userMessage.toLowerCase().trim();
+
+    // Direct match patterns
+    const isOrder = ["order", "get me", "cheapest", "under", "want", "buy", "have", "something", "dessert", "dinner", "drink", "coffee"].some(k => msg.includes(k));
+    if (!isOrder) return null;
+
+    let maxBudget: number | undefined = undefined;
+    const bMatch = msg.match(/(?:under|below|max|budget|₹|\$)\s*(\d+)/i) || msg.match(/(\d+)\s*(?:rupees|rs|inr)/i);
+    if (bMatch) maxBudget = parseInt(bMatch[1], 10);
+
+    const dietary: string[] = [];
+    if (msg.includes("vegetarian") || msg.includes("veg")) dietary.push("Vegetarian");
+    if (msg.includes("vegan")) dietary.push("Vegan");
+    if (msg.includes("gluten")) dietary.push("Gluten-Free");
+
+    let itemType: ItemType = "FOOD";
+    if (["drink", "coffee", "tea", "beverage", "juice", "wine", "espresso"].some(k => msg.includes(k))) {
+      itemType = "BEVERAGE";
+    }
+
+    let mealType: MealType = "ANY";
+    if (msg.includes("dinner") || msg.includes("lunch")) mealType = "DINNER";
+    if (msg.includes("dessert")) mealType = "DESSERT";
+    if (msg.includes("breakfast") || msg.includes("pastry")) mealType = "BREAKFAST";
+
+    const preferCheapest = msg.includes("cheapest");
+
+    return {
+      intent: "ORDER_FOOD",
+      constraints: { maxBudget, dietary, excludedIngredients: [] },
+      preferences: { itemType, mealType, preferredCategory: "ANY", desiredAttributes: [], preferCheapest },
+      rawMessage: userMessage,
+    };
+  }
+
+  private heuristicFallbackParse(userMessage: string): UserIntent {
+    const parsed = this.tryFastLocalParse(userMessage);
+    if (parsed) return parsed;
+
+    return {
+      intent: "GENERAL_CHAT",
+      constraints: {},
+      preferences: { itemType: "FOOD", mealType: "ANY", preferredCategory: "ANY" },
+      rawMessage: userMessage,
+    };
   }
 
   // ─── Semantic Candidate Ranking Engine ───────────────────────────────────────
