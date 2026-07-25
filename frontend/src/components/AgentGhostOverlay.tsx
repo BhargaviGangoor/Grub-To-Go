@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Utensils } from "lucide-react";
+import { Sparkles, Utensils, CheckCircle2, ShieldCheck, Search, PackageCheck } from "lucide-react";
 import { triggerDecisionToast } from "@/components/OrderSuccessToast";
 
 export interface AgentStepPayload {
@@ -49,7 +49,7 @@ export function AgentGhostOverlay({
 }) {
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [cursorPos, setCursorPos] = useState({ x: 500, y: 500 });
+  const [cursorPos, setCursorPos] = useState({ x: 800, y: 700 });
   const [clickRipple, setClickRipple] = useState<{ x: number; y: number; id: number } | null>(null);
   const [statusText, setStatusText] = useState("");
   const [activeSteps, setActiveSteps] = useState<DisplayStep[]>([]);
@@ -63,121 +63,132 @@ export function AgentGhostOverlay({
       const price = detail.price ? `₹${detail.price}` : "";
       const rawAgentSteps = detail.steps || [];
 
-      let displaySteps: DisplayStep[] = [];
+      // ── Build DISTINCT, HIGHLY VISIBLE screen trajectory positions ──
+      const stepsToRun: DisplayStep[] = [];
 
       if (rawAgentSteps.length > 0) {
-        // Map actual PlannerAgent trajectory steps to screen actions!
-        displaySteps = rawAgentSteps.map((step, idx) => {
-          const actionName = step.action || step.tool || "REASONING";
-          const desc = step.thought || step.detail || step.result || "Processing step...";
+        rawAgentSteps.forEach((step, idx) => {
+          const title = (step.title || "").toUpperCase();
+          const detailStr = step.detail || step.thought || "Processing step...";
 
-          if (actionName.includes("SEARCH_MENU") || actionName.includes("MENU")) {
-            return {
-              title: `🔍 Step ${idx + 1}: ${step.title || "SEARCH_MENU"}`,
-              detail: `Filtering catalog & ranking candidate: ${dishName} ${price}`,
+          if (title.includes("INTENT") || title.includes("REASON") || idx === 0) {
+            stepsToRun.push({
+              title: `🎯 Step ${idx + 1}: ${step.title || "Intent & Constraints"}`,
+              detail: `Freezing hard authorization gates (Budget, Dietary)`,
+              targetScreen: "assistant",
+              xPercent: 78,
+              yPercent: 82,
+              actionLabel: "Analyzing natural language intent & freezing rules...",
+            });
+          } else if (title.includes("MENU") || title.includes("SEARCH") || title.includes("CATALOG")) {
+            stepsToRun.push({
+              title: `🔍 Step ${idx + 1}: ${step.title || "Menu Search"}`,
+              detail: `Filtering 28-dish bistro catalog for ${dishName}`,
               targetScreen: "menu",
-              xPercent: 45,
-              yPercent: 40,
-              actionLabel: `Navigating to MENU catalog & highlighting ${dishName}...`,
-            };
-          }
-
-          if (actionName.includes("CHECK_INVENTORY") || actionName.includes("INVENTORY")) {
-            return {
-              title: `📦 Step ${idx + 1}: ${step.title || "CHECK_INVENTORY"}`,
-              detail: `Auditing stock & ingredient safety for ${dishName}`,
+              xPercent: 46,
+              yPercent: 6, // Navigates to Header MENU tab!
+              actionLabel: "Navigating to MENU catalog & searching items...",
+            });
+          } else if (title.includes("SELECT") || title.includes("POLICY") || title.includes("GATE")) {
+            stepsToRun.push({
+              title: `🍽️ Step ${idx + 1}: ${step.title || "Candidate Selection"}`,
+              detail: `Targeting top candidate: ${dishName} (${price})`,
+              targetScreen: "menu",
+              xPercent: 32,
+              yPercent: 42, // Moves directly over Dish Card!
+              actionLabel: `Selecting candidate dish: ${dishName}...`,
+            });
+          } else if (title.includes("INVENTORY") || title.includes("STOCK") || title.includes("AUDIT")) {
+            stepsToRun.push({
+              title: `📦 Step ${idx + 1}: ${step.title || "Inventory Audit"}`,
+              detail: `Auditing pantry stock & ingredient rules for ${dishName}`,
+              targetScreen: "menu",
+              xPercent: 65,
+              yPercent: 46, // Moves to Ingredients & Pantry Stock badge!
+              actionLabel: `Verifying pantry stock for ${dishName}...`,
+            });
+          } else if (title.includes("DCT") || title.includes("COMMITMENT") || title.includes("TOKEN")) {
+            stepsToRun.push({
+              title: `🛡️ Step ${idx + 1}: ${step.title || "GB-DCT Signing"}`,
+              detail: detail.dctTokenId ? `Token Hash: ${detail.dctTokenId}` : "Attesting cryptographic lease",
               targetScreen: "menu",
               xPercent: 48,
-              yPercent: 48,
-              actionLabel: `Auditing live Pantry stock for ${dishName}...`,
-            };
-          }
-
-          if (actionName.includes("GENERATE_DCT") || actionName.includes("VALIDATE_DCT")) {
-            return {
-              title: `🛡️ Step ${idx + 1}: ${step.title || "GB-DCT TOKEN"}`,
-              detail: detail.dctTokenId
-                ? `Signed commitment token: ${detail.dctTokenId}`
-                : "Attesting dynamic commitment token...",
-              targetScreen: "menu",
-              xPercent: 52,
-              yPercent: 52,
-              actionLabel: `Attesting GB-DCT cryptographic lease...`,
-            };
-          }
-
-          if (actionName.includes("CREATE_ORDER") || actionName.includes("ORDER")) {
-            return {
-              title: `🛒 Step ${idx + 1}: ${step.title || "CREATE_ORDER"}`,
-              detail: detail.orderId
-                ? `Persisted order #${detail.orderId.slice(-6)} to MongoDB`
-                : "Finalizing simulated order execution...",
+              yPercent: 62, // Moves to GB-DCT Security Seal badge!
+              actionLabel: "Signing dynamic GB-DCT commitment lease...",
+            });
+          } else if (title.includes("ORDER") || title.includes("EXECUTION") || title.includes("PERSIST")) {
+            stepsToRun.push({
+              title: `🛒 Step ${idx + 1}: ${step.title || "Order Ticket"}`,
+              detail: detail.orderId ? `Persisted Order #${detail.orderId.slice(-6)}` : "Finalizing order execution",
               targetScreen: "menu",
               xPercent: 50,
-              yPercent: 50,
-              actionLabel: `Persisting order ticket to database...`,
-            };
+              yPercent: 50, // Center Screen!
+              actionLabel: "Persisting order ticket to database...",
+            });
           }
-
-          return {
-            title: `🎯 Step ${idx + 1}: ${step.title || actionName}`,
-            detail: desc.slice(0, 70),
-            xPercent: 75,
-            yPercent: 75,
-            actionLabel: `Executing ${actionName}...`,
-          };
         });
-      } else {
-        // Fallback step sequence if no agentSteps provided
-        displaySteps = [
+      }
+
+      // If no steps matched, fallback to 5 distinct trajectory positions across viewport
+      if (stepsToRun.length === 0) {
+        stepsToRun.push(
           {
             title: "🎯 Step 1: Intent & Constraint Extraction",
             detail: "Parsed user input: ORDER_FOOD",
-            xPercent: 75,
-            yPercent: 80,
+            targetScreen: "assistant",
+            xPercent: 78,
+            yPercent: 82,
             actionLabel: "Analyzing natural language intent...",
           },
           {
-            title: `🔍 Step 2: Menu Selection (${dishName})`,
-            detail: `Selected candidate dish: ${dishName} ${price}`,
+            title: "🔍 Step 2: Menu Catalog Search",
+            detail: `Filtering catalog for top match: ${dishName}`,
             targetScreen: "menu",
-            xPercent: 45,
-            yPercent: 40,
-            actionLabel: `Navigating to MENU & targeting: ${dishName}...`,
+            xPercent: 46,
+            yPercent: 6,
+            actionLabel: "Navigating to MENU catalog...",
           },
           {
-            title: `📦 Step 3: Live Inventory Audit`,
-            detail: `Auditing ingredients for ${dishName}`,
+            title: `🍽️ Step 3: Dish Selection (${dishName})`,
+            detail: `Targeting candidate: ${dishName} ${price}`,
             targetScreen: "menu",
-            xPercent: 48,
-            yPercent: 48,
-            actionLabel: `Verifying live stock for ${dishName}...`,
+            xPercent: 32,
+            yPercent: 42,
+            actionLabel: `Targeting dish: ${dishName}...`,
           },
           {
-            title: `🛡️ Step 4: GB-DCT Token Signing`,
+            title: "📦 Step 4: Live Inventory Audit",
+            detail: `Verifying pantry ingredients for ${dishName}`,
+            targetScreen: "menu",
+            xPercent: 65,
+            yPercent: 46,
+            actionLabel: "Auditing live stock & ingredients...",
+          },
+          {
+            title: "🛡️ Step 5: GB-DCT Token Signing",
             detail: detail.dctTokenId ? `Token: ${detail.dctTokenId}` : "Attesting GB-DCT lease",
             targetScreen: "menu",
-            xPercent: 52,
-            yPercent: 52,
-            actionLabel: `Signing cryptographic token...`,
+            xPercent: 48,
+            yPercent: 62,
+            actionLabel: "Signing cryptographic commitment...",
           },
           {
-            title: `🛒 Step 5: Order Ticket Creation`,
-            detail: detail.orderId ? `Order #${detail.orderId.slice(-6)} saved` : "Order created",
+            title: "🛒 Step 6: Order Ticket Persistence",
+            detail: detail.orderId ? `Saved Order #${detail.orderId.slice(-6)}` : "Order created",
             targetScreen: "menu",
             xPercent: 50,
             yPercent: 50,
-            actionLabel: `Persisting order to MongoDB...`,
-          },
-        ];
+            actionLabel: "Persisting order to MongoDB...",
+          }
+        );
       }
 
-      setActiveSteps(displaySteps);
+      setActiveSteps(stepsToRun);
       setIsActive(true);
       setCurrentStep(0);
 
-      // Start sequence
-      runStepSequence(displaySteps, 0, detail);
+      // Start movement sequence
+      runStepSequence(stepsToRun, 0, detail);
     };
 
     window.addEventListener("start-agent-automation", handleStart);
@@ -200,7 +211,7 @@ export function AgentGhostOverlay({
             dietary: detail.dietary,
           });
         }
-      }, 500);
+      }, 400);
       return;
     }
 
@@ -208,113 +219,114 @@ export function AgentGhostOverlay({
     setCurrentStep(stepIndex);
     setStatusText(step.actionLabel);
 
-    // Navigate tab if specified
+    // 1. Switch Screen Tab if required by step
     if (step.targetScreen && onNavigateScreen) {
       onNavigateScreen(step.targetScreen);
     }
 
-    // Calculate window pixel positions
+    // 2. Calculate dynamic screen pixel position
     const targetX = (window.innerWidth * step.xPercent) / 100;
     const targetY = (window.innerHeight * step.yPercent) / 100;
 
-    // Move cursor to target
+    // 3. Move cursor to target position
     setCursorPos({ x: targetX, y: targetY });
 
-    // Trigger click ripple after movement
+    // 4. Trigger Click & Pause for smooth visibility
     setTimeout(() => {
       setClickRipple({ x: targetX, y: targetY, id: Date.now() });
 
-      // Proceed to next step after brief pause
       setTimeout(() => {
         runStepSequence(steps, stepIndex + 1, detail);
-      }, 900);
-    }, 600);
+      }, 1200); // 1.2s pause per step for high visibility!
+    }, 700);
   };
 
   if (!isActive) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-      {/* Backdrop */}
+      {/* Dimmed backdrop overlay highlighting agent activity */}
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.15 }}
+        animate={{ opacity: 0.2 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-emerald-950/40 backdrop-blur-[1px]"
+        className="absolute inset-0 bg-emerald-950/40 backdrop-blur-[1.5px]"
       />
 
-      {/* Top Banner */}
+      {/* Top Banner indicating Agent Operations */}
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="absolute top-4 left-1/2 -translate-x-1/2 bg-stone-900/95 text-white border border-emerald-500/50 px-5 py-2.5 rounded-full shadow-2xl flex items-center gap-3 backdrop-blur-md z-50 text-xs font-mono"
+        className="absolute top-4 left-1/2 -translate-x-1/2 bg-stone-900/95 text-white border-2 border-emerald-500/60 px-6 py-3 rounded-full shadow-[0_10px_35px_rgba(0,0,0,0.5)] flex items-center gap-3.5 backdrop-blur-xl z-50 text-xs font-mono"
       >
-        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+        <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
         <Sparkles className="w-4 h-4 text-emerald-400" />
-        <span className="font-bold text-emerald-300">PlannerAgent Operating</span>
+        <span className="font-extrabold text-emerald-300">PlannerAgent Autonomous Loop Active</span>
         <span className="text-stone-500">|</span>
-        <span className="text-stone-200">{statusText}</span>
+        <span className="text-stone-200 font-semibold">{statusText}</span>
       </motion.div>
 
-      {/* Click Ripple Effect */}
+      {/* Click Ripple Effect on Arrival */}
       <AnimatePresence>
         {clickRipple && (
           <motion.div
             key={clickRipple.id}
-            initial={{ scale: 0.2, opacity: 0.9 }}
-            animate={{ scale: 2.5, opacity: 0 }}
+            initial={{ scale: 0.2, opacity: 0.95 }}
+            animate={{ scale: 3, opacity: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
             style={{ left: clickRipple.x - 24, top: clickRipple.y - 24 }}
-            className="absolute w-12 h-12 rounded-full border-2 border-emerald-400 bg-emerald-500/20 shadow-[0_0_20px_rgba(52,211,153,0.8)]"
+            className="absolute w-12 h-12 rounded-full border-2 border-emerald-400 bg-emerald-400/30 shadow-[0_0_30px_rgba(52,211,153,0.9)] z-40"
           />
         )}
       </AnimatePresence>
 
-      {/* Moving Agent Ghost Cursor Pointer */}
+      {/* Moving Agent Ghost Cursor Pointer across Viewport */}
       <motion.div
         animate={{ x: cursorPos.x, y: cursorPos.y }}
         transition={{
           type: "spring",
-          stiffness: 140,
-          damping: 18,
-          mass: 0.7,
+          stiffness: 90,   // Smooth physical movement across screen
+          damping: 15,
+          mass: 0.9,
         }}
-        className="absolute top-0 left-0 flex items-start gap-2 -ml-2 -mt-2 drop-shadow-[0_10px_25px_rgba(0,0,0,0.5)] z-50"
+        className="absolute top-0 left-0 flex items-start gap-3 -ml-3 -mt-3 drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)] z-50"
       >
         {/* Custom SVG Bot Cursor Pointer */}
         <div className="relative">
           <svg
-            width="32"
-            height="32"
+            width="36"
+            height="36"
             viewBox="0 0 24 24"
             fill="none"
-            className="text-emerald-400 transform -rotate-12 filter drop-shadow-md"
+            className="text-emerald-400 transform -rotate-12 filter drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]"
           >
             <path
               d="M3 3l7 18 3-7 7-3L3 3z"
               fill="currentColor"
               stroke="#064e3b"
-              strokeWidth="1.5"
+              strokeWidth="1.8"
             />
           </svg>
-          <span className="absolute -top-1 -right-1 text-base animate-bounce">🤖</span>
+          <span className="absolute -top-2 -right-2 text-lg animate-bounce">🤖</span>
         </div>
 
         {/* Floating Tooltip attached to Cursor */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-gradient-to-r from-stone-900 via-emerald-950 to-stone-900 text-white border border-emerald-500/60 rounded-2xl px-3.5 py-2.5 shadow-2xl max-w-xs text-xs font-sans backdrop-blur-md"
+          className="bg-gradient-to-r from-stone-900 via-emerald-950 to-stone-900 text-white border-2 border-emerald-500/70 rounded-2xl px-4 py-3 shadow-[0_15px_40px_rgba(0,0,0,0.6)] max-w-sm text-xs font-sans backdrop-blur-xl"
         >
-          <div className="flex items-center gap-1.5 font-bold text-emerald-400 text-[11px] uppercase tracking-wider">
-            <Utensils className="w-3.5 h-3.5" />
-            <span>Step {currentStep + 1} of {activeSteps.length}</span>
+          <div className="flex items-center justify-between gap-2 border-b border-emerald-800/60 pb-1.5 font-bold text-emerald-400 text-[11px] uppercase tracking-wider">
+            <span className="flex items-center gap-1">
+              <Utensils className="w-3.5 h-3.5 text-emerald-400" />
+              Autonomous Action Step {currentStep + 1} of {activeSteps.length}
+            </span>
           </div>
-          <div className="font-bold text-stone-100 text-xs mt-0.5">
+          <div className="font-black text-stone-100 text-sm mt-1.5">
             {activeSteps[currentStep]?.title}
           </div>
-          <div className="text-[10px] text-stone-300 font-mono mt-1 border-t border-emerald-800/40 pt-1">
+          <div className="text-[11px] text-stone-300 font-mono mt-1 leading-snug">
             {activeSteps[currentStep]?.detail}
           </div>
         </motion.div>
