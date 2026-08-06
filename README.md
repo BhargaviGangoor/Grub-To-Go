@@ -258,6 +258,55 @@ Database
 
 * Neon PostgreSQL
 
+---
+
+# Local Development
+
+## Frontend
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs on `http://localhost:3000` unless that port is busy, in which case Next.js will choose the next available port.
+
+## Backend
+
+```powershell
+cd backend
+npm install
+npm run dev
+```
+
+The backend listens on `http://localhost:3001` by default.
+
+## Environment Variables
+
+Create `backend/.env` for API keys and database settings. The backend reads:
+
+* `MONGODB_URI`
+* `JWT_SECRET`
+* `GROQ_API_KEY`
+* `OPENROUTER_API_KEY`
+* `OPENROUTER_MODEL`
+* `GEMINI_API_KEY`
+
+For frontend API calls, set `frontend/.env.local`:
+
+* `NEXT_PUBLIC_BACKEND_URL=http://localhost:3001`
+
+---
+
+# Repository Structure
+
+* `frontend/src/components/landing/` - landing-page surfaces and scroll motion
+* `frontend/src/components/ui/` - reusable UI primitives
+* `frontend/src/lib/` - shared motion tokens and utility modules
+* `backend/src/routes/` - API routes
+* `backend/src/services/` - data, AI, and database services
+
 Caching
 
 * Redis Cloud
