@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { Button } from "@/components/ui/Button";
+import { ScrollRevealGroup, ScrollRevealItem } from "@/components/ScrollReveal";
 import {
   SaigonCathedralDrawing,
   BotanicalSprigDrawing,
@@ -24,7 +26,14 @@ import {
   FlowerPotSketch,
   BirdOnBranchSketch,
 } from "@/components/BackgroundDrawings";
-import { revealUp, staggerContainer } from "@/lib/motion";
+import {
+  brandEase,
+  brandBackEase,
+  heroAccentReveal,
+  heroCtaReveal,
+  heroWordReveal,
+} from "@/lib/motion";
+import { fadeUp, scaleIn, slideLeft, slideRight, staggerContainer } from "@/lib/variants";
 
 interface LandingViewProps {
   onNavigate: (view: string) => void;
@@ -33,6 +42,22 @@ interface LandingViewProps {
 export default function LandingView({ onNavigate }: LandingViewProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+  const [contactStatus, setContactStatus] = useState<"idle" | "sending" | "sent">("idle");
+
+  const heroLineOne = ["Family", "flavours"];
+  const heroLineTwo = [
+    { text: "fresh", accent: true },
+    { text: "from", accent: false },
+    { text: "our", accent: false },
+    { text: "kitchen", accent: false },
+  ];
+
   useEffect(() => {
     setIsMounted(true);
     const handleScroll = () => {
@@ -43,11 +68,14 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
   }, []);
   // Parallax hooks
   const { scrollY } = useScroll();
-  const yBgSlow = useTransform(scrollY, [0, 4000], [0, 300]);
-  const yBgFast = useTransform(scrollY, [0, 4000], [0, -400]);
+  const yBgSlow = useTransform(scrollY, [0, 4000], [0, 260]);
+  const yBgFast = useTransform(scrollY, [0, 4000], [0, -320]);
   const rotateBg = useTransform(scrollY, [0, 4000], [0, 120]);
   const yTextParallax = useTransform(scrollY, [0, 4000], [0, -150]);
   const xBoat = useTransform(scrollY, [0, 4000], [0, 300]);
+  const heroFieldY = useTransform(scrollY, [0, 1000], [0, 70]);
+  const heroImageY = useTransform(scrollY, [0, 1000], [0, 120]);
+  const heroAccentY = useTransform(scrollY, [0, 1000], [0, -30]);
 
   const stackBase = useTransform(scrollY, [0, 4000], [0, 100]);
   const stackL1 = useTransform(scrollY, [0, 4000], [0, -50]);
@@ -55,74 +83,149 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
   const stackL3 = useTransform(scrollY, [0, 4000], [0, -250]);
   const stackL4 = useTransform(scrollY, [0, 4000], [0, -350]);
 
+  const heroParallaxEnabled = isMounted && !prefersReducedMotion;
+
+  const updateContactField = (field: keyof typeof contactForm, value: string) => {
+    setContactForm((current) => ({ ...current, [field]: value }));
+    if (contactStatus === "sent") {
+      setContactStatus("idle");
+    }
+  };
+
+  const handleContactSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (contactStatus === "sending") return;
+
+    setContactStatus("sending");
+    window.setTimeout(() => {
+      setContactStatus("sent");
+    }, 900);
+  };
+
   return (
     <div className="relative">
       {/* ═══════════════════════════════════════════════════════════
           SECTION 1 — HERO (full-viewport, background image)
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative flex min-h-[92vh] items-center justify-center overflow-hidden bg-[#1d3a2b]">
-        {/* Background image */}
-        <Image
-          src="/verandah.jpg"
-          alt="Warm dining atmosphere"
-          fill
-          priority
-          className="object-cover animate-bg-zoom-pan"
-        />
-        {/* Dark gradient overlay */}
-        <div className="hero-overlay absolute inset-0 z-[1]" />
-
-        {/* Hero content */}
+      <section className="relative isolate min-h-[92vh] overflow-hidden bg-[#f3eedf]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(229,155,39,0.15),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(29,58,43,0.12),transparent_35%),linear-gradient(180deg,rgba(251,247,238,0.92),rgba(243,238,223,0.96))]" />
         <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          className="relative z-10 mx-auto max-w-4xl px-6 text-center"
+          aria-hidden="true"
+          style={heroParallaxEnabled ? { y: heroFieldY } : undefined}
+          className="absolute inset-0"
         >
-          <motion.h1
-            variants={revealUp}
-            className="font-heading text-5xl font-bold leading-[1.15] text-white drop-shadow-lg sm:text-6xl md:text-8xl"
-          >
-            Family Flavours
-            <br />
-            <span className="font-script text-[#e59b27] drop-shadow-md">
-              from{" "}
-            </span>
-            Paris
-          </motion.h1>
+          <div className="floating-blob absolute left-[-6%] top-[12%] h-72 w-72 rounded-full bg-[#e59b27]/14 blur-3xl" />
+          <div className="floating-blob-slow absolute right-[8%] top-[18%] h-64 w-64 rounded-full bg-[#1d3a2b]/10 blur-3xl" />
+          <div className="floating-blob absolute bottom-[12%] left-[20%] h-40 w-40 rounded-full bg-[#f6c665]/18 blur-3xl" />
+        </motion.div>
 
-          <motion.p
-            variants={revealUp}
-            className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg"
-          >
-            A family-run kitchen bringing you the warmth of home-cooked
-            flavours, fresh herbs, and the crunch of golden spring rolls — all
-            served with heart.
-          </motion.p>
+        <div className="relative mx-auto grid min-h-[92vh] max-w-7xl items-center gap-10 px-6 py-14 lg:grid-cols-[1.02fr_0.98fr] lg:py-20">
+          <div className="relative z-10 max-w-2xl">
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, ease: brandEase }}
+              className="inline-flex rounded-full border border-[#1d3a2b]/10 bg-white/60 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#1d3a2b]/72 backdrop-blur-sm"
+            >
+              Warm family restaurant
+            </motion.p>
+
+            <h1 className="mt-6 font-heading text-5xl font-bold leading-[0.95] text-[#1d3a2b] sm:text-6xl lg:text-8xl">
+              <span className="block">
+                {heroLineOne.map((word, index) => (
+                  <motion.span
+                    key={word}
+                    initial="hidden"
+                    animate="show"
+                    variants={heroWordReveal}
+                    transition={{ duration: 0.62, ease: brandEase, delay: 0.12 + index * 0.1 }}
+                    className="mr-3 inline-block"
+                  >
+                    {word}
+                  </motion.span>
+                ))}
+              </span>
+              <span className="mt-3 block text-[#1d3a2b]/92">
+                {heroLineTwo.map((word, index) => (
+                  <motion.span
+                    key={word.text}
+                    initial="hidden"
+                    animate="show"
+                    variants={word.accent ? heroAccentReveal : heroWordReveal}
+                    transition={{
+                      duration: word.accent ? 0.74 : 0.62,
+                      ease: word.accent ? brandBackEase : brandEase,
+                      delay: 0.28 + index * 0.1,
+                    }}
+                    className={`mr-3 inline-block ${
+                      word.accent ? "font-script text-[#e59b27]" : ""
+                    }`}
+                  >
+                    {word.text}
+                  </motion.span>
+                ))}
+              </span>
+            </h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.62, delay: 0.62, ease: brandEase }}
+              className="mt-6 max-w-xl text-base leading-relaxed text-[#1d3a2b]/74 sm:text-lg"
+            >
+              Handmade dishes, patient hospitality, and the kind of table that
+              feels like it has room for everyone.
+            </motion.p>
+
+            <motion.div
+              initial="hidden"
+              animate="show"
+              variants={heroCtaReveal}
+              transition={{ duration: 0.55, ease: brandEase, delay: 0.9 }}
+              className="mt-10 flex flex-col items-start gap-4 sm:flex-row"
+            >
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => onNavigate("menu")}
+              >
+                Explore Our Menu
+              </Button>
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={() => onNavigate("assistant")}
+              >
+                Order Now
+              </Button>
+            </motion.div>
+          </div>
 
           <motion.div
-            variants={revealUp}
-            className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row"
+            variants={scaleIn}
+            initial="hidden"
+            animate="visible"
+            transition={{ duration: 0.85, delay: 0.28, ease: brandEase }}
+            style={heroParallaxEnabled ? { y: heroImageY } : undefined}
+            className="relative z-10 w-full justify-self-end lg:-mr-10 lg:max-w-[46rem]"
           >
-            <motion.button
-              onClick={() => onNavigate("menu")}
-              whileHover={{ y: -2, scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className="stamp-btn bg-[#1d3a2b] px-7 py-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#f4f1ea] transition-all hover:bg-[#14281e]"
-            >
-              Explore Our Menu
-            </motion.button>
-            <motion.button
-              onClick={() => onNavigate("assistant")}
-              whileHover={{ y: -2, scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className="stamp-btn bg-[#e59b27] px-7 py-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#1d3a2b] transition-all hover:bg-[#d9911f]"
-            >
-              Order Now
-            </motion.button>
+            <div className="absolute -left-6 top-10 h-24 w-24 rounded-full bg-[#e59b27]/18 blur-2xl" />
+            <div className="absolute -right-4 bottom-10 h-32 w-32 rounded-full bg-[#1d3a2b]/12 blur-3xl" />
+            <div className="relative overflow-hidden rounded-[2.5rem] border border-white/70 bg-white/60 p-3 shadow-[0_24px_80px_rgba(29,58,43,0.16)] backdrop-blur-sm lg:rounded-[3rem]">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] lg:aspect-[5/6]">
+                <Image
+                  src="/verandah.jpg"
+                  alt="Warm dining atmosphere"
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 48vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1d3a2b]/30 via-transparent to-[#f8f1e1]/8" />
+              </div>
+            </div>
           </motion.div>
-        </motion.div>
+        </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
@@ -165,19 +268,19 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             <motion.div
               variants={staggerContainer}
               initial="hidden"
-              whileInView="show"
+              whileInView="visible"
               viewport={{ once: true }}
               className="max-w-xl relative z-20"
             >
               <motion.p
-                variants={revealUp}
+                    variants={fadeUp}
                 className="text-xs font-bold uppercase tracking-[0.2em] text-[#1d3a2b]/50"
               >
                 Welcome Home to
               </motion.p>
 
               <motion.h2
-                variants={revealUp}
+                    variants={fadeUp}
                 className="mt-3 font-heading text-4xl font-bold leading-tight text-[#1d3a2b] sm:text-5xl lg:text-6xl"
               >
                 Authentic
@@ -187,7 +290,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
               </motion.h2>
 
               <motion.p
-                variants={revealUp}
+                    variants={fadeUp}
                 className="mt-6 text-sm leading-relaxed text-[#1d3a2b]/70 sm:text-base"
               >
                 We&apos;re a family from the vibrant streets of Paris, sharing
@@ -198,22 +301,20 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
                 table, every dish carries a piece of our story.
               </motion.p>
 
-              <motion.button
-                variants={revealUp}
+              <Button
+                variant="secondary"
+                size="lg"
                 onClick={() => onNavigate("menu")}
-                whileHover={{ y: -2, scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                className="stamp-btn mt-8 bg-[#1d3a2b] px-7 py-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#f4f1ea] transition-all hover:bg-[#14281e]"
               >
                 Learn More
-              </motion.button>
+              </Button>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              variants={slideRight}
+              initial="hidden"
+              whileInView="visible"
               viewport={{ once: true }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
               className="relative flex justify-center lg:justify-end mix-blend-multiply"
             >
               <Image
@@ -261,10 +362,10 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
           <div className="grid items-center gap-12 lg:grid-cols-2 flex-col-reverse flex lg:grid">
             {/* Left: Illustration of Good Food */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              variants={slideLeft}
+              initial="hidden"
+              whileInView="visible"
               viewport={{ once: true }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
               className="relative flex items-center justify-center py-8 mix-blend-multiply"
             >
               <Image
@@ -280,7 +381,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             <motion.div
               variants={staggerContainer}
               initial="hidden"
-              whileInView="show"
+              whileInView="visible"
               viewport={{ once: true }}
               className="relative"
             >
@@ -290,7 +391,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
               </motion.div>
 
               <motion.h2
-                variants={revealUp}
+                variants={fadeUp}
                 className="font-heading text-4xl font-bold leading-tight text-[#1d3a2b] sm:text-5xl"
               >
                 Cuisine
@@ -301,7 +402,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
               </motion.h2>
 
               <motion.p
-                variants={revealUp}
+                variants={fadeUp}
                 className="mt-5 text-sm leading-relaxed text-[#1d3a2b]/70 sm:text-base"
               >
                 Every dish is crafted from the freshest seasonal ingredients.
@@ -311,21 +412,23 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
               </motion.p>
 
               <motion.div
-                variants={revealUp}
+                variants={fadeUp}
                 className="mt-8 flex flex-wrap gap-4"
               >
-                <button
+                <Button
+                  variant="secondary"
+                  size="md"
                   onClick={() => onNavigate("menu")}
-                  className="stamp-btn bg-[#1d3a2b] px-6 py-2.5 text-[12px] font-bold uppercase tracking-[0.1em] text-[#f4f1ea] transition-all hover:bg-[#14281e]"
                 >
                   Explore Our Menu
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
                   onClick={() => onNavigate("assistant")}
-                  className="stamp-btn bg-[#e59b27] px-6 py-2.5 text-[12px] font-bold uppercase tracking-[0.1em] text-[#1d3a2b] transition-all hover:bg-[#d9911f]"
                 >
                   Order Now
-                </button>
+                </Button>
               </motion.div>
             </motion.div>
           </div>
@@ -355,14 +458,14 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
           <motion.div
             variants={staggerContainer}
             initial="hidden"
-            whileInView="show"
+            whileInView="visible"
             viewport={{ once: true }}
             className="mb-20 relative z-10"
           >
-        <motion.h2 variants={revealUp} className="font-heading text-4xl font-bold text-[#1d3a2b] sm:text-5xl lg:text-6xl">
+        <motion.h2 variants={fadeUp} className="font-heading text-4xl font-bold text-[#1d3a2b] sm:text-5xl lg:text-6xl">
               See <span className="font-script text-[#e59b27] text-5xl sm:text-6xl lg:text-7xl">what's</span> cooking!
             </motion.h2>
-            <motion.p variants={revealUp} className="mt-6 max-w-sm text-sm sm:text-base leading-relaxed text-[#1d3a2b]/70">
+            <motion.p variants={fadeUp} className="mt-6 max-w-sm text-sm sm:text-base leading-relaxed text-[#1d3a2b]/70">
               From fresh baked pastries to rich savory soups, take a peek behind the scenes and discover what's freshly prepared in our Parisian kitchen.
             </motion.p>
           </motion.div>
@@ -531,10 +634,10 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          variants={scaleIn}
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
           className="w-full max-w-6xl px-6 flex justify-center mix-blend-multiply"
         >
           <Image
@@ -547,20 +650,19 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
         </motion.div>
 
         <motion.div
-          variants={revealUp}
+          variants={fadeUp}
           initial="hidden"
-          whileInView="show"
+          whileInView="visible"
           viewport={{ once: true }}
           className="relative z-20 mt-8"
         >
-          <motion.button
+          <Button
+            variant="primary"
+            size="lg"
             onClick={() => onNavigate("assistant")}
-            whileHover={{ y: -2, scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            className="stamp-btn bg-[#e59b27] px-8 py-4 text-[14px] font-bold uppercase tracking-[0.1em] text-[#1d3a2b] shadow-sm transition-all hover:bg-[#d9911f]"
           >
             Order Now
-          </motion.button>
+          </Button>
         </motion.div>
       </section>
 
@@ -597,27 +699,25 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
           <motion.div
             variants={staggerContainer}
             initial="hidden"
-            whileInView="show"
+            whileInView="visible"
             viewport={{ once: true }}
             className="text-center"
           >
             <BotanicalSprigDrawing className="mx-auto w-10 h-10 !opacity-[0.3] mb-2 !relative" />
-            <motion.h2 variants={revealUp} className="font-heading text-4xl font-bold text-[#1d3a2b] sm:text-5xl">
+            <motion.h2 variants={fadeUp} className="font-heading text-4xl font-bold text-[#1d3a2b] sm:text-5xl">
               Gather &apos;round,
               <br />
               it&apos;s{" "}
               <span className="font-script text-[#e59b27]">family</span>{" "}
               time!
             </motion.h2>
-            <motion.button
-              variants={revealUp}
+            <Button
+              variant="primary"
+              size="lg"
               onClick={() => onNavigate("assistant")}
-              whileHover={{ y: -2, scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className="bg-[#1d3a2b] px-7 py-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#f4f1ea] border-2 border-dashed border-[#e59b27]/40 rounded-sm transition-all hover:bg-[#14281e] active:scale-[0.97] mt-6"
             >
               Order Now
-            </motion.button>
+            </Button>
           </motion.div>
         </div>
       </section>
@@ -626,7 +726,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
       {/* ═══════════════════════════════════════════════════════════
           SECTION 4.2 — CONTACT FORM ("Meal's Done. Always here, Always home")
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-[#f4f1ea] py-16 lg:py-20 border-t border-[#e9e5da]/40">
+      <section className="relative overflow-hidden border-t border-[#e9e5da]/40 bg-[#f4f1ea] py-16 lg:py-20">
         {/* Scattered SVG Sketches */}
         <motion.div style={isMounted ? { y: yBgSlow, rotate: -8 } : { rotate: -8 }} className="absolute right-6 top-10 pointer-events-none opacity-[0.12] z-0 hidden lg:block">
           <BistroSetDrawing className="w-[190px] h-[190px] stroke-[#1d3a2b]" />
@@ -643,13 +743,12 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             <h2 className="font-heading text-4xl font-bold text-[#1d3a2b] sm:text-5xl">
               Meal&apos;s Done.
               <br />
-              <span className="font-script text-[#e59b27] text-5xl sm:text-6xl">Always here</span> , Always home
+              <span className="font-script text-[#e59b27] text-5xl sm:text-6xl">Always here</span>, Always home
             </h2>
           </div>
 
-          <div className="grid gap-12 lg:grid-cols-2 items-start">
-            {/* Left Column */}
-            <div className="space-y-6">
+          <ScrollRevealGroup className="grid gap-12 lg:grid-cols-2 items-start">
+            <ScrollRevealItem direction="left" className="space-y-6">
               <h3 className="text-lg font-bold text-[#1d3a2b]">
                 We&apos;d Love to Hear from You.
               </h3>
@@ -659,56 +758,114 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
                 to make you feel at home!
               </p>
               <div>
-                <button
+                <Button
+                  variant="secondary"
+                  size="md"
                   onClick={() => onNavigate("menu")}
-                  className="bg-[#1d3a2b] px-6 py-2.5 text-[12px] font-bold uppercase tracking-[0.1em] text-[#f4f1ea] border-2 border-dashed border-[#e59b27]/40 rounded-sm transition-all hover:bg-[#14281e]"
                 >
                   VISIT US IN STORE
-                </button>
+                </Button>
               </div>
               <div className="pt-4 opacity-85 max-w-[400px]">
                 <PaddlingBoatDrawing className="w-full h-auto stroke-[#1d3a2b]" />
               </div>
-            </div>
+            </ScrollRevealItem>
 
-            {/* Right Column (Form) */}
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block space-y-2 text-xs font-bold uppercase tracking-wider text-[#1d3a2b]/70">
-                  YOUR NAME
-                  <input
-                    type="text"
+            <ScrollRevealItem direction="right">
+              <form onSubmit={handleContactSubmit} className="space-y-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="relative">
+                    <input
+                      id="contact-name"
+                      type="text"
+                      required
+                      placeholder=" "
+                      value={contactForm.name}
+                      onChange={(event) => updateContactField("name", event.target.value)}
+                      className="peer h-14 w-full rounded-2xl border border-[#e9e5da] bg-[#fffdf9]/80 px-4 pt-5 text-sm text-[#1d3a2b] outline-none transition-colors duration-200 placeholder-transparent focus:border-[#1d3a2b]"
+                    />
+                    <motion.label
+                      htmlFor="contact-name"
+                      initial={false}
+                      animate={{ y: contactForm.name ? -8 : 0, scale: contactForm.name ? 0.92 : 1 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className={`pointer-events-none absolute left-4 text-[#1d3a2b]/55 transition-all duration-200 ${contactForm.name ? "top-2 text-[11px] uppercase tracking-[0.18em] text-[#1d3a2b]" : "top-4 text-sm"} peer-focus:top-2 peer-focus:text-[11px] peer-focus:uppercase peer-focus:tracking-[0.18em] peer-focus:text-[#1d3a2b]`}
+                    >
+                      Your name
+                    </motion.label>
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="contact-email"
+                      type="email"
+                      required
+                      placeholder=" "
+                      value={contactForm.email}
+                      onChange={(event) => updateContactField("email", event.target.value)}
+                      className="peer h-14 w-full rounded-2xl border border-[#e9e5da] bg-[#fffdf9]/80 px-4 pt-5 text-sm text-[#1d3a2b] outline-none transition-colors duration-200 placeholder-transparent focus:border-[#1d3a2b]"
+                    />
+                    <motion.label
+                      htmlFor="contact-email"
+                      initial={false}
+                      animate={{ y: contactForm.email ? -8 : 0, scale: contactForm.email ? 0.92 : 1 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className={`pointer-events-none absolute left-4 text-[#1d3a2b]/55 transition-all duration-200 ${contactForm.email ? "top-2 text-[11px] uppercase tracking-[0.18em] text-[#1d3a2b]" : "top-4 text-sm"} peer-focus:top-2 peer-focus:text-[11px] peer-focus:uppercase peer-focus:tracking-[0.18em] peer-focus:text-[#1d3a2b]`}
+                    >
+                      Email address
+                    </motion.label>
+                  </div>
+                </div>
+                <div className="relative">
+                  <textarea
+                    id="contact-message"
+                    rows={5}
                     required
-                    className="w-full mt-1.5 rounded-sm border border-[#e9e5da] bg-[#fffdf9]/50 px-4 py-2.5 text-sm text-[#1d3a2b] outline-none transition focus:border-[#1d3a2b]"
+                    placeholder=" "
+                    value={contactForm.message}
+                    onChange={(event) => updateContactField("message", event.target.value)}
+                    className="peer w-full resize-none rounded-2xl border border-[#e9e5da] bg-[#fffdf9]/80 px-4 pt-5 text-sm text-[#1d3a2b] outline-none transition-colors duration-200 placeholder-transparent focus:border-[#1d3a2b]"
                   />
-                </label>
-                <label className="block space-y-2 text-xs font-bold uppercase tracking-wider text-[#1d3a2b]/70">
-                  EMAIL ADDRESS
-                  <input
-                    type="email"
-                    required
-                    className="w-full mt-1.5 rounded-sm border border-[#e9e5da] bg-[#fffdf9]/50 px-4 py-2.5 text-sm text-[#1d3a2b] outline-none transition focus:border-[#1d3a2b]"
-                  />
-                </label>
-              </div>
-              <label className="block space-y-2 text-xs font-bold uppercase tracking-wider text-[#1d3a2b]/70">
-                YOUR MESSAGE
-                <textarea
-                  rows={5}
-                  required
-                  className="w-full mt-1.5 rounded-sm border border-[#e9e5da] bg-[#fffdf9]/50 px-4 py-2.5 text-sm text-[#1d3a2b] outline-none transition focus:border-[#1d3a2b] resize-none"
-                />
-              </label>
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  className="bg-[#e59b27] px-6 py-2.5 text-[12px] font-bold uppercase tracking-[0.1em] text-[#1d3a2b] border-2 border-dashed border-[#1d3a2b]/40 rounded-sm transition-all hover:bg-[#d9911f]"
-                >
-                  SUBMIT
-                </button>
-              </div>
-            </form>
-          </div>
+                  <motion.label
+                    htmlFor="contact-message"
+                    initial={false}
+                    animate={{ y: contactForm.message ? -8 : 0, scale: contactForm.message ? 0.92 : 1 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className={`pointer-events-none absolute left-4 text-[#1d3a2b]/55 transition-all duration-200 ${contactForm.message ? "top-2 text-[11px] uppercase tracking-[0.18em] text-[#1d3a2b]" : "top-4 text-sm"} peer-focus:top-2 peer-focus:text-[11px] peer-focus:uppercase peer-focus:tracking-[0.18em] peer-focus:text-[#1d3a2b]`}
+                  >
+                    Your message
+                  </motion.label>
+                </div>
+
+                <AnimatePresence mode="wait">
+                  {contactStatus === "sent" ? (
+                    <motion.div
+                      key="sent"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.35, ease: brandEase }}
+                      className="rounded-2xl border border-emerald-700/10 bg-emerald-50/80 px-4 py-3 text-sm font-medium text-emerald-900"
+                    >
+                      Message sent. We&apos;ll be in touch soon.
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+
+                <div className="flex justify-end">
+                  <Button variant="primary" size="md" type="submit" disabled={contactStatus === "sending"}>
+                    {contactStatus === "sending" ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Sending
+                      </span>
+                    ) : (
+                      "SUBMIT"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </ScrollRevealItem>
+          </ScrollRevealGroup>
         </div>
       </section>
 
@@ -765,10 +922,10 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          variants={scaleIn}
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
           className="w-full max-w-7xl px-6 flex justify-center mix-blend-multiply"
         >
           <Image
@@ -835,10 +992,10 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             
             {/* Chef Girl Mascot Sticker */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, rotate: -2 }}
-              whileInView={{ opacity: 1, scale: 1, rotate: -2 }}
+              variants={scaleIn}
+              initial="hidden"
+              whileInView="visible"
               viewport={{ once: true }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
               className="relative z-30 w-[240px] sm:w-[320px] drop-shadow-[0_8px_16px_rgba(0,0,0,0.12)] cursor-pointer"
               whileHover={{ scale: 1.05, rotate: -4 }}
             >
@@ -856,12 +1013,12 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
           <motion.div
             variants={staggerContainer}
             initial="hidden"
-            whileInView="show"
+            whileInView="visible"
             viewport={{ once: true }}
             className="w-full lg:w-1/2 flex flex-col justify-center text-left"
           >
             <motion.h2
-              variants={revealUp}
+              variants={fadeUp}
               className="font-heading leading-[0.9] text-[#1d3a2b] flex flex-col"
             >
               <span className="text-5xl sm:text-7xl font-bold uppercase tracking-wider">Viet</span>
@@ -874,7 +1031,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             </motion.h2>
 
             <motion.p
-              variants={revealUp}
+              variants={fadeUp}
               className="mt-6 max-w-lg text-sm sm:text-base leading-relaxed text-[#1d3a2b]/80 font-sans"
             >
               For Mr. Spring & Mrs. Fresh, every meal is a shared memory. Taste the authentic dishes we
@@ -883,7 +1040,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
             </motion.p>
 
             <motion.div
-              variants={revealUp}
+              variants={fadeUp}
               className="mt-8 flex flex-wrap gap-4"
             >
               <button
@@ -946,14 +1103,15 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
           <nav className="flex flex-wrap justify-center gap-6 text-[13px] font-semibold uppercase tracking-[0.1em]">
             {["home", "assistant", "menu", "dashboard", "research"].map(
               (item) => (
-                <button
+                <Button
                   key={item}
-                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="border-none bg-transparent hover:bg-transparent hover:text-accent"
                   onClick={() => onNavigate(item)}
-                  className="text-[#f4f1ea]/70 transition-colors hover:text-[#e59b27]"
                 >
                   {item === "assistant" ? "FOOD" : item.toUpperCase()}
-                </button>
+                </Button>
               )
             )}
           </nav>
@@ -983,12 +1141,11 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
 
       {/* Floating Scroll to Top button */}
       {showScrollTop && (
-        <motion.button
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
+        <Button
+          variant="primary"
+          size="sm"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-8 right-8 z-50 flex h-10 w-10 items-center justify-center bg-[#e59b27] text-[#1d3a2b] border-2 border-dashed border-[#1d3a2b]/30 rounded-sm shadow-md transition-all hover:bg-[#d9911f] active:scale-[1.10] cursor-pointer"
+          className="fixed bottom-8 right-8 z-50 h-10 w-10 !rounded-full p-0"
           title="Back to Top"
         >
           <svg
@@ -1000,7 +1157,7 @@ export default function LandingView({ onNavigate }: LandingViewProps) {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
           </svg>
-        </motion.button>
+        </Button>
       )}
     </div>
   );

@@ -37,15 +37,15 @@ export default function PromptInput({
 
   return (
     <div className="w-full mt-6">
-      <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-2 flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-brand"></span>
+      <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-[#1d3a2b]/70">
+        <span className="h-2 w-2 rounded-full bg-[#e59b27]"></span>
         III. Whisper Your Heart's Desires
       </h2>
 
-      <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4">
+      <div className="flex flex-col gap-4 rounded-[1.75rem] border border-[#e9e5da] bg-white/80 p-6 shadow-[0_14px_40px_rgba(29,58,43,0.06)] backdrop-blur-sm">
         <div className="relative">
           <textarea
-            className="w-full bg-white/40 border border-cyber-border rounded-xl p-4 text-amber-950 placeholder-amber-900/60 focus:outline-none focus:border-brand/60 focus:ring-1 focus:ring-brand/30 transition-all duration-300 resize-none font-serif text-sm"
+            className="w-full resize-none rounded-2xl border border-[#e9e5da] bg-[#fffdf9]/80 p-4 text-sm text-[#1d3a2b] placeholder:text-[#1d3a2b]/40 focus:border-[#1d3a2b] focus:outline-none focus:ring-2 focus:ring-[#e59b27]/15 transition-colors duration-200"
             rows={4}
             maxLength={maxLength}
             placeholder="What does your heart crave? e.g., 'A rich, creamy bowl of wild forest mushrooms and hand-pulled noodles, flavored with fresh cream and wild scallions under 300 gold coins'..."
@@ -53,20 +53,20 @@ export default function PromptInput({
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyPress}
           />
-          <div className="absolute bottom-3 right-3 text-xs text-amber-900/60 font-semibold font-serif">
+          <div className="absolute bottom-3 right-3 text-xs font-semibold text-[#1d3a2b]/45">
             {value.length}/{maxLength}
           </div>
         </div>
 
         {/* Suggestion Chips */}
         <div>
-          <p className="text-xs text-amber-900/80 mb-2 font-medium font-serif italic">Looking for inspiration? Whisper a preset craving:</p>
+          <p className="mb-2 text-xs font-medium italic text-[#1d3a2b]/72">Looking for inspiration? Whisper a preset craving:</p>
           <div className="flex flex-wrap gap-2">
             {suggestions.map((suggestion) => (
               <button
                 key={suggestion}
                 onClick={() => handleSuggestionClick(suggestion)}
-                className="text-xs bg-cyber-card/70 hover:bg-brand/10 border border-cyber-border hover:border-brand/30 text-amber-950 hover:text-brand px-3 py-1.5 rounded-full transition-all duration-300 font-serif font-medium"
+                className="rounded-full border border-[#e9e5da] bg-white px-3 py-1.5 text-xs font-medium text-[#1d3a2b] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#1d3a2b]/25 hover:bg-[#1d3a2b]/5"
               >
                 📜 {suggestion.split(" ").slice(0, 3).join(" ")}...
               </button>
@@ -79,9 +79,9 @@ export default function PromptInput({
           <button
             onClick={() => value.trim() && onSubmit(value)}
             disabled={!value.trim() || isLoading}
-            className={`flex items-center gap-2 px-6 py-3 font-semibold rounded-xl text-white transition-all duration-300 shadow-[0_4px_20px_rgba(139,38,62,0.15)] hover:shadow-[0_4px_25px_rgba(139,38,62,0.3)] ${!value.trim() || isLoading
-                ? "bg-amber-900/10 text-amber-950/40 cursor-not-allowed border border-cyber-border shadow-none"
-                : "bg-gradient-to-r from-brand to-brand-dark hover:scale-[1.03] active:scale-[0.98]"
+            className={`flex items-center gap-2 rounded-full border px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] transition-all duration-300 ${!value.trim() || isLoading
+                ? "cursor-not-allowed border-[#e9e5da] bg-[#fffdf9]/50 text-[#1d3a2b]/30"
+                : "border-transparent bg-[#1d3a2b] text-[#f8f3e6] shadow-[0_18px_40px_rgba(29,58,43,0.16)] hover:-translate-y-0.5 hover:bg-[#e59b27] hover:text-[#1d3a2b]"
               }`}
           >
             {isLoading ? (

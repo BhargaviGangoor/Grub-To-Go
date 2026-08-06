@@ -25,21 +25,21 @@ export default function BudgetInput({ onChange }: BudgetInputProps) {
 
   return (
     <div className="w-full">
-      <h3 className="text-xs font-bold text-brand/80 mb-3.5 uppercase tracking-wider">
+      <h3 className="mb-3.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#1d3a2b]/70">
         Maximum Budget Constraint
       </h3>
 
       <div className="flex flex-col gap-3">
         {/* Styled numeric input with prefix */}
-        <div className="relative rounded-xl overflow-hidden shadow-sm">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand font-bold text-lg">
+        <div className="relative overflow-hidden rounded-2xl border border-[#e9e5da] bg-white/80 shadow-[0_10px_24px_rgba(29,58,43,0.05)]">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-lg font-bold text-[#1d3a2b]">
             ₹
           </div>
           <input
             type="number"
             min="50"
             max="5000"
-            className="block w-full bg-white border border-zinc-300 rounded-xl pl-9 pr-4 py-3 text-brand placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all text-sm font-semibold"
+            className="block w-full rounded-2xl border-0 bg-transparent py-3 pl-9 pr-4 text-sm font-semibold text-[#1d3a2b] placeholder:text-[#1d3a2b]/35 focus:outline-none focus:ring-0"
             placeholder="Enter maximum budget (e.g., 300)"
             value={budgetValue}
             onChange={(e) => handleInputChange(e.target.value)}
@@ -52,10 +52,10 @@ export default function BudgetInput({ onChange }: BudgetInputProps) {
             <button
               key={preset.value}
               onClick={() => handlePresetClick(preset.value)}
-              className={`flex-1 text-xs border py-2.5 rounded-xl transition-all duration-200 font-bold ${
+              className={`flex-1 rounded-full border px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] transition-all duration-200 ${
                 budgetValue === preset.value.toString()
-                  ? "bg-brand text-white border-brand shadow-sm"
-                  : "bg-white border-zinc-200 hover:border-brand/40 text-brand/80 hover:text-brand"
+                  ? "border-transparent bg-[#1d3a2b] text-[#f8f3e6] shadow-[0_14px_28px_rgba(29,58,43,0.14)]"
+                  : "border-[#e9e5da] bg-white text-[#1d3a2b]/72 hover:-translate-y-0.5 hover:border-[#1d3a2b]/20 hover:bg-[#1d3a2b]/5 hover:text-[#1d3a2b]"
               }`}
             >
               ₹{preset.value} <span className="text-[10px] opacity-80 block md:inline">({preset.label})</span>

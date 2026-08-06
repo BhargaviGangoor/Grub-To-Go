@@ -33,7 +33,7 @@ export default function DietaryFilters({ onChange }: DietaryFiltersProps) {
 
   return (
     <div className="w-full">
-      <h3 className="text-xs font-bold text-brand/80 mb-3.5 uppercase tracking-wider">
+      <h3 className="mb-3.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#1d3a2b]/70">
         Dietary Preferences
       </h3>
       <div className="flex flex-wrap gap-2.5">
@@ -43,10 +43,10 @@ export default function DietaryFilters({ onChange }: DietaryFiltersProps) {
             <button
               key={opt.label}
               onClick={() => toggle(opt.label)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-xs rounded-full border transition-all duration-200 font-bold ${
+              className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-all duration-200 ${
                 isSelected
-                  ? "bg-brand text-white border-brand shadow-sm scale-[1.02]"
-                  : "bg-white border-zinc-200 hover:border-brand/40 text-brand/80 hover:text-brand"
+                  ? "border-transparent bg-[#1d3a2b] text-[#f8f3e6] shadow-[0_14px_28px_rgba(29,58,43,0.14)] scale-[1.02]"
+                  : "border-[#e9e5da] bg-white text-[#1d3a2b]/72 hover:-translate-y-0.5 hover:border-[#1d3a2b]/20 hover:bg-[#1d3a2b]/5 hover:text-[#1d3a2b]"
               }`}
             >
               <span>{opt.icon}</span>

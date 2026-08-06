@@ -72,8 +72,8 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
 
   return (
     <div className="w-full">
-      <h2 className="text-xs font-bold text-brand/80 mb-3.5 uppercase tracking-wider flex items-center gap-2">
-        <span className="w-2.5 h-2.5 rounded-full bg-brand"></span>
+      <h2 className="mb-3.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#1d3a2b]/70">
+        <span className="h-2.5 w-2.5 rounded-full bg-[#e59b27]"></span>
         I. Visual Reference Inputs (Optional)
       </h2>
 
@@ -82,10 +82,10 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
         onDragOver={handleDrag}
         onDragLeave={handleDrag}
         onDrop={handleDrop}
-        className={`rounded-2xl p-8 flex flex-col items-center justify-center transition-all duration-200 border-2 border-dashed bg-white ${
+        className={`flex flex-col items-center justify-center rounded-[1.75rem] border-2 border-dashed p-8 transition-all duration-200 bg-white/80 ${
           isDragActive
-            ? "border-brand-orange bg-brand-cream/50 scale-[1.01]"
-            : "border-zinc-200 hover:border-brand/40"
+            ? "border-[#e59b27] bg-[#fff7ea] scale-[1.01]"
+            : "border-[#e9e5da] hover:border-[#1d3a2b]/30"
         }`}
       >
         <input
@@ -102,9 +102,9 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
             onClick={() => fileInputRef.current?.click()}
             className="flex flex-col items-center cursor-pointer text-center group"
           >
-            <div className="w-16 h-16 rounded-full bg-brand/10 flex items-center justify-center mb-4 group-hover:bg-brand/20 transition-all duration-200 group-hover:scale-105">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#1d3a2b]/10 transition-all duration-200 group-hover:scale-105 group-hover:bg-[#1d3a2b]/15">
               <svg
-                className="w-8 h-8 text-brand"
+                className="h-8 w-8 text-[#1d3a2b]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -117,10 +117,10 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
                 />
               </svg>
             </div>
-            <p className="text-brand font-bold text-base mb-1">
-              Drag and drop reference images here, or <span className="text-brand-orange hover:underline">browse files</span>
+            <p className="mb-1 text-base font-semibold text-[#1d3a2b]">
+              Drag and drop reference images here, or <span className="text-[#e59b27] hover:underline">browse files</span>
             </p>
-            <p className="text-xs text-zinc-500 font-semibold">
+            <p className="text-xs font-semibold text-[#1d3a2b]/52">
               Accepts PNG, JPG, or WEBP (Max 3, up to 5MB each)
             </p>
           </div>
@@ -128,7 +128,7 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
           <div className="w-full">
             <div className="grid grid-cols-3 gap-4 mb-6">
               {images.map((img) => (
-                <div key={img.id} className="relative group aspect-square rounded-xl overflow-hidden border border-zinc-200 bg-zinc-50">
+                <div key={img.id} className="relative group aspect-square overflow-hidden rounded-2xl border border-[#e9e5da] bg-[#faf7f0]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={img.url}
@@ -137,7 +137,7 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
                   />
                   <button
                     onClick={() => removeImage(img.id)}
-                    className="absolute top-2 right-2 p-1.5 bg-red-800/80 hover:bg-red-900 text-white rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-105"
+                    className="absolute right-2 top-2 rounded-full bg-red-800/80 p-1.5 text-white opacity-0 transition-all duration-200 hover:scale-105 group-hover:opacity-100 hover:bg-red-900"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -149,22 +149,22 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
               {images.length < 3 && (
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="aspect-square rounded-xl border border-dashed border-zinc-200 hover:border-brand/40 bg-zinc-50 flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 group"
+                  className="group flex aspect-square cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[#e9e5da] bg-white/70 transition-colors duration-200 hover:border-[#1d3a2b]/30"
                 >
                   <svg
-                    className="w-6 h-6 text-zinc-400 group-hover:text-brand transition-colors duration-200"
+                    className="h-6 w-6 text-[#1d3a2b]/35 transition-colors duration-200 group-hover:text-[#1d3a2b]"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  <span className="text-xs text-zinc-500 mt-2 font-bold">Add more</span>
+                  <span className="mt-2 text-xs font-semibold text-[#1d3a2b]/58">Add more</span>
                 </div>
               )}
             </div>
 
-            <div className="flex justify-between items-center text-xs text-zinc-500 border-t border-zinc-100 pt-4 font-semibold">
+            <div className="flex items-center justify-between border-t border-[#e9e5da] pt-4 text-xs font-semibold text-[#1d3a2b]/52">
               <span>{images.length} of 3 reference images loaded</span>
               <button
                 onClick={() => {
@@ -172,7 +172,7 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
                   setImages([]);
                   if (onImagesChange) onImagesChange([]);
                 }}
-                className="text-brand hover:text-red-700 transition-colors font-bold"
+                className="font-semibold text-[#1d3a2b] transition-colors hover:text-red-700"
               >
                 Clear all
               </button>
