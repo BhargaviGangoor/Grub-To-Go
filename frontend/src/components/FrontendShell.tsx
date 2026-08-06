@@ -1,11 +1,12 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
   Sparkles,
   ShieldCheck,
 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import LandingView from "@/components/landing/LandingView";
 import GenerateView from "@/components/GenerateView";
 import ArtifactView from "@/components/ArtifactView";
@@ -354,6 +355,7 @@ function AppHeader({
   authMode: AuthMode;
   onNavigate: (screen: Screen) => void;
 }) {
+  const [isCompact, setIsCompact] = useState(false);
   const navItems: Array<{ label: string; screen: Screen }> = [
     { label: "HOME", screen: "home" },
     { label: "ASSISTANT", screen: "assistant" },
@@ -362,22 +364,42 @@ function AppHeader({
     { label: "RESEARCH", screen: "research" },
   ];
 
+  useEffect(() => {
+    const handleScroll = () => setIsCompact(window.scrollY > 96);
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-40 bg-[#2c4a2f] text-[#f4f1ea] shadow-[0_4px_20px_rgba(0,0,0,0.15)]">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-0">
+    <motion.header
+      className={`sticky top-0 z-40 border-b border-transparent text-[#1d3a2b] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        isCompact
+          ? "bg-[#f4f1ea]/92 shadow-[0_18px_50px_rgba(29,58,43,0.12)] backdrop-blur-xl"
+          : "bg-transparent"
+      }`}
+      animate={{
+        height: isCompact ? 72 : 84,
+      }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+    >
+      <div className={`mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${isCompact ? "py-2.5" : "py-4"}`}>
         {/* ── Logo ── */}
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          className="group border-none bg-transparent px-0 py-0 shadow-none hover:bg-transparent"
           onClick={() => onNavigate("home")}
-          className="flex items-center gap-2.5 py-3 transition-opacity hover:opacity-85"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e59b27]/20">
-            <Sparkles className="h-4 w-4 text-[#e59b27]" />
+          <div className={`flex items-center gap-3 transition-transform duration-300 ${isCompact ? "scale-[0.92]" : "scale-100"}`}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1d3a2b] text-[#f4f1ea] shadow-[0_12px_24px_rgba(29,58,43,0.2)]">
+              <Sparkles className="h-4 w-4 text-[#f6c665]" />
+            </div>
+            <span className="text-lg font-extrabold tracking-[-0.03em] text-[#1d3a2b] transition-all duration-300 group-hover:opacity-90 sm:text-xl">
+              GrubToGo
+            </span>
           </div>
-          <span className="text-lg font-extrabold tracking-tight text-[#f4f1ea]">
-            GrubToGo
-          </span>
-        </button>
+        </Button>
 
         {/* ── Navigation links ── */}
         <nav className="hidden items-center gap-1 md:flex">
@@ -387,65 +409,66 @@ function AppHeader({
               <button
                 key={item.screen}
                 type="button"
-                onClick={() => onNavigate(item.screen)}
-                className={`relative px-4 py-4 text-[13px] font-semibold tracking-[0.08em] transition-colors ${
-                  active
-                    ? "text-[#f4f1ea]"
-                    : "text-[#f4f1ea]/65 hover:text-[#f4f1ea]"
+                className={`group relative rounded-full px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] transition-colors duration-200 ${
+                  active ? "text-[#1d3a2b]" : "text-[#1d3a2b]/58 hover:text-[#1d3a2b]"
                 }`}
+                onClick={() => onNavigate(item.screen)}
               >
-                {item.label}
-                {/* Active underline indicator */}
-                {active && (
-                  <motion.span
-                    layoutId="nav-underline"
-                    className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full bg-[#e59b27]"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
+                <span>{item.label}</span>
+                <motion.span
+                  className={`absolute left-3 right-3 bottom-1 h-px origin-left bg-[#e59b27] transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                    active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                  }`}
+                  initial={false}
+                  animate={{ scaleX: active ? 1 : 0 }}
+                  whileHover={{ scaleX: 1 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                />
               </button>
             );
           })}
         </nav>
 
         {/* ── CTA Button (stamp/ticket style) ── */}
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="sm"
+          className="shrink-0"
           onClick={() => onNavigate("assistant")}
-          className="bg-[#e59b27] px-4 py-2 text-[13px] font-extrabold tracking-[0.06em] text-[#1d3a2b] border-2 border-dashed border-[#1d3a2b]/40 rounded-sm transition-all hover:bg-[#d9911f] active:scale-[0.97]"
         >
           ORDER NOW
-        </button>
+        </Button>
       </div>
 
       {/* ── Mobile nav (hamburger-free, scrollable row) ── */}
-      <div className="flex items-center gap-2 overflow-x-auto border-t border-white/10 px-4 py-2 md:hidden">
-        <button
-          type="button"
+      <div className="flex items-center gap-2 overflow-x-auto border-t border-[#1d3a2b]/8 px-4 py-2 md:hidden">
+        <Button
+          variant="primary"
+          size="sm"
           onClick={() => onNavigate("assistant")}
-          className="shrink-0 bg-[#e59b27] px-3 py-1.5 text-[11px] font-extrabold tracking-[0.06em] text-[#1d3a2b] border-2 border-dashed border-[#1d3a2b]/40 rounded-sm transition-all hover:bg-[#d9911f] active:scale-[0.97]"
+          className="shrink-0"
         >
           ORDER NOW
-        </button>
+        </Button>
         {navItems.map((item) => {
           const active = screen === item.screen;
           return (
             <button
               key={item.screen}
               type="button"
-              onClick={() => onNavigate(item.screen)}
-              className={`shrink-0 whitespace-nowrap px-3 py-2 text-[11px] font-semibold tracking-[0.08em] transition-colors ${
+              className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] transition-all duration-200 ${
                 active
-                  ? "border-b-2 border-[#e59b27] text-[#f4f1ea]"
-                  : "text-[#f4f1ea]/55 hover:text-[#f4f1ea]"
+                  ? "border-[#1d3a2b] bg-white/80 text-[#1d3a2b]"
+                  : "border-[#1d3a2b]/12 bg-white/40 text-[#1d3a2b]/60 hover:border-[#1d3a2b]/24 hover:text-[#1d3a2b]"
               }`}
+              onClick={() => onNavigate(item.screen)}
             >
               {item.label}
             </button>
           );
         })}
       </div>
-    </header>
+    </motion.header>
   );
 }
 
@@ -508,14 +531,14 @@ function AssistantWorkspace({
                 Phase 1 chat interface for natural language ordering.
               </p>
             </div>
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => onNavigate("advanced")}
-              className="inline-flex items-center gap-2 rounded-full bg-[#1d3a2b] px-4 py-2 text-sm font-semibold text-[#f4f1ea] transition hover:bg-[#14281e]"
             >
               Open advanced generator
-              <ArrowRight className="h-4 w-4 text-[#e59b27]" />
-            </button>
+              <ArrowRight className="h-4 w-4 text-accent" />
+            </Button>
           </div>
 
           <div className="mt-5 space-y-3 rounded-2xl bg-[#fffdf9] p-4 max-h-[450px] overflow-y-auto">
@@ -586,13 +609,13 @@ function AssistantWorkspace({
               state.
             </p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => onNavigate("menu")}
-            className="rounded-full border border-[#e9e5da] bg-white px-4 py-2 text-sm font-semibold text-[#1d3a2b] transition hover:border-[#1d3a2b]/30 hover:bg-[#fffdf9]"
           >
             Browse full menu
-          </button>
+          </Button>
         </div>
 
         <DishCard
@@ -642,30 +665,28 @@ function MenuWorkspace({
             Browse our full authentic 28-dish Parisian café menu with live stock & pricing.
           </p>
         </div>
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="sm"
           onClick={() => onNavigate("assistant")}
-          className="inline-flex items-center gap-2 rounded-full bg-[#1d3a2b] px-4 py-2 text-sm font-semibold text-[#f4f1ea] transition hover:bg-[#14281e]"
         >
           Ask the assistant
-          <ArrowRight className="h-4 w-4 text-[#e59b27]" />
-        </button>
+          <ArrowRight className="h-4 w-4 text-accent" />
+        </Button>
       </div>
 
       {/* Category Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-[#e9e5da]">
         {categories.map((cat) => (
-          <button
+          <Button
             key={cat.id}
+            variant={selectedCategory === cat.id ? "primary" : "secondary"}
+            size="sm"
             onClick={() => setSelectedCategory(cat.id)}
-            className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition cursor-pointer ${
-              selectedCategory === cat.id
-                ? "bg-[#1d3a2b] text-[#f4f1ea] shadow-xs"
-                : "bg-white text-[#1d3a2b] border border-[#e9e5da] hover:bg-[#fffdf9]"
-            }`}
+            className="whitespace-nowrap"
           >
             {cat.label}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -702,14 +723,14 @@ function DashboardWorkspace({
             actions.
           </p>
         </div>
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => onNavigate("login")}
-          className="inline-flex items-center gap-2 rounded-full border border-[#e9e5da] bg-white px-4 py-2 text-sm font-semibold text-[#1d3a2b] transition hover:border-[#1d3a2b]/30 hover:bg-[#fffdf9]"
         >
-          <ShieldCheck className="h-4 w-4 text-[#e59b27]" />
+          <ShieldCheck className="h-4 w-4 text-accent" />
           Review account
-        </button>
+        </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -754,14 +775,14 @@ function DashboardWorkspace({
             Return to the assistant to refine constraints, compare menu options,
             or start an advanced generation flow.
           </p>
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => onNavigate("assistant")}
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#e59b27] px-4 py-2 text-sm font-semibold text-[#1d3a2b] transition hover:bg-[#d9911f]"
           >
             Open assistant
             <ArrowRight className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -814,29 +835,23 @@ function AuthWorkspace({
       </div>
 
       <div className="rounded-3xl border border-[#e9e5da] bg-white p-6 shadow-sm">
-        <div className="flex gap-2 rounded-full bg-[#fffdf9] p-1">
-          <button
-            type="button"
+        <div className="flex gap-2 rounded-full bg-secondary p-1">
+          <Button
+            variant={mode === "login" ? "primary" : "secondary"}
+            size="sm"
             onClick={() => onModeChange("login")}
-            className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition ${
-              mode === "login"
-                ? "bg-[#1d3a2b] text-[#f4f1ea]"
-                : "text-[#1d3a2b]/70"
-            }`}
+            className="flex-1"
           >
             Login
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant={mode === "register" ? "primary" : "secondary"}
+            size="sm"
             onClick={() => onModeChange("register")}
-            className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition ${
-              mode === "register"
-                ? "bg-[#1d3a2b] text-[#f4f1ea]"
-                : "text-[#1d3a2b]/70"
-            }`}
+            className="flex-1"
           >
             Register
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -874,13 +889,15 @@ function AuthWorkspace({
             />
           </label>
 
-          <button
+          <Button
             type="submit"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1d3a2b] px-4 py-3 text-sm font-semibold text-[#f4f1ea] transition hover:bg-[#14281e]"
+            variant="primary"
+            size="lg"
+            className="w-full"
           >
             {mode === "login" ? "Login and continue" : "Create account"}
-            <ArrowRight className="h-4 w-4 text-[#e59b27]" />
-          </button>
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </form>
       </div>
     </div>
@@ -938,14 +955,14 @@ export default function FrontendShell() {
                   Secondary security-focused surface for the commitment tooling.
                 </p>
               </div>
-              <button
-                type="button"
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={() => handleNavigate("advanced")}
-                className="inline-flex items-center gap-2 rounded-full bg-[#1d3a2b] px-4 py-2 text-sm font-semibold text-[#f4f1ea] transition hover:bg-[#14281e]"
               >
                 Open advanced generator
-                <ArrowRight className="h-4 w-4 text-[#e59b27]" />
-              </button>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
             <ResearchDashboardView />
           </div>
@@ -953,13 +970,13 @@ export default function FrontendShell() {
       case "advanced":
         return (
           <div className="mx-auto w-full max-w-7xl px-4 py-8 space-y-4">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setScreen("assistant")}
-              className="rounded-full border border-[#e9e5da] bg-white/80 px-4 py-2 text-sm font-semibold text-[#1d3a2b] shadow-sm backdrop-blur transition hover:bg-white"
             >
               Back to assistant
-            </button>
+            </Button>
             <GenerateView onNavigate={handleNavigate} />
           </div>
         );
