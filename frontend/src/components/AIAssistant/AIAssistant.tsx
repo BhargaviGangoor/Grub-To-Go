@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FloatingButton } from "./FloatingButton";
 import { ChatWindow } from "./ChatWindow";
-import { useChat } from "./useChat";
 import { useSharedChat } from "@/context/ChatContext";
 
 /**
